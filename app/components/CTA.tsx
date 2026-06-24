@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 
 export function CTA() {
   return (
-    <section style={{ padding: "112px 80px", background: "var(--cream)" }}>
+    <section id="get-started" style={{ padding: "112px 80px", background: "var(--cream)" }}>
       <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
         <motion.div
           initial={{ opacity: 1, y: 20 }}

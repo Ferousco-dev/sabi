@@ -8,7 +8,7 @@ const CREATOR_POINTS = ["Build courses", "Peer review", "Certification badge", "
 
 export function PersonaCards() {
   return (
-    <section style={{ padding: "112px 80px", background: "var(--cream)" }}>
+    <section id="stakeholders" style={{ padding: "112px 80px", background: "var(--cream)" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         {/* Header */}
         <div style={{ marginBottom: 64 }}>

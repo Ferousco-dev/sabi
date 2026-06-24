@@ -9,6 +9,7 @@ const MISSION_TEXT =
 export function About() {
   return (
     <section
+      id="about"
       style={{
         padding: "112px 80px",
         background: "var(--cream)",

@@ -4,7 +4,7 @@ import { ROADMAP } from "@/app/data/content";
 
 export function Roadmap() {
   return (
-    <section style={{ padding: "96px 80px", background: "white" }}>
+    <section id="roadmap" style={{ padding: "96px 80px", background: "white" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <p
           style={{

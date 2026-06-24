@@ -8,17 +8,29 @@ import { useTypewriter } from "@/app/hooks/useTypewriter";
 import { useVideoScrub } from "@/app/hooks/useVideoScrub";
 import { PILL_LINKS } from "@/app/data/content";
 
-const NAV_LINKS = ["Features", "Roadmap", "Partners", "About"];
+const NAV_LINKS = [
+  { label: "Features",  target: "features" },
+  { label: "Roadmap",   target: "roadmap" },
+  { label: "Partners",  target: "about" },
+  { label: "About",     target: "about" },
+];
+
+const PILL_LINK_TARGETS: Record<string, string> = {
+  Schools:  "stakeholders",
+  Teachers: "stakeholders",
+  Students: "stakeholders",
+  Creators: "stakeholders",
+};
+
 const HERO_VIDEO =
   "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260505_101331_74f9b798-3f00-4e86-8a01-377aa16ffeaa.mp4";
+
 const TYPEWRITER_TEXT =
   "Unifying Nigeria's classrooms — schools, teachers, students, parents and creators on one platform.";
-const PILL_BTNS = [
-  "Pilot your school",
-  "Become a creator",
-  "See how it works",
-  "Contact us",
-];
+
+function scrollTo(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+}
 
 export function Hero() {
   const videoRef = useVideoScrub(0.7);
@@ -31,8 +43,13 @@ export function Hero() {
     return () => clearTimeout(t);
   }, []);
 
+  function closeAndScroll(id: string) {
+    setNavOpen(false);
+    setTimeout(() => scrollTo(id), 300);
+  }
+
   return (
-    <section style={{ padding: "16px", paddingBottom: 0 }}>
+    <section id="home" style={{ padding: "16px", paddingBottom: 0 }}>
       {/* ── Hero box ── */}
       <div
         style={{
@@ -88,7 +105,10 @@ export function Hero() {
           }}
         >
           {/* Logo */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div
+            style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}
+            onClick={() => scrollTo("home")}
+          >
             <div
               style={{
                 width: 36,
@@ -114,11 +134,12 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Desktop nav links — hidden on mobile */}
+          {/* Desktop nav links */}
           <div className="hidden md:flex" style={{ alignItems: "center", gap: 4 }}>
-            {NAV_LINKS.map((l) => (
+            {NAV_LINKS.map(({ label, target }) => (
               <button
-                key={l}
+                key={label}
+                onClick={() => scrollTo(target)}
                 style={{
                   fontSize: 13,
                   fontWeight: 600,
@@ -129,19 +150,26 @@ export function Hero() {
                   border: "none",
                   cursor: "pointer",
                   fontFamily: "var(--font-display)",
-                  transition: "color 0.2s",
+                  transition: "color 0.2s, background 0.2s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "white";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+                  e.currentTarget.style.background = "transparent";
+                }}
               >
-                {l}
+                {label}
               </button>
             ))}
           </div>
 
-          {/* Desktop CTA — hidden on mobile */}
+          {/* Desktop CTA */}
           <button
             className="hidden md:block"
+            onClick={() => scrollTo("get-started")}
             style={{
               fontSize: 13,
               fontWeight: 700,
@@ -152,14 +180,19 @@ export function Hero() {
               border: "none",
               cursor: "pointer",
               fontFamily: "var(--font-display)",
+              transition: "opacity 0.2s",
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
             Pilot Your School
           </button>
 
-          {/* Mobile hamburger — shown only on mobile */}
+          {/* Mobile hamburger */}
           <button
             className="flex md:hidden"
+            onClick={() => setNavOpen(true)}
+            aria-label="Open menu"
             style={{
               background: "rgba(255,255,255,0.1)",
               border: "1px solid rgba(255,255,255,0.18)",
@@ -171,8 +204,6 @@ export function Hero() {
               cursor: "pointer",
               color: "white",
             }}
-            onClick={() => setNavOpen(true)}
-            aria-label="Open menu"
           >
             <Menu size={22} />
           </button>
@@ -196,13 +227,7 @@ export function Hero() {
           {/* Blurred label */}
           <p
             className="pointer-events-none select-none"
-            style={{
-              color: "white",
-              fontSize: 14,
-              fontWeight: 400,
-              lineHeight: 1.5,
-              filter: "blur(3.5px)",
-            }}
+            style={{ color: "white", fontSize: 14, fontWeight: 400, lineHeight: 1.5, filter: "blur(3.5px)" }}
           >
             No Dey Dull – Learn Well-Well!
             <br />
@@ -211,14 +236,7 @@ export function Hero() {
 
           {/* Typewriter */}
           <p
-            style={{
-              color: "white",
-              fontSize: 22,
-              fontWeight: 600,
-              lineHeight: 1.45,
-              maxWidth: 680,
-              minHeight: 60,
-            }}
+            style={{ color: "white", fontSize: 22, fontWeight: 600, lineHeight: 1.45, maxWidth: 680, minHeight: 60 }}
           >
             {displayed}
             {!done && (
@@ -248,14 +266,7 @@ export function Hero() {
             }}
           >
             <WordsPullUp text="One platform." delay={0.1} />{" "}
-            <span
-              style={{
-                fontFamily: "var(--font-serif)",
-                fontStyle: "italic",
-                fontWeight: 400,
-                color: "var(--gold)",
-              }}
-            >
+            <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 400, color: "var(--gold)" }}>
               <WordsPullUp text="Five stakeholders." delay={0.28} />
             </span>{" "}
             <WordsPullUp text="All of Nigeria." delay={0.48} />
@@ -273,9 +284,15 @@ export function Hero() {
               transition: "opacity 0.4s ease, transform 0.4s ease",
             }}
           >
-            {PILL_BTNS.map((label, i) => (
+            {[
+              { label: "Pilot your school",   action: () => scrollTo("get-started"),  primary: true },
+              { label: "Become a creator",     action: () => scrollTo("stakeholders"), primary: false },
+              { label: "See how it works",     action: () => scrollTo("features"),     primary: false },
+              { label: "Contact us",           action: () => window.location.href = "mailto:sabihub@omobile.world", primary: false },
+            ].map(({ label, action, primary }) => (
               <button
                 key={label}
+                onClick={action}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -286,16 +303,13 @@ export function Hero() {
                   whiteSpace: "nowrap",
                   cursor: "pointer",
                   fontFamily: "var(--font-display)",
-                  border: "none",
                   transition: "opacity 0.2s",
-                  ...(i === 0
-                    ? { background: "var(--gold)", color: "var(--teal)" }
-                    : {
-                        background: "rgba(255,255,255,0.1)",
-                        color: "rgba(255,255,255,0.8)",
-                        border: "1px solid rgba(255,255,255,0.18)",
-                      }),
+                  ...(primary
+                    ? { background: "var(--gold)", color: "var(--teal)", border: "none" }
+                    : { background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.85)", border: "1px solid rgba(255,255,255,0.18)" }),
                 }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
               >
                 {label}
               </button>
@@ -321,7 +335,7 @@ export function Hero() {
               display: "flex",
               alignItems: "center",
               gap: 4,
-              padding: "6px 6px",
+              padding: "6px",
               borderRadius: 99,
               background: "rgba(255,255,255,0.1)",
               backdropFilter: "blur(24px)",
@@ -330,8 +344,9 @@ export function Hero() {
               whiteSpace: "nowrap",
             }}
           >
-            {/* Star logo circle */}
+            {/* Logo circle */}
             <div
+              onClick={() => scrollTo("home")}
               style={{
                 width: 36,
                 height: 36,
@@ -340,18 +355,20 @@ export function Hero() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 14,
+                overflow: "hidden",
                 marginRight: 4,
                 flexShrink: 0,
                 boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                cursor: "pointer",
               }}
             >
-              ✦
+              <img src="/logo.png" alt="SabiHub" style={{ width: 26, height: 26, objectFit: "contain" }} />
             </div>
 
             {PILL_LINKS.map((l) => (
               <button
                 key={l}
+                onClick={() => scrollTo(PILL_LINK_TARGETS[l] ?? "stakeholders")}
                 style={{
                   fontSize: 12,
                   fontWeight: 600,
@@ -363,15 +380,23 @@ export function Hero() {
                   cursor: "pointer",
                   fontFamily: "var(--font-display)",
                   flexShrink: 0,
+                  transition: "color 0.2s, background 0.2s",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "white";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.12)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+                  e.currentTarget.style.background = "transparent";
+                }}
               >
                 {l}
               </button>
             ))}
 
             <button
+              onClick={() => scrollTo("get-started")}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -388,7 +413,10 @@ export function Hero() {
                 marginLeft: 4,
                 flexShrink: 0,
                 boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                transition: "opacity 0.2s",
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
             >
               Get in touch <ChevronRight size={12} />
             </button>
@@ -406,16 +434,19 @@ export function Hero() {
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
-                padding: "0 32px",
-                gap: 28,
+                padding: "80px 40px 48px",
+                gap: 8,
                 background: "rgba(1,40,48,0.97)",
               }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.25 }}
             >
               {/* Close button */}
               <button
+                onClick={() => setNavOpen(false)}
+                aria-label="Close menu"
                 style={{
                   position: "absolute",
                   top: 24,
@@ -431,17 +462,20 @@ export function Hero() {
                   cursor: "pointer",
                   color: "white",
                 }}
-                onClick={() => setNavOpen(false)}
-                aria-label="Close menu"
               >
                 <X size={20} />
               </button>
 
-              {NAV_LINKS.map((l) => (
-                <button
-                  key={l}
+              {/* Mobile nav links */}
+              {NAV_LINKS.map(({ label, target }, i) => (
+                <motion.button
+                  key={label}
+                  onClick={() => closeAndScroll(target)}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.06, duration: 0.3 }}
                   style={{
-                    fontSize: 30,
+                    fontSize: 32,
                     fontWeight: 800,
                     textAlign: "left",
                     color: "white",
@@ -449,13 +483,40 @@ export function Hero() {
                     border: "none",
                     cursor: "pointer",
                     fontFamily: "var(--font-display)",
-                    letterSpacing: "-0.02em",
+                    letterSpacing: "-0.025em",
+                    padding: "6px 0",
+                    opacity: 1,
+                    transition: "opacity 0.15s",
                   }}
-                  onClick={() => setNavOpen(false)}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.6")}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
                 >
-                  {l}
-                </button>
+                  {label}
+                </motion.button>
               ))}
+
+              {/* Mobile CTA */}
+              <motion.button
+                onClick={() => closeAndScroll("get-started")}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: NAV_LINKS.length * 0.06 + 0.06, duration: 0.3 }}
+                style={{
+                  marginTop: 24,
+                  alignSelf: "flex-start",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  padding: "12px 28px",
+                  borderRadius: 99,
+                  background: "var(--gold)",
+                  color: "var(--teal)",
+                  border: "none",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-display)",
+                }}
+              >
+                Pilot Your School
+              </motion.button>
             </motion.div>
           )}
         </AnimatePresence>

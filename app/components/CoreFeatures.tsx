@@ -161,7 +161,7 @@ const FEATURES = [
 
 export function CoreFeatures() {
   return (
-    <section style={{ padding: "96px 80px", background: "white" }}>
+    <section id="features" style={{ padding: "96px 80px", background: "white" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 56 }}>
