@@ -4,49 +4,120 @@ import { ArrowRight } from "lucide-react";
 
 export function CTA() {
   return (
-    <section className="py-28 px-6 md:px-20" style={{ background: "var(--cream)" }}>
-      <div className="max-w-[900px] mx-auto text-center">
+    <section style={{ padding: "112px 80px", background: "var(--cream)" }}>
+      <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 1, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.01 }}
           transition={{ duration: 0.7 }}
         >
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] mb-7" style={{ color: "var(--gold)" }}>
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 800,
+              textTransform: "uppercase",
+              letterSpacing: "0.14em",
+              color: "var(--gold)",
+              marginBottom: 28,
+            }}
+          >
             Join the revolution
           </p>
           <h2
-            className="text-[36px] md:text-[62px] font-extrabold tracking-[-0.03em] leading-[1.0] mb-6"
-            style={{ color: "var(--teal)" }}
+            style={{
+              fontSize: "clamp(32px, 5vw, 62px)",
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
+              lineHeight: 1.0,
+              color: "var(--teal)",
+              marginBottom: 24,
+            }}
           >
             No Dey Dull —{" "}
-            <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 400, color: "var(--gold)" }}>
+            <span
+              style={{
+                fontFamily: "var(--font-serif)",
+                fontStyle: "italic",
+                fontWeight: 400,
+                color: "var(--gold)",
+              }}
+            >
               Learn Well-Well!
             </span>
           </h2>
           <p
-            className="text-[15px] md:text-[17px] leading-relaxed mb-12 max-w-lg mx-auto"
-            style={{ color: "#6B7A7D" }}
+            style={{
+              fontSize: 17,
+              lineHeight: 1.7,
+              color: "#6B7A7D",
+              maxWidth: 520,
+              margin: "0 auto 48px",
+            }}
           >
             Pilot schools write to us now. Creators start building today. Every student in Nigeria deserves the chance to learn well-well.
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: 12,
+            }}
+          >
             <button
-              className="flex items-center gap-2 text-[14px] font-bold px-7 py-4 rounded-full hover:opacity-90 transition-opacity"
-              style={{ background: "var(--teal)", color: "white" }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 14,
+                fontWeight: 700,
+                padding: "14px 28px",
+                borderRadius: 99,
+                cursor: "pointer",
+                background: "var(--teal)",
+                color: "white",
+                border: "none",
+                fontFamily: "var(--font-display)",
+              }}
             >
               Pilot your school <ArrowRight size={16} />
             </button>
             <button
-              className="flex items-center gap-2 text-[14px] font-bold px-7 py-4 rounded-full hover:opacity-90 transition-opacity"
-              style={{ background: "var(--gold)", color: "var(--teal)" }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 14,
+                fontWeight: 700,
+                padding: "14px 28px",
+                borderRadius: 99,
+                cursor: "pointer",
+                background: "var(--gold)",
+                color: "var(--teal)",
+                border: "none",
+                fontFamily: "var(--font-display)",
+              }}
             >
               Become a creator <ArrowRight size={16} />
             </button>
             <a
               href="mailto:sabihub@omobile.world"
-              className="flex items-center gap-2 text-[14px] font-semibold px-7 py-4 rounded-full transition-all"
-              style={{ color: "var(--teal)", background: "white", border: "1px solid rgba(1,61,71,0.15)" }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: 14,
+                fontWeight: 600,
+                padding: "14px 28px",
+                borderRadius: 99,
+                cursor: "pointer",
+                background: "white",
+                color: "var(--teal)",
+                border: "1px solid rgba(1,61,71,0.15)",
+                textDecoration: "none",
+                fontFamily: "var(--font-display)",
+              }}
             >
               sabihub@omobile.world
             </a>

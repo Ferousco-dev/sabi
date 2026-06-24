@@ -10,7 +10,7 @@ interface Props {
 
 export function WordsPullUp({ text, className = "", delay = 0 }: Props) {
   const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { once: true });
+  const inView = useInView(ref, { once: true, amount: 0.01 });
   const words = text.split(" ");
 
   return (

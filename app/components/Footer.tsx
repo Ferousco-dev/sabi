@@ -1,18 +1,36 @@
 export function Footer() {
   return (
-    <footer className="py-8 px-6 md:px-16" style={{ borderTop: "1px solid rgba(1,61,71,0.1)" }}>
-      <div className="max-w-[1200px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+    <footer style={{ padding: "32px 64px", borderTop: "1px solid rgba(1,61,71,0.1)" }}>
+      <div
+        style={{
+          maxWidth: 1200,
+          margin: "0 auto",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center font-extrabold text-sm"
-            style={{ background: "var(--teal)", color: "white" }}
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 8,
+              background: "var(--teal)",
+              color: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 800,
+              fontSize: 13,
+            }}
           >
             S
           </div>
-          <span className="font-bold text-[14px]" style={{ color: "var(--teal)" }}>SabiHub</span>
-          <span className="text-[12px]" style={{ color: "#A0AEC0" }}>by OMobile</span>
+          <span style={{ fontWeight: 700, fontSize: 14, color: "var(--teal)" }}>SabiHub</span>
+          <span style={{ fontSize: 12, color: "#A0AEC0" }}>by OMobile</span>
         </div>
-        <p className="text-[12px]" style={{ color: "#A0AEC0" }}>
+        <p style={{ fontSize: 12, color: "#A0AEC0" }}>
           © 2026 SabiHub. NDPR compliant. No Dey Dull – Learn Well-Well!
         </p>
       </div>

@@ -3,28 +3,18 @@
 @import "tailwindcss";
 
 :root {
-  --teal: #013D47;
-  --teal-dark: #012830;
-  --gold: #AA852E;
-  --gold-dark: #8C6E26;
-  --cream: #F0EEE6;
-  --ink: #0D1F23;
+  --teal:         #013D47;
+  --teal-dark:    #012830;
+  --gold:         #AA852E;
+  --gold-dark:    #8C6E26;
+  --cream:        #F0EEE6;
+  --ink:          #0D1F23;
   --font-display: 'Plus Jakarta Sans', sans-serif;
-  --font-serif: 'Instrument Serif', serif;
+  --font-serif:   'Instrument Serif', serif;
 }
 
-/* hard reset — kills Next.js default styles */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  scroll-behavior: smooth;
-  font-size: 16px;
-}
-
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
 body {
   font-family: var(--font-display) !important;
   background: var(--cream) !important;
@@ -32,43 +22,30 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
-  /* kill Next.js default dark mode body overrides */
   color-scheme: light;
 }
 
-/* Next.js injects a __next wrapper — make sure it doesn't clip */
-#__next, main {
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+#__next, main { min-height: 100vh; overflow-x: hidden; }
 
-/* ── Marquee ── */
 @keyframes marquee {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
-
 .marquee-track {
   display: flex;
   width: max-content;
   animation: marquee 28s linear infinite;
 }
 .marquee-track:hover { animation-play-state: paused; }
-
 .marquee-wrap {
   overflow: hidden;
   mask-image: linear-gradient(90deg, transparent 0%, black 8%, black 92%, transparent 100%);
   -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 8%, black 92%, transparent 100%);
 }
 
-/* ── Typewriter cursor ── */
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
-}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 .cursor-blink { animation: blink 1s step-end infinite; }
 
-/* ── Noise overlay ── */
 .noise-overlay {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-repeat: repeat;

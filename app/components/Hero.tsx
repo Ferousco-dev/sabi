@@ -32,12 +32,7 @@ export function Hero() {
   }, []);
 
   return (
-    <section
-      style={{
-        padding: "16px",
-        paddingBottom: 0,
-      }}
-    >
+    <section style={{ padding: "16px", paddingBottom: 0 }}>
       {/* ── Hero box ── */}
       <div
         style={{
@@ -56,14 +51,8 @@ export function Hero() {
       >
         {/* ── Video background ── */}
         <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 0,
-            overflow: "hidden",
-            pointerEvents: "none",
-            userSelect: "none",
-          }}
+          className="pointer-events-none select-none"
+          style={{ position: "absolute", inset: 0, zIndex: 0, overflow: "hidden" }}
         >
           <video
             ref={videoRef}
@@ -71,25 +60,12 @@ export function Hero() {
             muted
             playsInline
             preload="auto"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              transform: "scale(1.05)",
-            }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.05)" }}
           />
-          {/* noise */}
           <div
             className="noise-overlay"
-            style={{
-              position: "absolute",
-              inset: 0,
-              opacity: 0.22,
-              mixBlendMode: "overlay",
-              pointerEvents: "none",
-            }}
+            style={{ position: "absolute", inset: 0, opacity: 0.22, mixBlendMode: "overlay" }}
           />
-          {/* gradient */}
           <div
             style={{
               position: "absolute",
@@ -125,6 +101,7 @@ export function Hero() {
                 justifyContent: "center",
                 fontWeight: 800,
                 fontSize: 16,
+                flexShrink: 0,
               }}
             >
               S
@@ -139,8 +116,8 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Desktop links */}
-          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          {/* Desktop nav links — hidden on mobile */}
+          <div className="hidden md:flex" style={{ alignItems: "center", gap: 4 }}>
             {NAV_LINKS.map((l) => (
               <button
                 key={l}
@@ -164,7 +141,9 @@ export function Hero() {
             ))}
           </div>
 
+          {/* Desktop CTA — hidden on mobile */}
           <button
+            className="hidden md:block"
             style={{
               fontSize: 13,
               fontWeight: 700,
@@ -179,9 +158,29 @@ export function Hero() {
           >
             Pilot Your School
           </button>
+
+          {/* Mobile hamburger — shown only on mobile */}
+          <button
+            className="flex md:hidden"
+            style={{
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.18)",
+              borderRadius: 10,
+              width: 40,
+              height: 40,
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "white",
+            }}
+            onClick={() => setNavOpen(true)}
+            aria-label="Open menu"
+          >
+            <Menu size={22} />
+          </button>
         </div>
 
-        {/* ── Hero content — bottom ── */}
+        {/* ── Hero content — bottom-anchored ── */}
         <div
           style={{
             position: "relative",
@@ -198,14 +197,13 @@ export function Hero() {
         >
           {/* Blurred label */}
           <p
+            className="pointer-events-none select-none"
             style={{
               color: "white",
               fontSize: 14,
               fontWeight: 400,
               lineHeight: 1.5,
               filter: "blur(3.5px)",
-              userSelect: "none",
-              pointerEvents: "none",
             }}
           >
             No Dey Dull – Learn Well-Well!
@@ -265,7 +263,7 @@ export function Hero() {
             <WordsPullUp text="All of Nigeria." delay={0.48} />
           </h1>
 
-          {/* Pill buttons */}
+          {/* Pill action buttons */}
           <div
             style={{
               display: "flex",
@@ -334,7 +332,7 @@ export function Hero() {
               whiteSpace: "nowrap",
             }}
           >
-            {/* Star logo */}
+            {/* Star logo circle */}
             <div
               style={{
                 width: 36,
@@ -399,7 +397,7 @@ export function Hero() {
           </nav>
         </motion.div>
 
-        {/* Mobile overlay */}
+        {/* ── Mobile fullscreen overlay ── */}
         <AnimatePresence>
           {navOpen && (
             <motion.div
@@ -418,6 +416,29 @@ export function Hero() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
+              {/* Close button */}
+              <button
+                style={{
+                  position: "absolute",
+                  top: 24,
+                  right: 40,
+                  background: "rgba(255,255,255,0.1)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  borderRadius: 10,
+                  width: 40,
+                  height: 40,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  color: "white",
+                }}
+                onClick={() => setNavOpen(false)}
+                aria-label="Close menu"
+              >
+                <X size={20} />
+              </button>
+
               {NAV_LINKS.map((l) => (
                 <button
                   key={l}
