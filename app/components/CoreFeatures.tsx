@@ -1,170 +1,292 @@
 "use client";
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check } from "lucide-react";
 
 const FEATURES = [
   {
+    num: "01",
     title: "Smart Lesson Builder",
-    gradient: "radial-gradient(circle at 50% 0%, #FFD97A 0%, #FFF4CC 35%, #F0EEE6 65%, #F0EEE6 100%)",
-    visual: (
-      <div style={{ position: "absolute", top: 24, left: 20, right: 20 }}>
-        <div
-          style={{
-            background: "white",
-            borderRadius: 12,
-            padding: 16,
-            fontSize: 12,
-            color: "#475569",
-            lineHeight: 1.6,
-            boxShadow: "0 8px 20px rgba(0,0,0,0.04)",
-          }}
-        >
-          Write a{" "}
-          <span style={{ fontWeight: 600, color: "#92620A" }}>JSS2 lesson on photosynthesis</span>{" "}
-          with{" "}
-          <span style={{ fontWeight: 600, color: "#92620A" }}>diagrams and 5 quiz questions</span>{" "}
-          aligned to WAEC.
-        </div>
-        <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 8 }}>
-          <div
-            style={{
-              background: "white",
-              border: "1px solid rgba(0,0,0,0.1)",
-              borderRadius: 99,
-              padding: "5px 14px",
-              fontSize: 11,
-              fontWeight: 600,
-              color: "#1e293b",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
-            }}
-          >
-            <span style={{ color: "#a855f7", fontSize: "1rem" }}>✦</span> Add NECO objectives
-          </div>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#0D1F23" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.2))" }}>
-            <path d="M4 2L20 11L11 13L9 22L4 2Z" stroke="white" strokeWidth="1" />
-          </svg>
-        </div>
-      </div>
-    ),
+    tagline: "Write lessons in minutes, not hours",
+    description:
+      "AI-powered curriculum builder aligned to WAEC and NECO standards. Generate quizzes, add diagrams, and publish instantly to all your students.",
+    bullets: [
+      "WAEC / NECO aligned templates",
+      "AI-generated quiz questions",
+      "Multimedia drag & drop",
+      "One-click lesson export",
+    ],
+    gradient: "radial-gradient(circle at 30% 0%, #FFD97A 0%, #FFF4CC 40%, #F9F8F3 100%)",
+    accent: "#AA852E",
   },
   {
+    num: "02",
     title: "Offline-First Sync",
-    gradient: "radial-gradient(circle at 50% 0%, #B5D4F4 0%, #E6F1FB 35%, #F0EEE6 65%, #F0EEE6 100%)",
-    visual: (
-      <div
-        style={{
-          position: "absolute",
-          inset: "0 0 56px 0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 16,
-          paddingTop: 16,
-        }}
-      >
-        <img
-          src="https://pub-f170a2592d2c4a1485466404c36807be.r2.dev/viktor/network.svg"
-          alt="sync network diagram"
-          style={{ width: "100%", height: 180, objectFit: "contain", marginTop: 20 }}
-          onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
-        />
-      </div>
-    ),
+    tagline: "Works even when the network doesn't",
+    description:
+      "Students keep learning during power outages and network drops. Content syncs automatically via CRDT conflict resolution when reconnected.",
+    bullets: [
+      "Works on 2G & 3G networks",
+      "< 50 MB installed size",
+      "CRDT conflict-free sync",
+      "Budget device optimised",
+    ],
+    gradient: "radial-gradient(circle at 30% 0%, #B5D4F4 0%, #E6F1FB 40%, #F9F8F3 100%)",
+    accent: "#2D7DD2",
   },
   {
+    num: "03",
     title: "Creator Marketplace",
-    gradient: "radial-gradient(circle at 50% 0%, #DDD4F5 0%, #EDE9FA 35%, #F0EEE6 65%, #F0EEE6 100%)",
-    visual: (
-      <div style={{ position: "absolute", inset: "0 0 56px 0", overflow: "hidden" }}>
-        {/* Mesh overlay */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,0.7) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.7) 1px,transparent 1px)",
-            backgroundSize: "16px 16px",
-            maskImage: "radial-gradient(circle at center top, black 0%, transparent 80%)",
-            WebkitMaskImage: "radial-gradient(circle at center top, black 0%, transparent 80%)",
-          }}
-        />
-        {/* Center content */}
-        <div
-          style={{
-            position: "absolute",
-            top: 32,
-            left: "50%",
-            transform: "translateX(-50%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 12,
-          }}
-        >
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              background: "white",
-              borderRadius: 16,
-              boxShadow: "0 15px 25px rgba(0,0,0,0.08)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 28,
-            }}
-          >
-            🎓
-          </div>
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              background: "rgba(255,255,255,0.85)",
-              color: "#533BAF",
-              padding: "6px 14px",
-              borderRadius: 99,
-            }}
-          >
-            50K creators by 2030
-          </div>
-        </div>
-        {/* Search pill */}
-        <div
-          style={{
-            position: "absolute",
-            top: 220,
-            left: "50%",
-            transform: "translateX(-50%)",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: "white",
-            border: "1px solid rgba(0,0,0,0.1)",
-            borderRadius: 99,
-            padding: "8px 18px",
-            boxShadow: "0 8px 20px rgba(0,0,0,0.06)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <span style={{ fontSize: 12, fontWeight: 500, color: "#1e293b" }}>Search courses</span>
-        </div>
-      </div>
-    ),
+    tagline: "Build once. Earn from 50M students",
+    description:
+      "Publish curriculum-aligned courses, earn revenue, and reach every school across Nigeria. Get certified and grow your creator brand.",
+    bullets: [
+      "Revenue share model",
+      "Certification badge",
+      "Peer review system",
+      "50K creators by 2030",
+    ],
+    gradient: "radial-gradient(circle at 30% 0%, #DDD4F5 0%, #EDE9FA 40%, #F9F8F3 100%)",
+    accent: "#533BAF",
   },
 ];
 
+function LessonBuilderVisual() {
+  return (
+    <div style={{ padding: 28, display: "flex", flexDirection: "column", gap: 14, height: "100%" }}>
+      {/* AI prompt */}
+      <div
+        style={{
+          background: "white",
+          borderRadius: 14,
+          padding: 18,
+          boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
+          fontSize: 13,
+          color: "#475569",
+          lineHeight: 1.65,
+        }}
+      >
+        Write a{" "}
+        <strong style={{ color: "#92620A" }}>JSS2 lesson on photosynthesis</strong> with{" "}
+        <strong style={{ color: "#92620A" }}>diagrams and 5 quiz questions</strong> aligned to WAEC.
+        <div style={{ display: "flex", gap: 5, marginTop: 10 }}>
+          {[0, 1, 2].map((i) => (
+            <motion.span
+              key={i}
+              style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: "#AA852E" }}
+              animate={{ opacity: [0.2, 1, 0.2] }}
+              transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.22 }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Generated lesson */}
+      <div style={{ background: "white", borderRadius: 14, padding: 18, boxShadow: "0 2px 16px rgba(0,0,0,0.06)", flex: 1 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#013D47", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+          <span>📗</span> Photosynthesis — JSS2
+        </div>
+        {["Introduction to photosynthesis", "Chlorophyll & light absorption", "WAEC-style diagrams (3)", "Quiz: 5 NECO questions"].map((item) => (
+          <div key={item} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7 }}>
+            <Check size={11} style={{ color: "#AA852E", flexShrink: 0 }} />
+            <span style={{ fontSize: 12, color: "#475569" }}>{item}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Actions */}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {["Export PDF", "Share to class", "Add to WAEC bank"].map((label) => (
+          <div
+            key={label}
+            style={{
+              background: "rgba(1,61,71,0.08)",
+              color: "#013D47",
+              borderRadius: 99,
+              padding: "6px 14px",
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            {label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function OfflineSyncVisual() {
+  const nodes = [
+    { label: "Teacher Hub", status: "online",  y: "50%" },
+    { label: "Student A",   status: "online",  y: "20%" },
+    { label: "Student B",   status: "offline", y: "40%" },
+    { label: "Student C",   status: "online",  y: "60%" },
+    { label: "Student D",   status: "offline", y: "80%" },
+  ];
+  return (
+    <div style={{ padding: 28, display: "flex", flexDirection: "column", gap: 14, height: "100%" }}>
+      {/* Network diagram */}
+      <div
+        style={{
+          background: "white",
+          borderRadius: 14,
+          padding: 20,
+          boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+        }}
+      >
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#013D47", marginBottom: 4 }}>Live sync status</div>
+        {nodes.map((n) => (
+          <div key={n.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 12, color: "#475569" }}>{n.label}</span>
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                padding: "3px 10px",
+                borderRadius: 99,
+                background: n.status === "online" ? "#DCFCE7" : "#FEE2E2",
+                color: n.status === "online" ? "#16A34A" : "#DC2626",
+              }}
+            >
+              {n.status === "online" ? "● Synced" : "○ Queued"}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Stats grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        {[
+          { icon: "📶", val: "2G ready",   label: "Min network" },
+          { icon: "📦", val: "< 50 MB",    label: "Install size" },
+          { icon: "🔄", val: "CRDT",        label: "Sync method" },
+          { icon: "⚡", val: "Unlimited",   label: "Offline time" },
+        ].map(({ icon, val, label }) => (
+          <div
+            key={label}
+            style={{
+              background: "white",
+              borderRadius: 12,
+              padding: "12px 14px",
+              boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+            }}
+          >
+            <div style={{ fontSize: 16, marginBottom: 4 }}>{icon}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#013D47" }}>{val}</div>
+            <div style={{ fontSize: 10, color: "#6B7A7D", marginTop: 2 }}>{label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function MarketplaceVisual() {
+  const courses = [
+    { title: "Photosynthesis Deep Dive", creator: "Mr. Bello",    price: "₦2,500", icon: "🌿" },
+    { title: "WAEC Maths Mastery",        creator: "Mrs. Adaeze",  price: "₦3,200", icon: "📐" },
+    { title: "Hausa Language Arts",       creator: "Alhaji Musa",  price: "₦1,800", icon: "📝" },
+    { title: "Computer Basics JSS3",      creator: "Engr. Tunde",  price: "₦2,100", icon: "💻" },
+  ];
+  return (
+    <div style={{ padding: 28, display: "flex", flexDirection: "column", gap: 14, height: "100%" }}>
+      {/* Search bar */}
+      <div
+        style={{
+          background: "white",
+          borderRadius: 12,
+          padding: "10px 16px",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+        }}
+      >
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span style={{ fontSize: 12, color: "#94A3B8" }}>Search 10,000+ courses…</span>
+      </div>
+
+      {/* Course grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, flex: 1 }}>
+        {courses.map((c) => (
+          <div
+            key={c.title}
+            style={{
+              background: "white",
+              borderRadius: 12,
+              padding: 14,
+              boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+              cursor: "pointer",
+              transition: "box-shadow 0.2s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.boxShadow = "0 6px 24px rgba(0,0,0,0.1)")}
+            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.05)")}
+          >
+            <div style={{ fontSize: 22, marginBottom: 6 }}>{c.icon}</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#013D47", lineHeight: 1.3, marginBottom: 4 }}>{c.title}</div>
+            <div style={{ fontSize: 10, color: "#6B7A7D", marginBottom: 6 }}>{c.creator}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#533BAF" }}>{c.price}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Creator badge */}
+      <div
+        style={{
+          background: "white",
+          borderRadius: 12,
+          padding: "12px 16px",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
+        }}
+      >
+        <span style={{ fontSize: 22 }}>🎓</span>
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#013D47" }}>50K certified creators by 2030</div>
+          <div style={{ fontSize: 11, color: "#6B7A7D" }}>Join the waitlist today</div>
+        </div>
+        <div
+          style={{
+            marginLeft: "auto",
+            background: "var(--gold)",
+            color: "var(--teal)",
+            borderRadius: 99,
+            padding: "6px 14px",
+            fontSize: 11,
+            fontWeight: 700,
+            cursor: "pointer",
+            flexShrink: 0,
+          }}
+        >
+          Apply
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const VISUALS = [<LessonBuilderVisual key={0} />, <OfflineSyncVisual key={1} />, <MarketplaceVisual key={2} />];
+
 export function CoreFeatures() {
+  const [active, setActive] = useState(0);
+  const feat = FEATURES[active];
+
   return (
     <section id="features" style={{ padding: "96px 80px", background: "white" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+
         {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: 56 }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
           <p
             style={{
               fontSize: 11,
@@ -192,54 +314,154 @@ export function CoreFeatures() {
             Built for Speed & Nigeria
           </h2>
           <p style={{ fontSize: 17, color: "#64748b", lineHeight: 1.5 }}>
-            Everything you need to go
-            <br />
-            from zero to a connected school.
+            Everything you need to go from zero to a connected school.
           </p>
         </div>
 
-        {/* 3-col grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 24,
-          }}
-        >
-          {FEATURES.map((feat, i) => (
-            <motion.div
-              key={feat.title}
+        {/* Tab pills */}
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 40, flexWrap: "wrap" }}>
+          {FEATURES.map((f, i) => (
+            <button
+              key={f.title}
+              onClick={() => setActive(i)}
               style={{
-                borderRadius: 20,
-                height: 340,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-end",
-                position: "relative",
-                overflow: "hidden",
-                textAlign: "left",
-                background: feat.gradient,
-                boxShadow: "0 10px 30px -10px rgba(0,0,0,0.1)",
+                fontSize: 13,
+                fontWeight: 600,
+                padding: "10px 24px",
+                borderRadius: 99,
+                cursor: "pointer",
+                fontFamily: "var(--font-display)",
+                transition: "all 0.25s ease",
+                background: active === i ? "var(--teal)" : "rgba(1,61,71,0.05)",
+                color: active === i ? "white" : "var(--teal)",
+                border: active === i ? "2px solid transparent" : "2px solid rgba(1,61,71,0.12)",
+                boxShadow: active === i ? "0 4px 20px rgba(1,61,71,0.25)" : "none",
               }}
-              initial={{ opacity: 1, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.01 }}
-              transition={{ delay: i * 0.12, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
-              {feat.visual}
+              {f.title}
+            </button>
+          ))}
+        </div>
+
+        {/* Feature panel */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={active}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1.1fr",
+              gap: 40,
+              alignItems: "center",
+              background: feat.gradient,
+              borderRadius: 28,
+              padding: "48px 48px 48px 52px",
+              minHeight: 460,
+              border: "1px solid rgba(1,61,71,0.06)",
+            }}
+          >
+            {/* Left — text */}
+            <div>
+              <p
+                style={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  color: feat.accent,
+                  opacity: 0.75,
+                  marginBottom: 14,
+                }}
+              >
+                {feat.num}
+              </p>
               <h3
                 style={{
-                  position: "relative",
-                  zIndex: 10,
-                  fontSize: 16,
-                  fontWeight: 700,
-                  padding: "24px",
-                  color: "#1e293b",
+                  fontSize: "clamp(22px, 2.4vw, 32px)",
+                  fontWeight: 800,
+                  color: "var(--teal)",
+                  letterSpacing: "-0.025em",
+                  lineHeight: 1.15,
+                  marginBottom: 16,
                 }}
               >
                 {feat.title}
               </h3>
-            </motion.div>
+              <p
+                style={{
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: feat.accent,
+                  marginBottom: 14,
+                  fontStyle: "italic",
+                }}
+              >
+                {feat.tagline}
+              </p>
+              <p style={{ fontSize: 14, color: "#4A6065", lineHeight: 1.75, marginBottom: 28, maxWidth: 360 }}>
+                {feat.description}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {feat.bullets.map((b) => (
+                  <div key={b} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: "50%",
+                        background: feat.accent,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Check size={11} style={{ color: "white" }} />
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: "#4A6065" }}>{b}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right — visual card */}
+            <div
+              style={{
+                background: "rgba(255,255,255,0.6)",
+                borderRadius: 20,
+                boxShadow: "0 12px 40px rgba(0,0,0,0.08)",
+                overflow: "hidden",
+                minHeight: 380,
+                backdropFilter: "blur(8px)",
+                border: "1px solid rgba(255,255,255,0.8)",
+              }}
+            >
+              {VISUALS[active]}
+            </div>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Dot indicators */}
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: 24 }}>
+          {FEATURES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setActive(i)}
+              style={{
+                width: active === i ? 28 : 8,
+                height: 8,
+                borderRadius: 99,
+                background: active === i ? "var(--teal)" : "rgba(1,61,71,0.15)",
+                border: "none",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                padding: 0,
+              }}
+              aria-label={`Feature ${i + 1}`}
+            />
           ))}
         </div>
       </div>
