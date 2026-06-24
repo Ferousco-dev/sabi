@@ -94,17 +94,15 @@ export function Hero() {
                 width: 36,
                 height: 36,
                 borderRadius: 10,
-                background: "var(--gold)",
-                color: "var(--teal)",
+                background: "white",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontWeight: 800,
-                fontSize: 16,
+                overflow: "hidden",
                 flexShrink: 0,
               }}
             >
-              S
+              <img src="/logo.png" alt="SabiHub" style={{ width: 28, height: 28, objectFit: "contain" }} />
             </div>
             <div>
               <div style={{ color: "white", fontWeight: 800, fontSize: 17, letterSpacing: "-0.02em", lineHeight: 1 }}>

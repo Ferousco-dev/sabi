@@ -16,16 +16,15 @@ export function Footer() {
               width: 28,
               height: 28,
               borderRadius: 8,
-              background: "var(--teal)",
-              color: "white",
+              background: "white",
+              border: "1px solid rgba(1,61,71,0.12)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontWeight: 800,
-              fontSize: 13,
+              overflow: "hidden",
             }}
           >
-            S
+            <img src="/logo.png" alt="SabiHub" style={{ width: 22, height: 22, objectFit: "contain" }} />
           </div>
           <span style={{ fontWeight: 700, fontSize: 14, color: "var(--teal)" }}>SabiHub</span>
           <span style={{ fontSize: 12, color: "#A0AEC0" }}>by OMobile</span>
