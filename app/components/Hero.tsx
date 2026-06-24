@@ -49,9 +49,10 @@ export function Hero() {
   }
 
   return (
-    <section id="home" style={{ padding: "16px", paddingBottom: 0 }}>
+    <section id="home" className="hero-section" style={{ padding: "16px", paddingBottom: 0 }}>
       {/* ── Hero box ── */}
       <div
+        className="hero-box"
         style={{
           position: "relative",
           width: "100%",
@@ -95,6 +96,7 @@ export function Hero() {
 
         {/* ── Top navbar ── */}
         <div
+          className="hero-navbar"
           style={{
             position: "relative",
             zIndex: 20,
@@ -211,6 +213,7 @@ export function Hero() {
 
         {/* ── Hero content — bottom-anchored ── */}
         <div
+          className="hero-content"
           style={{
             position: "relative",
             zIndex: 10,
@@ -236,6 +239,7 @@ export function Hero() {
 
           {/* Typewriter */}
           <p
+            className="hero-typewriter"
             style={{ color: "white", fontSize: 22, fontWeight: 600, lineHeight: 1.45, maxWidth: 680, minHeight: 60 }}
           >
             {displayed}
@@ -256,6 +260,7 @@ export function Hero() {
 
           {/* Pull-up headline */}
           <h1
+            className="hero-headline"
             style={{
               color: "white",
               fontSize: "clamp(36px, 5vw, 64px)",
@@ -274,6 +279,7 @@ export function Hero() {
 
           {/* Pill action buttons */}
           <div
+            className="hero-pill-btns"
             style={{
               display: "flex",
               flexWrap: "wrap",
@@ -288,11 +294,12 @@ export function Hero() {
               { label: "Pilot your school",   action: () => scrollTo("get-started"),  primary: true },
               { label: "Become a creator",     action: () => scrollTo("stakeholders"), primary: false },
               { label: "See how it works",     action: () => scrollTo("features"),     primary: false },
-              { label: "Contact us",           action: () => window.location.href = "mailto:sabihub@omobile.world", primary: false },
+              { label: "Contact us",           action: () => { window.location.href = "mailto:sabihub@omobile.world"; }, primary: false },
             ].map(({ label, action, primary }) => (
               <button
                 key={label}
                 onClick={action}
+                className="hero-pill-btn"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -317,8 +324,9 @@ export function Hero() {
           </div>
         </div>
 
-        {/* ── Floating pill nav — pinned bottom center ── */}
+        {/* ── Floating pill nav — pinned bottom center, hidden on mobile ── */}
         <motion.div
+          className="hero-float-nav"
           style={{
             position: "absolute",
             bottom: 24,
