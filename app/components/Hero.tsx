@@ -376,7 +376,10 @@ export function Hero() {
             {PILL_LINKS.map((l) => (
               <button
                 key={l}
-                onClick={() => scrollTo(PILL_LINK_TARGETS[l] ?? "stakeholders")}
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent("highlight-persona", { detail: l }));
+                  scrollTo(PILL_LINK_TARGETS[l] ?? "stakeholders");
+                }}
                 style={{
                   fontSize: 12,
                   fontWeight: 600,
