@@ -53,7 +53,7 @@ const FEATURES = [
 
 function LessonBuilderVisual() {
   return (
-    <div style={{ padding: 28, display: "flex", flexDirection: "column", gap: 14, height: "100%" }}>
+    <div className="lesson-builder-visual" style={{ padding: 28, display: "flex", flexDirection: "column", gap: 14, height: "100%" }}>
       {/* AI prompt */}
       <div
         style={{
@@ -126,7 +126,7 @@ function OfflineSyncVisual() {
     { label: "Student D",   status: "offline", y: "80%" },
   ];
   return (
-    <div style={{ padding: 28, display: "flex", flexDirection: "column", gap: 14, height: "100%" }}>
+    <div className="offline-sync-visual" style={{ padding: 28, display: "flex", flexDirection: "column", gap: 14, height: "100%" }}>
       {/* Network diagram */}
       <div
         style={{
@@ -161,7 +161,7 @@ function OfflineSyncVisual() {
       </div>
 
       {/* Stats grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+      <div className="offline-sync-stats-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {[
           { icon: "📶", val: "2G ready",   label: "Min network" },
           { icon: "📦", val: "< 50 MB",    label: "Install size" },
@@ -195,7 +195,7 @@ function MarketplaceVisual() {
     { title: "Computer Basics JSS3",      creator: "Engr. Tunde",  price: "₦2,100", icon: "💻" },
   ];
   return (
-    <div style={{ padding: 28, display: "flex", flexDirection: "column", gap: 14, height: "100%" }}>
+    <div className="marketplace-visual" style={{ padding: 28, display: "flex", flexDirection: "column", gap: 14, height: "100%" }}>
       {/* Search bar */}
       <div
         style={{
@@ -215,7 +215,7 @@ function MarketplaceVisual() {
       </div>
 
       {/* Course grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, flex: 1 }}>
+      <div className="marketplace-course-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, flex: 1 }}>
         {courses.map((c) => (
           <div
             key={c.title}
@@ -240,6 +240,7 @@ function MarketplaceVisual() {
 
       {/* Creator badge */}
       <div
+        className="marketplace-creator-badge"
         style={{
           background: "white",
           borderRadius: 12,
@@ -282,7 +283,7 @@ export function CoreFeatures() {
   const feat = FEATURES[active];
 
   return (
-    <section id="features" style={{ padding: "96px 80px", background: "white" }}>
+    <section id="features" className="core-features-section" style={{ padding: "96px 80px", background: "white" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
 
         {/* Header */}
@@ -303,6 +304,7 @@ export function CoreFeatures() {
             Core Features
           </p>
           <h2
+            className="core-features-heading"
             style={{
               fontSize: "clamp(32px, 3.5vw, 46px)",
               fontWeight: 800,
@@ -313,17 +315,18 @@ export function CoreFeatures() {
           >
             Built for Speed & Nigeria
           </h2>
-          <p style={{ fontSize: 17, color: "#64748b", lineHeight: 1.5 }}>
+          <p className="core-features-subtitle" style={{ fontSize: 17, color: "#64748b", lineHeight: 1.5 }}>
             Everything you need to go from zero to a connected school.
           </p>
         </div>
 
         {/* Tab pills */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 40, flexWrap: "wrap" }}>
+        <div className="core-features-tab-pills" style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 40, flexWrap: "wrap" }}>
           {FEATURES.map((f, i) => (
             <button
               key={f.title}
               onClick={() => setActive(i)}
+              className="core-features-tab-pill"
               style={{
                 fontSize: 13,
                 fontWeight: 600,
@@ -347,6 +350,7 @@ export function CoreFeatures() {
         <AnimatePresence mode="wait">
           <motion.div
             key={active}
+            className="core-features-panel"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -429,6 +433,7 @@ export function CoreFeatures() {
 
             {/* Right — visual card */}
             <div
+              className="core-features-visual-card"
               style={{
                 background: "rgba(255,255,255,0.6)",
                 borderRadius: 20,

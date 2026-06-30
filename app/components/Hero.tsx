@@ -130,7 +130,7 @@ export function Hero() {
               <div style={{ color: "white", fontWeight: 800, fontSize: 17, letterSpacing: "-0.02em", lineHeight: 1 }}>
                 SabiHub
               </div>
-              <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 3 }}>
+              <div className="hero-logo-subtitle" style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 3 }}>
                 OMobile Education
               </div>
             </div>
@@ -229,7 +229,7 @@ export function Hero() {
         >
           {/* Blurred label */}
           <p
-            className="pointer-events-none select-none"
+            className="pointer-events-none select-none hero-blurred-label"
             style={{ color: "white", fontSize: 14, fontWeight: 400, lineHeight: 1.5, filter: "blur(3.5px)" }}
           >
             No Dey Dull – Learn Well-Well!
@@ -438,6 +438,7 @@ export function Hero() {
         <AnimatePresence>
           {navOpen && (
             <motion.div
+              className="hero-mobile-overlay"
               style={{
                 position: "absolute",
                 inset: 0,
@@ -458,6 +459,7 @@ export function Hero() {
               <button
                 onClick={() => setNavOpen(false)}
                 aria-label="Close menu"
+                className="hero-mobile-close-btn"
                 style={{
                   position: "absolute",
                   top: 24,
@@ -534,7 +536,7 @@ export function Hero() {
       </div>
 
       {/* ── Marquee strip ── */}
-      <div style={{ marginTop: 16 }}>
+      <div className="hero-marquee-wrap" style={{ marginTop: 16 }}>
         <Marquee />
       </div>
     </section>

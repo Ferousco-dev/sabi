@@ -4,7 +4,7 @@ import { ROADMAP } from "@/app/data/content";
 
 export function Roadmap() {
   return (
-    <section id="roadmap" style={{ padding: "96px 80px", background: "white" }}>
+    <section id="roadmap" className="roadmap-section" style={{ padding: "96px 80px", background: "white" }}>
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         <p
           style={{
@@ -19,6 +19,7 @@ export function Roadmap() {
           Phased growth
         </p>
         <h2
+          className="roadmap-heading"
           style={{
             fontSize: "clamp(28px, 4vw, 46px)",
             fontWeight: 800,
@@ -35,6 +36,7 @@ export function Roadmap() {
         </h2>
 
         <div
+          className="roadmap-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
@@ -44,6 +46,7 @@ export function Roadmap() {
           {ROADMAP.map((r, i) => (
             <motion.div
               key={r.phase}
+              className="roadmap-card"
               style={{
                 padding: 32,
                 borderRadius: 20,
@@ -69,6 +72,7 @@ export function Roadmap() {
                 {r.phase}
               </div>
               <div
+                className="roadmap-card-date"
                 style={{
                   fontSize: 30,
                   fontWeight: 800,

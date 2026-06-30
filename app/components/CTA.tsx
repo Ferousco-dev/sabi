@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 
 export function CTA() {
   return (
-    <section id="get-started" style={{ padding: "112px 80px", background: "var(--cream)" }}>
+    <section id="get-started" className="cta-section" style={{ padding: "112px 80px", background: "var(--cream)" }}>
       <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
         <motion.div
           initial={{ opacity: 1, y: 20 }}
@@ -25,6 +25,7 @@ export function CTA() {
             Join the revolution
           </p>
           <h2
+            className="cta-headline"
             style={{
               fontSize: "clamp(32px, 5vw, 62px)",
               fontWeight: 800,
@@ -47,6 +48,7 @@ export function CTA() {
             </span>
           </h2>
           <p
+            className="cta-body"
             style={{
               fontSize: 17,
               lineHeight: 1.7,
@@ -58,6 +60,7 @@ export function CTA() {
             Pilot schools write to us now. Creators start building today. Every student in Nigeria deserves the chance to learn well-well.
           </p>
           <div
+            className="cta-btn-row"
             style={{
               display: "flex",
               flexWrap: "wrap",
@@ -66,9 +69,11 @@ export function CTA() {
             }}
           >
             <button
+              className="cta-btn-primary"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
+                justifyContent: "center",
                 gap: 8,
                 fontSize: 14,
                 fontWeight: 700,
@@ -84,9 +89,11 @@ export function CTA() {
               Pilot your school <ArrowRight size={16} />
             </button>
             <button
+              className="cta-btn-secondary"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
+                justifyContent: "center",
                 gap: 8,
                 fontSize: 14,
                 fontWeight: 700,
@@ -103,9 +110,11 @@ export function CTA() {
             </button>
             <a
               href="mailto:sabihub@omobile.world"
+              className="cta-email-link"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
+                justifyContent: "center",
                 gap: 8,
                 fontSize: 14,
                 fontWeight: 600,

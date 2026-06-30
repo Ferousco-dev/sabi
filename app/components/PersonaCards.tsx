@@ -26,11 +26,11 @@ export function PersonaCards() {
   }, []);
 
   return (
-    <section id="stakeholders" style={{ padding: "112px 80px", background: "var(--cream)" }}>
+    <section id="stakeholders" className="persona-section" style={{ padding: "112px 80px", background: "var(--cream)" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
 
         {/* Header */}
-        <div style={{ marginBottom: 64 }}>
+        <div className="persona-header" style={{ marginBottom: 64 }}>
           <p
             style={{
               fontSize: 11,
@@ -63,12 +63,13 @@ export function PersonaCards() {
         </div>
 
         {/* 4-col persona grid */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+        <div className="persona-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
           {PERSONAS.map((p, i) => {
             const isHighlighted = highlighted === p.role;
             return (
               <motion.div
                 key={p.role}
+                className="persona-card"
                 style={{
                   position: "relative",
                   borderRadius: 20,
@@ -187,6 +188,7 @@ export function PersonaCards() {
           const isCreatorHighlighted = highlighted === "Creators";
           return (
             <motion.div
+              className="persona-creator-row"
               style={{
                 marginTop: 12,
                 borderRadius: 20,
@@ -228,6 +230,7 @@ export function PersonaCards() {
                   05
                 </p>
                 <h3
+                  className="persona-creator-heading"
                   style={{
                     fontSize: 34,
                     fontWeight: 800,
@@ -238,13 +241,13 @@ export function PersonaCards() {
                 >
                   Creators
                 </h3>
-                <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginTop: 8, maxWidth: 340 }}>
+                <p className="persona-creator-desc" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginTop: 8, maxWidth: 340 }}>
                   Build curriculum-aligned courses. Get certified. Earn revenue. Reach 50M students.
                 </p>
               </div>
 
               {/* Center badges */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+              <div className="persona-creator-badges" style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
                 {CREATOR_POINTS.map((pt) => (
                   <div
                     key={pt}
@@ -269,6 +272,7 @@ export function PersonaCards() {
 
               {/* Right CTA */}
               <button
+                className="persona-creator-cta"
                 style={{
                   display: "flex",
                   alignItems: "center",

@@ -3,8 +3,9 @@ import { Mail } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer style={{ padding: "32px 64px", borderTop: "1px solid rgba(1,61,71,0.1)" }}>
+    <footer className="footer-root" style={{ padding: "32px 64px", borderTop: "1px solid rgba(1,61,71,0.1)" }}>
       <div
+        className="footer-inner"
         style={{
           maxWidth: 1200,
           margin: "0 auto",
@@ -16,7 +17,7 @@ export function Footer() {
         }}
       >
         {/* Left: logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="footer-logo-group" style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div
             style={{
               width: 28,
@@ -37,7 +38,7 @@ export function Footer() {
         </div>
 
         {/* Center: copyright */}
-        <p style={{ fontSize: 12, color: "#A0AEC0" }}>
+        <p className="footer-copyright" style={{ fontSize: 12, color: "#A0AEC0" }}>
           © 2026 SabiHub. NDPR compliant. No Dey Dull – Learn Well-Well!
         </p>
 

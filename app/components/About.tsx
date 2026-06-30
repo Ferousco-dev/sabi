@@ -10,12 +10,13 @@ export function About() {
   return (
     <section
       id="about"
+      className="about-section"
       style={{
         padding: "112px 80px",
         background: "var(--cream)",
       }}
     >
-      <div style={{ maxWidth: 860, margin: "0 auto" }}>
+      <div className="about-inner" style={{ maxWidth: 860, margin: "0 auto" }}>
         <p
           style={{
             fontSize: 11,
@@ -30,6 +31,7 @@ export function About() {
         </p>
 
         <h2
+          className="about-heading"
           style={{
             fontSize: "clamp(28px, 4vw, 50px)",
             fontWeight: 800,
@@ -55,7 +57,7 @@ export function About() {
 
         <AnimatedParagraph
           text={MISSION_TEXT}
-          className=""
+          className="about-mission-text"
           style={{
             fontSize: 17,
             lineHeight: 1.85,
@@ -66,6 +68,7 @@ export function About() {
 
         {/* Stats row — each in its own box so they never run together */}
         <div
+          className="about-stats-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
@@ -76,6 +79,7 @@ export function About() {
           {STATS.map(({ num, label }) => (
             <div key={num}>
               <div
+                className="about-stat-num"
                 style={{
                   fontSize: "clamp(36px, 3.5vw, 52px)",
                   fontWeight: 800,
