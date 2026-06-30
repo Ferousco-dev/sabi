@@ -51,7 +51,7 @@ export function Footer() {
             fontSize: 13,
             fontWeight: 700,
             padding: "9px 20px",
-            borderRadius: 99,
+            borderRadius: 10,
             border: "1.5px solid var(--teal)",
             color: "var(--teal)",
             background: "transparent",
