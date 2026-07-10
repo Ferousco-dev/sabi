@@ -20,21 +20,49 @@ export function useVideoScrub(sensitivity = 0.7) {
     const vid = videoRef.current;
     if (!vid) return;
 
+    // Only run on real pointer devices. On touch phones/tablets the scrub can't
+    // fire (no mousemove), so the markup keeps preload="none" and the video is
+    // never downloaded, the single biggest 2G/3G win. Also honour reduced-motion.
+    const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!finePointer || reduceMotion) return;
+
+    // We deferred loading via preload="none"; on desktop, opt back in now.
+    vid.preload = "auto";
+    vid.load();
+
+    let raf = 0;
+    let nextTarget: number | null = null;
+
+    // Coalesce seeks into one per animation frame so a fast mouse doesn't queue
+    // hundreds of decoder seeks (the old code seeked on every mousemove event).
+    const applySeek = () => {
+      raf = 0;
+      if (nextTarget === null) return;
+      if (seeking.current) {
+        pendingSeek.current = nextTarget;
+      } else {
+        vid.currentTime = nextTarget;
+        seeking.current = true;
+      }
+      nextTarget = null;
+    };
+
     const onMove = (e: MouseEvent) => {
       const delta = e.clientX - prevX.current;
       prevX.current = e.clientX;
       if (!vid.duration) return;
-      const target = Math.max(
+      nextTarget = Math.max(
         0,
         Math.min(vid.duration, vid.currentTime + (delta / window.innerWidth) * sensitivity * vid.duration)
       );
-      if (seeking.current) { pendingSeek.current = target; }
-      else { vid.currentTime = target; seeking.current = true; }
+      if (!raf) raf = requestAnimationFrame(applySeek);
     };
 
     vid.addEventListener("seeked", onSeeked);
     window.addEventListener("mousemove", onMove);
     return () => {
+      if (raf) cancelAnimationFrame(raf);
       window.removeEventListener("mousemove", onMove);
       vid.removeEventListener("seeked", onSeeked);
     };

@@ -5,7 +5,7 @@ export const CHIPS = [
   "AI-assisted grading", "< 50 MB installed", "3G optimised",
 ];
 
-export const PILL_LINKS = ["Schools", "Teachers", "Students", "Creators"];
+export const PILL_LINKS = ["Schools", "Teachers", "Students", "Parents", "Creators"];
 
 export const PERSONAS = [
   {
@@ -33,8 +33,8 @@ export const PERSONAS = [
     num: "04", role: "Parents",
     headline: "Stay in the loop without chasing the school.",
     points: ["Real-time grade dashboard", "Attendance calendar view", "SMS alerts on MTN, Airtel, Glo", "Multi-child switcher"],
-    gradient: "radial-gradient(circle at 50% 0%, #9FE1CB30 0%, #013D4708 40%, #F0EEE6 70%)",
-    accent: "#0F6E56",
+    gradient: "radial-gradient(circle at 50% 0%, #024F5E28 0%, #013D4710 40%, #F0EEE6 70%)",
+    accent: "#024F5E",
   },
 ];
 
@@ -42,6 +42,8 @@ export const ROADMAP = [
   { phase: "Phase 1", date: "Sept 2026", label: "Pilot", desc: "100,000 schools across Nigeria. All 5 personas live on day one." },
   { phase: "Phase 2", date: "Sept 2027", label: "Scale", desc: "500,000+ schools. Hausa, Yoruba, Igbo localisation added." },
   { phase: "Phase 3", date: "Sept 2028", label: "Future", desc: "AR/VR labs, SabiLeague national student competitions." },
+  // NOTE: roadmap dates run 1 yr behind the pitch deck (deck: 2025/26/27).
+  // Left as-is pending product-owner confirmation of the canonical timeline.
 ];
 
 export const STATS = [

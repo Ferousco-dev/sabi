@@ -1,18 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-
-const NAV_LINKS = [
-  { label: "Features", target: "features" },
-  { label: "Roadmap", target: "roadmap" },
-  { label: "Partners", target: "about" },
-  { label: "About",    target: "about" },
-];
-
-function scrollTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-}
+import { NAV_LINKS, scrollTo } from "@/app/data/navigation";
 
 export function StickyNav() {
   const [visible, setVisible]   = useState(false);
@@ -20,7 +11,8 @@ export function StickyNav() {
 
   useEffect(() => {
     const onScroll = () => {
-      setVisible(window.scrollY > window.innerHeight * 0.55);
+      // Floor at 320px so the bar doesn't appear after ~176px on short viewports.
+      setVisible(window.scrollY > Math.max(window.innerHeight * 0.55, 320));
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -37,6 +29,7 @@ export function StickyNav() {
       <AnimatePresence>
         {visible && (
           <motion.header
+            className="sticky-header"
             key="sticky-nav"
             initial={{ y: -72, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -121,27 +114,42 @@ export function StickyNav() {
                 ))}
               </nav>
 
-              {/* Desktop CTA */}
-              <button
-                className="hidden md:block"
-                onClick={() => scrollTo("get-started")}
-                style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  padding: "9px 22px",
-                  borderRadius: 10,
-                  background: "var(--gold)",
-                  color: "var(--teal)",
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-display)",
-                  transition: "opacity 0.2s",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-              >
-                Pilot Your School
-              </button>
+              {/* Desktop auth actions */}
+              <div className="hidden md:flex" style={{ alignItems: "center", gap: 6 }}>
+                <Link
+                  href="/login"
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: "#fff",
+                    textDecoration: "none",
+                    padding: "9px 14px",
+                    borderRadius: 10,
+                    transition: "background 0.2s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    padding: "9px 20px",
+                    borderRadius: 10,
+                    background: "var(--gold)",
+                    color: "var(--teal)",
+                    textDecoration: "none",
+                    transition: "opacity 0.2s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                >
+                  Sign up
+                </Link>
+              </div>
 
               {/* Mobile hamburger */}
               <button
@@ -167,7 +175,7 @@ export function StickyNav() {
         )}
       </AnimatePresence>
 
-      {/* ── Mobile fullscreen overlay — SIBLING to header, not child ── */}
+      {/* ── Mobile fullscreen overlay, SIBLING to header, not child ── */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -241,27 +249,49 @@ export function StickyNav() {
               </motion.button>
             ))}
 
-            <motion.button
-              onClick={() => closeAndScroll("get-started")}
+            <motion.div
               initial={{ opacity: 0, x: -16 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: NAV_LINKS.length * 0.06 + 0.06, duration: 0.28 }}
-              style={{
-                marginTop: 24,
-                alignSelf: "flex-start",
-                fontSize: 14,
-                fontWeight: 700,
-                padding: "12px 28px",
-                borderRadius: 10,
-                background: "var(--gold)",
-                color: "var(--teal)",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "var(--font-display)",
-              }}
+              style={{ marginTop: 32, display: "flex", flexDirection: "column", gap: 12 }}
             >
-              Pilot Your School
-            </motion.button>
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: 50,
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: "#fff",
+                  textDecoration: "none",
+                  borderRadius: 12,
+                  border: "1px solid rgba(255,255,255,0.28)",
+                }}
+              >
+                Log in
+              </Link>
+              <Link
+                href="/signup"
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: 50,
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: "var(--teal)",
+                  background: "var(--gold)",
+                  textDecoration: "none",
+                  borderRadius: 12,
+                }}
+              >
+                Sign up
+              </Link>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,23 +1,27 @@
-import { StickyNav }   from "./components/StickyNav";
-import { Hero }         from "./components/Hero";
-import { About }        from "./components/About";
-import { CoreFeatures } from "./components/CoreFeatures";
-import { PersonaCards } from "./components/PersonaCards";
-import { Roadmap }      from "./components/Roadmap";
-import { CTA }          from "./components/CTA";
-import { Footer }       from "./components/Footer";
+import { SiteNav } from "./components/site/SiteNav";
+import { Hero } from "./components/site/Hero";
+import { LogoCloud } from "./components/site/LogoCloud";
+import { About } from "./components/site/About";
+import { Platforms } from "./components/site/Platforms";
+import { Features } from "./components/site/Features";
+import { HowItWorks } from "./components/site/HowItWorks";
+import { FAQ } from "./components/site/FAQ";
+import { CTASection } from "./components/site/CTASection";
+import { SiteFooter } from "./components/site/SiteFooter";
 
 export default function Home() {
   return (
     <main>
-      <StickyNav />
+      <SiteNav />
       <Hero />
+      <LogoCloud />
       <About />
-      <CoreFeatures />
-      <PersonaCards />
-      <Roadmap />
-      <CTA />
-      <Footer />
+      <Platforms />
+      <Features />
+      <HowItWorks />
+      <FAQ />
+      <CTASection />
+      <SiteFooter />
     </main>
   );
 }

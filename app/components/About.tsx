@@ -3,8 +3,12 @@ import { WordsPullUp } from "./ui/WordsPullUp";
 import { AnimatedParagraph } from "./ui/AnimatedParagraph";
 import { STATS } from "@/app/data/content";
 
-const MISSION_TEXT =
-  "Over 80% of Nigerian schools lack centralised digital tools. Teachers build lessons in isolation. Parents have no visibility. Students in rural areas fall behind because quality content never reaches them. SabiHub unifies every stakeholder — from school admins to local creators — into one offline-first platform built for the devices Nigerians actually own.";
+// Split the former wall-of-text into a scannable lead + a pull quote so the
+// section has visual rhythm instead of one dense block.
+const MISSION_LEAD =
+  "Over 80% of Nigerian schools lack centralised digital tools. Teachers build lessons in isolation. Parents have no visibility. Students in rural areas fall behind because quality content never reaches them.";
+const MISSION_QUOTE =
+  "SabiHub unifies every stakeholder, from school admins to local creators, into one offline-first platform built for the devices Nigerians actually own.";
 
 export function About() {
   return (
@@ -56,17 +60,35 @@ export function About() {
         </h2>
 
         <AnimatedParagraph
-          text={MISSION_TEXT}
+          text={MISSION_LEAD}
           className="about-mission-text"
           style={{
             fontSize: 17,
             lineHeight: 1.85,
-            maxWidth: 780,
-            color: "var(--ink)",
+            maxWidth: 720,
+            color: "var(--text-secondary)",
           }}
         />
 
-        {/* Stats row — each in its own box so they never run together */}
+        {/* Pull quote, the strongest sentence, lifted out for emphasis. */}
+        <blockquote
+          className="about-pullquote"
+          style={{
+            margin: "36px 0 0",
+            paddingLeft: 24,
+            borderLeft: "3px solid var(--gold)",
+            fontFamily: "var(--font-serif)",
+            fontStyle: "italic",
+            fontSize: "clamp(22px, 2.6vw, 30px)",
+            lineHeight: 1.4,
+            color: "var(--teal)",
+            maxWidth: 760,
+          }}
+        >
+          {MISSION_QUOTE}
+        </blockquote>
+
+        {/* Stats row, each in its own box so they never run together */}
         <div
           className="about-stats-grid"
           style={{
@@ -95,7 +117,7 @@ export function About() {
                   fontSize: 12,
                   marginTop: 8,
                   lineHeight: 1.4,
-                  color: "#6B7A7D",
+                  color: "var(--text-muted)",
                 }}
               >
                 {label}
