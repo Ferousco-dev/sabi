@@ -4,12 +4,14 @@ import { motion } from "framer-motion";
 import { Check, ArrowRight } from "lucide-react";
 import { WordsPullUp } from "./ui/WordsPullUp";
 import { PERSONAS } from "@/app/data/content";
+import { scrollTo } from "@/app/data/navigation";
 
 const CREATOR_POINTS = ["Build courses", "Peer review", "Certification badge", "Monetise expertise"];
 
 export function PersonaCards() {
   const [highlighted, setHighlighted] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isCreatorHighlighted = highlighted === "Creators";
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -52,13 +54,13 @@ export function PersonaCards() {
               color: "var(--teal)",
             }}
           >
-            <WordsPullUp text="Studio-grade tools" />{" "}
+            <WordsPullUp text="Purpose-built tools" />{" "}
             <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 400 }}>
               <WordsPullUp text="for every role." delay={0.22} />
             </span>
           </h2>
-          <p style={{ marginTop: 12, fontSize: 14, color: "#6B7A7D" }}>
-            Built for pure impact. Powered by community.
+          <p style={{ marginTop: 12, fontSize: 14, color: "var(--text-muted)" }}>
+            Built for real impact. Powered by community.
           </p>
         </div>
 
@@ -114,7 +116,7 @@ export function PersonaCards() {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    ← You're here
+                    You&apos;re here
                   </motion.div>
                 )}
 
@@ -144,7 +146,7 @@ export function PersonaCards() {
                   >
                     {p.role}
                   </h3>
-                  <p style={{ fontSize: 13, color: "#4A6065", lineHeight: 1.4, marginBottom: 24 }}>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.4, marginBottom: 24 }}>
                     {p.headline}
                   </p>
                 </div>
@@ -153,15 +155,18 @@ export function PersonaCards() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {p.points.map((pt) => (
                     <div key={pt} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                      <Check size={12} style={{ color: p.accent, flexShrink: 0, marginTop: 2 }} />
-                      <span style={{ fontSize: 12, color: "#4A6065", lineHeight: 1.4 }}>{pt}</span>
+                      <Check size={12} aria-hidden="true" style={{ color: p.accent, flexShrink: 0, marginTop: 2 }} />
+                      <span style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.4 }}>{pt}</span>
                     </div>
                   ))}
                   <button
+                    onClick={() => scrollTo("get-started")}
+                    aria-label={`Get early access for ${p.role}`}
                     style={{
-                      display: "flex",
+                      display: "inline-flex",
                       alignItems: "center",
                       gap: 6,
+                      minHeight: 44,
                       fontSize: 12,
                       fontWeight: 700,
                       color: p.accent,
@@ -169,13 +174,14 @@ export function PersonaCards() {
                       border: "none",
                       cursor: "pointer",
                       textDecoration: "underline",
-                      textUnderlineOffset: 2,
-                      marginTop: 16,
+                      textUnderlineOffset: 3,
+                      marginTop: 8,
                       fontFamily: "var(--font-display)",
-                      padding: 0,
+                      padding: "10px 0",
+                      alignSelf: "flex-start",
                     }}
                   >
-                    Learn more <ArrowRight size={11} style={{ transform: "rotate(-45deg)" }} />
+                    Learn more <ArrowRight size={11} aria-hidden="true" style={{ transform: "rotate(-45deg)" }} />
                   </button>
                 </div>
               </motion.div>
@@ -183,10 +189,8 @@ export function PersonaCards() {
           })}
         </div>
 
-        {/* Creators — full-width row */}
-        {(() => {
-          const isCreatorHighlighted = highlighted === "Creators";
-          return (
+        {/* Creators, full-width row */}
+        {(
             <motion.div
               className="persona-creator-row"
               style={{
@@ -241,7 +245,7 @@ export function PersonaCards() {
                 >
                   Creators
                 </h3>
-                <p className="persona-creator-desc" style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", marginTop: 8, maxWidth: 340 }}>
+                <p className="persona-creator-desc" style={{ fontSize: 14, color: "rgba(255,255,255,0.72)", marginTop: 8, maxWidth: 340 }}>
                   Build curriculum-aligned courses. Get certified. Earn revenue. Reach 50M students.
                 </p>
               </div>
@@ -272,14 +276,17 @@ export function PersonaCards() {
 
               {/* Right CTA */}
               <button
+                onClick={() => scrollTo("get-started")}
                 className="persona-creator-cta"
                 style={{
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "center",
                   gap: 8,
                   fontSize: 13,
                   fontWeight: 700,
-                  padding: "12px 24px",
+                  padding: "14px 24px",
+                  minHeight: 44,
                   borderRadius: 10,
                   border: "none",
                   cursor: "pointer",
@@ -289,11 +296,10 @@ export function PersonaCards() {
                   flexShrink: 0,
                 }}
               >
-                Become a creator <ArrowRight size={14} />
+                Become a creator <ArrowRight size={14} aria-hidden="true" />
               </button>
             </motion.div>
-          );
-        })()}
+        )}
       </div>
     </section>
   );

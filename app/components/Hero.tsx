@@ -1,194 +1,168 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, Menu, X } from "lucide-react";
-import { WordsPullUp } from "./ui/WordsPullUp";
+import Link from "next/link";
+import { Menu, X, ArrowRight, GraduationCap, WifiOff, ShieldCheck, TrendingUp, BookOpen, Users } from "lucide-react";
 import { Marquee } from "./ui/Marquee";
-import { useTypewriter } from "@/app/hooks/useTypewriter";
-import { useVideoScrub } from "@/app/hooks/useVideoScrub";
-import { PILL_LINKS } from "@/app/data/content";
+import { Logo } from "./ui/Logo";
+import { NAV_LINKS, scrollTo } from "@/app/data/navigation";
 
-const NAV_LINKS = [
-  { label: "Features",  target: "features" },
-  { label: "Roadmap",   target: "roadmap" },
-  { label: "Partners",  target: "about" },
-  { label: "About",     target: "about" },
+const TRUST = [
+  { Icon: GraduationCap, label: "WAEC / NECO aligned" },
+  { Icon: WifiOff, label: "Works offline on 2G" },
+  { Icon: ShieldCheck, label: "NDPR compliant" },
 ];
 
-const PILL_LINK_TARGETS: Record<string, string> = {
-  Schools:  "stakeholders",
-  Teachers: "stakeholders",
-  Students: "stakeholders",
-  Creators: "stakeholders",
-};
-
-const HERO_VIDEO =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260505_101331_74f9b798-3f00-4e86-8a01-377aa16ffeaa.mp4";
-
-const TYPEWRITER_TEXT =
-  "Unifying Nigeria's classrooms — schools, teachers, students, parents and creators on one platform.";
-
-function scrollTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-}
-
 export function Hero() {
-  const videoRef = useVideoScrub(0.7);
   const [navOpen, setNavOpen] = useState(false);
-  const [pillsIn, setPillsIn] = useState(false);
-  const { displayed, done } = useTypewriter(TYPEWRITER_TEXT, 36, 900);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setPillsIn(true), 400);
+    const t = setTimeout(() => setMounted(true), 60);
     return () => clearTimeout(t);
   }, []);
 
+  // Reliable mount-triggered reveal (avoids the Framer whileInView invisibility
+  // trap). Each element fades/slides up on a staggered delay.
+  const reveal = (delay: number) => ({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? "translateY(0)" : "translateY(18px)",
+    transition: `opacity 0.6s ease ${delay}s, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}s`,
+  });
+
   function closeAndScroll(id: string) {
     setNavOpen(false);
-    setTimeout(() => scrollTo(id), 300);
+    setTimeout(() => scrollTo(id), 260);
   }
 
   return (
-    <section id="home" className="hero-section" style={{ padding: "16px", paddingBottom: 0 }}>
-      {/* ── Hero box ── */}
+    <section id="home" className="hero-section" style={{ padding: 16, paddingBottom: 0 }}>
       <div
         className="hero-box"
         style={{
           position: "relative",
-          width: "100%",
-          borderRadius: 40,
           overflow: "hidden",
+          borderRadius: 32,
+          background:
+            "radial-gradient(120% 90% at 85% 5%, #024F5E 0%, #013D47 45%, #012830 100%)",
+          boxShadow: "0 40px 120px -30px rgba(1,40,48,0.5)",
+          minHeight: 720,
           display: "flex",
           flexDirection: "column",
-          height: "calc(100vh - 32px)",
-          minHeight: 620,
-          maxHeight: 860,
-          background: "var(--teal)",
-          boxShadow: "0 40px 120px -20px rgba(0,0,0,0.12)",
         }}
       >
-        {/* ── Video background ── */}
-        <div
-          className="pointer-events-none select-none"
-          style={{ position: "absolute", inset: 0, zIndex: 0, overflow: "hidden" }}
-        >
-          <video
-            ref={videoRef}
-            src={HERO_VIDEO}
-            muted
-            playsInline
-            preload="auto"
-            style={{ width: "100%", height: "100%", objectFit: "cover", transform: "scale(1.05)" }}
-          />
+        {/* ── Background decoration ── */}
+        <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+          {/* Soft gold glow */}
           <div
-            className="noise-overlay"
-            style={{ position: "absolute", inset: 0, opacity: 0.22, mixBlendMode: "overlay" }}
+            style={{
+              position: "absolute",
+              top: "-10%",
+              right: "-5%",
+              width: 520,
+              height: 520,
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(212,169,74,0.22) 0%, transparent 70%)",
+              filter: "blur(20px)",
+            }}
           />
+          {/* Dot grid */}
           <div
             style={{
               position: "absolute",
               inset: 0,
-              background:
-                "linear-gradient(to bottom, rgba(1,61,71,0.65) 0%, rgba(1,61,71,0.1) 40%, rgba(1,61,71,0.88) 100%)",
+              backgroundImage: "radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)",
+              backgroundSize: "26px 26px",
+              maskImage: "linear-gradient(to bottom, black, transparent 75%)",
+              WebkitMaskImage: "linear-gradient(to bottom, black, transparent 75%)",
             }}
           />
         </div>
 
-        {/* ── Top navbar ── */}
-        <div
-          className="hero-navbar"
+        {/* ── Navbar ── */}
+        <header
+          className="hero-nav"
           style={{
             position: "relative",
             zIndex: 20,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "24px 40px",
+            padding: "22px 32px",
           }}
         >
-          {/* Logo */}
-          <div
-            style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}
+          <button
             onClick={() => scrollTo("home")}
+            aria-label="SabiHub home"
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
           >
-            <div
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 10,
-                background: "white",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
-                flexShrink: 0,
-              }}
-            >
-              <img src="/logo.png" alt="SabiHub" style={{ width: 28, height: 28, objectFit: "contain" }} />
-            </div>
-            <div>
-              <div style={{ color: "white", fontWeight: 800, fontSize: 17, letterSpacing: "-0.02em", lineHeight: 1 }}>
-                SabiHub
-              </div>
-              <div className="hero-logo-subtitle" style={{ color: "rgba(255,255,255,0.4)", fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", marginTop: 3 }}>
-                OMobile Education
-              </div>
-            </div>
-          </div>
+            <Logo tone="light" size="md" />
+          </button>
 
-          {/* Desktop nav links */}
-          <div className="hidden md:flex" style={{ alignItems: "center", gap: 4 }}>
+          {/* Desktop links */}
+          <nav className="hero-nav-links hidden md:flex" style={{ alignItems: "center", gap: 4 }}>
             {NAV_LINKS.map(({ label, target }) => (
               <button
                 key={label}
                 onClick={() => scrollTo(target)}
                 style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "rgba(255,255,255,0.6)",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: "rgba(255,255,255,0.78)",
                   padding: "8px 16px",
-                  borderRadius: 10,
+                  borderRadius: 8,
                   background: "transparent",
                   border: "none",
                   cursor: "pointer",
                   fontFamily: "var(--font-display)",
-                  transition: "color 0.2s, background 0.2s",
+                  transition: "color 0.2s",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = "white";
-                  e.currentTarget.style.background = "rgba(255,255,255,0.08)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = "rgba(255,255,255,0.6)";
-                  e.currentTarget.style.background = "transparent";
-                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.78)")}
               >
                 {label}
               </button>
             ))}
-          </div>
+          </nav>
 
-          {/* Desktop CTA */}
-          <button
-            className="hidden md:block"
-            onClick={() => scrollTo("get-started")}
-            style={{
-              fontSize: 13,
-              fontWeight: 700,
-              padding: "10px 22px",
-              borderRadius: 10,
-              background: "var(--gold)",
-              color: "var(--teal)",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "var(--font-display)",
-              transition: "opacity 0.2s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.88")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-          >
-            Pilot Your School
-          </button>
+          {/* Desktop auth actions */}
+          <div className="hero-nav-actions hidden md:flex" style={{ alignItems: "center", gap: 6 }}>
+            <Link
+              href="/login"
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#fff",
+                textDecoration: "none",
+                padding: "10px 16px",
+                borderRadius: 10,
+                transition: "background 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+            >
+              Log in
+            </Link>
+            <Link
+              href="/signup"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 14,
+                fontWeight: 700,
+                color: "var(--teal)",
+                background: "var(--gold)",
+                textDecoration: "none",
+                padding: "10px 20px",
+                borderRadius: 10,
+                transition: "opacity 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              Sign up
+            </Link>
+          </div>
 
           {/* Mobile hamburger */}
           <button
@@ -196,349 +170,435 @@ export function Hero() {
             onClick={() => setNavOpen(true)}
             aria-label="Open menu"
             style={{
-              background: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.18)",
-              borderRadius: 10,
-              width: 40,
-              height: 40,
+              background: "rgba(255,255,255,0.14)",
+              border: "1px solid rgba(255,255,255,0.24)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              borderRadius: 12,
+              width: 44,
+              height: 44,
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
-              color: "white",
+              color: "#fff",
             }}
           >
             <Menu size={22} />
           </button>
-        </div>
+        </header>
 
-        {/* ── Hero content — bottom-anchored ── */}
+        {/* ── Body: copy + product mockup ── */}
         <div
-          className="hero-content"
+          className="hero-body"
           style={{
             position: "relative",
             zIndex: 10,
             flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "flex-end",
-            paddingBottom: 100,
-            paddingLeft: 52,
-            paddingRight: 52,
-            gap: 18,
+            display: "grid",
+            gridTemplateColumns: "1.05fr 0.95fr",
+            alignItems: "center",
+            gap: 48,
+            padding: "8px 52px 56px",
           }}
         >
-          {/* Blurred label */}
-          <p
-            className="pointer-events-none select-none hero-blurred-label"
-            style={{ color: "white", fontSize: 14, fontWeight: 400, lineHeight: 1.5, filter: "blur(3.5px)" }}
-          >
-            No Dey Dull – Learn Well-Well!
-            <br />
-            OMobile's Education Persona Consolidator
-          </p>
+          {/* Left, copy */}
+          <div className="hero-copy">
+            {/* Announcement pill */}
+            <div
+              className="hero-announce"
+              style={{
+                ...reveal(0),
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 9,
+                padding: "7px 14px 7px 12px",
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.16)",
+                marginBottom: 24,
+              }}
+            >
+              <span style={{ position: "relative", display: "inline-flex", width: 8, height: 8 }}>
+                <span
+                  className="hero-ping"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: "50%",
+                    background: "var(--gold-light)",
+                  }}
+                />
+                <span style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "var(--gold-light)", opacity: 0.5 }} />
+              </span>
+              <span style={{ fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,0.9)", letterSpacing: "0.01em" }}>
+                Now piloting with schools across Nigeria
+              </span>
+            </div>
 
-          {/* Typewriter */}
-          <p
-            className="hero-typewriter"
-            style={{ color: "white", fontSize: 22, fontWeight: 600, lineHeight: 1.45, maxWidth: 680, minHeight: 60 }}
-          >
-            {displayed}
-            {!done && (
-              <span
-                className="cursor-blink"
-                style={{
-                  display: "inline-block",
-                  width: 2,
-                  height: "1.1em",
-                  background: "white",
-                  verticalAlign: "middle",
-                  marginLeft: 2,
-                }}
-              />
-            )}
-          </p>
+            <h1
+              className="hero-h1"
+              style={{
+                ...reveal(0.08),
+                fontSize: "clamp(38px, 4.6vw, 62px)",
+                fontWeight: 800,
+                lineHeight: 1.02,
+                letterSpacing: "-0.035em",
+                color: "#fff",
+                marginBottom: 22,
+                textWrap: "balance",
+              }}
+            >
+              One platform.{" "}
+              <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 400, color: "var(--gold-light)" }}>
+                Five stakeholders.
+              </span>{" "}
+              All of Nigeria.
+            </h1>
 
-          {/* Pull-up headline */}
-          <h1
-            className="hero-headline"
-            style={{
-              color: "white",
-              fontSize: "clamp(36px, 5vw, 64px)",
-              fontWeight: 800,
-              lineHeight: 1.0,
-              letterSpacing: "-0.035em",
-              maxWidth: 820,
-            }}
-          >
-            <WordsPullUp text="One platform." delay={0.1} />{" "}
-            <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 400, color: "var(--gold)" }}>
-              <WordsPullUp text="Five stakeholders." delay={0.28} />
-            </span>{" "}
-            <WordsPullUp text="All of Nigeria." delay={0.48} />
-          </h1>
+            <p
+              className="hero-sub"
+              style={{
+                ...reveal(0.16),
+                fontSize: 17,
+                lineHeight: 1.65,
+                color: "rgba(255,255,255,0.72)",
+                maxWidth: 460,
+                marginBottom: 32,
+              }}
+            >
+              SabiHub brings schools, teachers, students, parents and creators onto
+              one offline-first platform, WAEC-aligned and built for the devices
+              Nigerians actually own.
+            </p>
 
-          {/* Pill action buttons */}
-          <div
-            className="hero-pill-btns"
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 8,
-              paddingTop: 4,
-              opacity: pillsIn ? 1 : 0,
-              transform: pillsIn ? "translateY(0)" : "translateY(10px)",
-              transition: "opacity 0.4s ease, transform 0.4s ease",
-            }}
-          >
-            {[
-              { label: "Pilot your school",   action: () => scrollTo("get-started"),  primary: true },
-              { label: "Become a creator",     action: () => scrollTo("stakeholders"), primary: false },
-              { label: "See how it works",     action: () => scrollTo("features"),     primary: false },
-              { label: "Contact us",           action: () => { window.location.href = "mailto:sabihub@omobile.world"; }, primary: false },
-            ].map(({ label, action, primary }) => (
+            {/* CTAs */}
+            <div className="hero-cta-row" style={{ ...reveal(0.24), display: "flex", flexWrap: "wrap", gap: 12, marginBottom: 34 }}>
               <button
-                key={label}
-                onClick={action}
-                className="hero-pill-btn"
+                onClick={() => scrollTo("get-started")}
+                className="hero-cta-primary"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  borderRadius: 10,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  padding: "10px 22px",
-                  whiteSpace: "nowrap",
+                  justifyContent: "center",
+                  gap: 8,
+                  fontSize: 15,
+                  fontWeight: 700,
+                  padding: "15px 28px",
+                  minHeight: 52,
+                  borderRadius: 12,
                   cursor: "pointer",
+                  background: "var(--gold)",
+                  color: "var(--teal)",
+                  border: "none",
                   fontFamily: "var(--font-display)",
                   transition: "opacity 0.2s",
-                  ...(primary
-                    ? { background: "var(--gold)", color: "var(--teal)", border: "none" }
-                    : { background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.85)", border: "1px solid rgba(255,255,255,0.18)" }),
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
                 onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+              >
+                Pilot your school <ArrowRight size={17} aria-hidden="true" />
+              </button>
+              <button
+                onClick={() => scrollTo("features")}
+                className="hero-cta-ghost"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  fontSize: 15,
+                  fontWeight: 600,
+                  padding: "15px 26px",
+                  minHeight: 52,
+                  borderRadius: 12,
+                  cursor: "pointer",
+                  background: "rgba(255,255,255,0.08)",
+                  color: "#fff",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  backdropFilter: "blur(10px)",
+                  WebkitBackdropFilter: "blur(10px)",
+                  fontFamily: "var(--font-display)",
+                  transition: "background 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.16)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
+              >
+                Explore features
+              </button>
+            </div>
+
+            {/* Trust chips */}
+            <div className="hero-chips" style={{ ...reveal(0.32), display: "flex", flexWrap: "wrap", gap: 18 }}>
+              {TRUST.map(({ Icon, label }) => (
+                <div key={label} style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+                  <Icon size={15} aria-hidden="true" style={{ color: "var(--gold-light)" }} />
+                  <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.7)" }}>{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right, product mockup */}
+          <div
+            className="hero-visual"
+            style={{ ...reveal(0.2), display: "flex", justifyContent: "center", position: "relative" }}
+          >
+            <DashboardMock />
+          </div>
+        </div>
+
+        {/* ── Trust marquee ── */}
+        <div className="hero-marquee-wrap" style={{ position: "relative", zIndex: 10, paddingBottom: 20 }}>
+          <Marquee />
+        </div>
+      </div>
+
+      {/* ── Mobile menu overlay ── */}
+      {navOpen && (
+        <div
+          className="hero-mobile-overlay"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 500,
+            background: "rgba(1,40,48,0.98)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            display: "flex",
+            flexDirection: "column",
+            padding: "24px 24px 40px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <Logo tone="light" size="md" />
+            <button
+              onClick={() => setNavOpen(false)}
+              aria-label="Close menu"
+              style={{
+                background: "rgba(255,255,255,0.14)",
+                border: "1px solid rgba(255,255,255,0.24)",
+                borderRadius: 12,
+                width: 44,
+                height: 44,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                color: "#fff",
+              }}
+            >
+              <X size={22} />
+            </button>
+          </div>
+
+          <nav style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 48 }}>
+            {NAV_LINKS.map(({ label, target }) => (
+              <button
+                key={label}
+                onClick={() => closeAndScroll(target)}
+                style={{
+                  textAlign: "left",
+                  fontSize: 28,
+                  fontWeight: 700,
+                  letterSpacing: "-0.02em",
+                  color: "#fff",
+                  background: "none",
+                  border: "none",
+                  padding: "12px 0",
+                  cursor: "pointer",
+                  fontFamily: "var(--font-display)",
+                }}
               >
                 {label}
               </button>
             ))}
+          </nav>
+
+          <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
+            <Link
+              href="/login"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 52,
+                fontSize: 15,
+                fontWeight: 700,
+                color: "#fff",
+                textDecoration: "none",
+                borderRadius: 12,
+                border: "1px solid rgba(255,255,255,0.28)",
+              }}
+            >
+              Log in
+            </Link>
+            <Link
+              href="/signup"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                minHeight: 52,
+                fontSize: 15,
+                fontWeight: 700,
+                color: "var(--teal)",
+                background: "var(--gold)",
+                textDecoration: "none",
+                borderRadius: 12,
+              }}
+            >
+              Sign up <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ── SabiHub product mockup, a self-contained school dashboard preview.
+   Communicates "this is a real product" without any external image. ── */
+function DashboardMock() {
+  const stats = [
+    { Icon: Users, label: "Students", value: "1,240", trend: "+18 this term" },
+    { Icon: TrendingUp, label: "Attendance", value: "94%", trend: "+3% vs last week" },
+    { Icon: BookOpen, label: "Lessons live", value: "38", trend: "6 new today" },
+  ];
+  const bars = [58, 72, 64, 88, 79, 94, 68];
+
+  return (
+    <div
+      className="hero-mock"
+      style={{
+        width: "100%",
+        maxWidth: 460,
+        borderRadius: 18,
+        background: "#fff",
+        boxShadow: "0 30px 80px -20px rgba(0,0,0,0.55)",
+        border: "1px solid rgba(255,255,255,0.5)",
+        overflow: "hidden",
+      }}
+    >
+      {/* Window chrome */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "12px 16px",
+          borderBottom: "1px solid var(--border-soft)",
+          background: "var(--cream)",
+        }}
+      >
+        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#E5675E" }} />
+        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#E7B14A" }} />
+        <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#5FB97A" }} />
+        <div
+          style={{
+            marginLeft: 10,
+            flex: 1,
+            maxWidth: 220,
+            fontSize: 11,
+            color: "var(--text-muted)",
+            background: "#fff",
+            border: "1px solid var(--border-soft)",
+            borderRadius: 6,
+            padding: "4px 10px",
+            textAlign: "center",
+            fontFamily: "var(--font-display)",
+          }}
+        >
+          app.sabihub.ng
+        </div>
+      </div>
+
+      {/* Dashboard body */}
+      <div style={{ padding: 20 }}>
+        {/* Header row */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--teal)", letterSpacing: "-0.01em" }}>
+              Govt. Model College
+            </div>
+            <div style={{ fontSize: 11.5, color: "var(--text-muted)" }}>Lagos · 2025/26 Session</div>
+          </div>
+          <div
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: "50%",
+              background: "var(--teal)",
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 13,
+              fontWeight: 800,
+              flexShrink: 0,
+            }}
+          >
+            A
           </div>
         </div>
 
-        {/* ── Floating pill nav — pinned bottom center, hidden on mobile ── */}
-        <motion.div
-          className="hero-float-nav"
-          style={{
-            position: "absolute",
-            bottom: 24,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 30,
-          }}
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.3, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <nav
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              padding: "6px",
-              borderRadius: 10,
-              background: "rgba(255,255,255,0.1)",
-              backdropFilter: "blur(24px)",
-              WebkitBackdropFilter: "blur(24px)",
-              border: "1px solid rgba(255,255,255,0.18)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {/* Logo circle */}
+        {/* Stat cards */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 16 }}>
+          {stats.map(({ Icon, label, value, trend }) => (
             <div
-              onClick={() => scrollTo("home")}
+              key={label}
               style={{
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                background: "white",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
-                marginRight: 4,
-                flexShrink: 0,
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                cursor: "pointer",
+                background: "var(--cream)",
+                border: "1px solid var(--border-soft)",
+                borderRadius: 12,
+                padding: "12px 12px",
               }}
             >
-              <img src="/logo.png" alt="SabiHub" style={{ width: 26, height: 26, objectFit: "contain" }} />
+              <Icon size={15} aria-hidden="true" style={{ color: "var(--gold-dark)", marginBottom: 8 }} />
+              <div style={{ fontSize: 18, fontWeight: 800, color: "var(--teal)", letterSpacing: "-0.02em", lineHeight: 1 }}>
+                {value}
+              </div>
+              <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3 }}>{label}</div>
+              <div style={{ fontSize: 9, color: "#3E8E5A", marginTop: 4, fontWeight: 600 }}>{trend}</div>
             </div>
+          ))}
+        </div>
 
-            {PILL_LINKS.map((l) => (
-              <button
-                key={l}
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent("highlight-persona", { detail: l }));
-                  scrollTo(PILL_LINK_TARGETS[l] ?? "stakeholders");
-                }}
+        {/* Weekly attendance chart */}
+        <div
+          style={{
+            background: "var(--cream)",
+            border: "1px solid var(--border-soft)",
+            borderRadius: 12,
+            padding: "14px 16px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--teal)" }}>Weekly attendance</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "var(--gold-dark)", background: "rgba(170,133,46,0.12)", padding: "2px 8px", borderRadius: 999 }}>
+              WAEC-aligned
+            </span>
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 7, height: 60 }}>
+            {bars.map((h, i) => (
+              <div
+                key={i}
                 style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "rgba(255,255,255,0.6)",
-                  padding: "7px 14px",
-                  borderRadius: 10,
-                  background: "transparent",
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-display)",
-                  flexShrink: 0,
-                  transition: "color 0.2s, background 0.2s",
+                  flex: 1,
+                  height: `${h}%`,
+                  borderRadius: "5px 5px 0 0",
+                  background: i === 5 ? "var(--gold)" : "rgba(1,61,71,0.18)",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = "white";
-                  e.currentTarget.style.background = "rgba(255,255,255,0.12)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = "rgba(255,255,255,0.6)";
-                  e.currentTarget.style.background = "transparent";
-                }}
-              >
-                {l}
-              </button>
+              />
             ))}
-
-            <button
-              onClick={() => scrollTo("get-started")}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 5,
-                fontSize: 12,
-                fontWeight: 600,
-                color: "var(--teal)",
-                background: "white",
-                padding: "8px 18px",
-                borderRadius: 10,
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "var(--font-display)",
-                marginLeft: 4,
-                flexShrink: 0,
-                boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                transition: "opacity 0.2s",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-            >
-              Get in touch <ChevronRight size={12} />
-            </button>
-          </nav>
-        </motion.div>
-
-        {/* ── Mobile fullscreen overlay ── */}
-        <AnimatePresence>
-          {navOpen && (
-            <motion.div
-              className="hero-mobile-overlay"
-              style={{
-                position: "absolute",
-                inset: 0,
-                zIndex: 50,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                padding: "80px 40px 48px",
-                gap: 8,
-                background: "rgba(1,40,48,0.97)",
-              }}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.25 }}
-            >
-              {/* Close button */}
-              <button
-                onClick={() => setNavOpen(false)}
-                aria-label="Close menu"
-                className="hero-mobile-close-btn"
-                style={{
-                  position: "absolute",
-                  top: 24,
-                  right: 40,
-                  background: "rgba(255,255,255,0.1)",
-                  border: "1px solid rgba(255,255,255,0.18)",
-                  borderRadius: 10,
-                  width: 40,
-                  height: 40,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  color: "white",
-                }}
-              >
-                <X size={20} />
-              </button>
-
-              {/* Mobile nav links */}
-              {NAV_LINKS.map(({ label, target }, i) => (
-                <motion.button
-                  key={label}
-                  onClick={() => closeAndScroll(target)}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.06, duration: 0.3 }}
-                  style={{
-                    fontSize: 32,
-                    fontWeight: 800,
-                    textAlign: "left",
-                    color: "white",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontFamily: "var(--font-display)",
-                    letterSpacing: "-0.025em",
-                    padding: "6px 0",
-                    opacity: 1,
-                    transition: "opacity 0.15s",
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.6")}
-                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-                >
-                  {label}
-                </motion.button>
-              ))}
-
-              {/* Mobile CTA */}
-              <motion.button
-                onClick={() => closeAndScroll("get-started")}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: NAV_LINKS.length * 0.06 + 0.06, duration: 0.3 }}
-                style={{
-                  marginTop: 24,
-                  alignSelf: "flex-start",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  padding: "12px 28px",
-                  borderRadius: 10,
-                  background: "var(--gold)",
-                  color: "var(--teal)",
-                  border: "none",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-display)",
-                }}
-              >
-                Pilot Your School
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
+            {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
+              <span key={i} style={{ flex: 1, textAlign: "center", fontSize: 9, color: "var(--text-muted)" }}>{d}</span>
+            ))}
+          </div>
+        </div>
       </div>
-
-      {/* ── Marquee strip ── */}
-      <div className="hero-marquee-wrap" style={{ marginTop: 16 }}>
-        <Marquee />
-      </div>
-    </section>
+    </div>
   );
 }

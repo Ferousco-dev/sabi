@@ -6,10 +6,12 @@ export function useTypewriter(text: string, speed = 36, startDelay = 900) {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    setDisplayed("");
-    setDone(false);
     let i = 0;
     const t = setTimeout(() => {
+      // Reset inside the async callback (not synchronously in the effect body)
+      // so we don't trigger a cascading render on every dependency change.
+      setDisplayed("");
+      setDone(false);
       const iv = setInterval(() => {
         i++;
         setDisplayed(text.slice(0, i));
