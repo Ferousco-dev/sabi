@@ -5,14 +5,14 @@
 return [
     'db' => [
         'host'    => 'localhost',
-        'name'    => 'cpaneluser_sabihub',       // prefixed DB name
-        'user'    => 'cpaneluser_sabihub_app',   // prefixed DB user
-        'pass'    => 'CHANGE_ME_strong_db_password',
+        'name'    => 'sabihub',
+        'user'    => 'root',
+        'pass'    => '',
         'charset' => 'utf8mb4',
     ],
 
     // 256-bit random secret. Generate once and keep it stable.
-    'jwt_secret'   => 'CHANGE_ME_64_hex_chars_from_random_bytes_32',
+    'jwt_secret'   => '663d11615fa641e4be15f0394d692996871f72b79be74018b3b1bdf5ea51314c',
     'jwt_issuer'   => 'sabihub-api',
     'jwt_ttl'      => 60 * 60 * 24 * 7,          // 7 days, in seconds
 
