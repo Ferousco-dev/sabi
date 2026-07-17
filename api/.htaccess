@@ -1,0 +1,23 @@
+# public_html/api/.htaccess
+
+RewriteEngine On
+
+# --- Force HTTPS ---------------------------------------------------------
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# --- Block direct access to secrets & internal libs ----------------------
+<FilesMatch "^config\.php$">
+    Require all denied
+</FilesMatch>
+RewriteRule ^lib/ - [F,L]
+
+# --- Pretty routing: /auth/login -> /auth/login.php ----------------------
+# Only rewrites when the .php file exists and the pretty path has no extension.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI}.php -f
+RewriteRule ^(.+)$ $1.php [L]
+
+# --- Never list directories ----------------------------------------------
+Options -Indexes
