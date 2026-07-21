@@ -117,6 +117,21 @@ CREATE TABLE IF NOT EXISTS `enrollments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
+--  parent_child
+--  Links parent accounts to their student children.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `parent_child` (
+  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `parent_id`  BIGINT UNSIGNED NOT NULL,
+  `student_id` BIGINT UNSIGNED NOT NULL,
+  `created_at` TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_parent_child` (`parent_id`, `student_id`),
+  CONSTRAINT `fk_pc_parent`  FOREIGN KEY (`parent_id`)  REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_pc_student` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
 --  Housekeeping (run via a cPanel cron job, e.g. daily):
 --    DELETE FROM revoked_tokens  WHERE expires_at   < UTC_TIMESTAMP();
 --    DELETE FROM login_attempts  WHERE attempted_at < (UTC_TIMESTAMP() - INTERVAL 1 DAY);
