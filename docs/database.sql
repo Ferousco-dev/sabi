@@ -194,6 +194,38 @@ CREATE TABLE IF NOT EXISTS `student_progress` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
+--  attendance
+--  Tracks daily student attendance.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `attendance` (
+  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `student_id` BIGINT UNSIGNED NOT NULL,
+  `school_id`  BIGINT UNSIGNED NOT NULL,
+  `status`     ENUM('present', 'absent') NOT NULL DEFAULT 'present',
+  `date`       DATE            NOT NULL,
+  `created_at` TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_attendance` (`student_id`, `school_id`, `date`),
+  CONSTRAINT `fk_attn_student` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_attn_school`  FOREIGN KEY (`school_id`)  REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+--  notifications & alerts
+--  For NDPR compliance, users must opt-in to SMS/email alerts.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `alerts` (
+  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id`    BIGINT UNSIGNED NOT NULL,
+  `sms_enabled` BOOLEAN        DEFAULT FALSE,
+  `email_enabled` BOOLEAN      DEFAULT TRUE,
+  `phone_number` VARCHAR(20)   NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_alert_user` (`user_id`),
+  CONSTRAINT `fk_alert_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
 --  Housekeeping (run via a cPanel cron job, e.g. daily):
 --    DELETE FROM revoked_tokens  WHERE expires_at   < UTC_TIMESTAMP();
 --    DELETE FROM login_attempts  WHERE attempted_at < (UTC_TIMESTAMP() - INTERVAL 1 DAY);
