@@ -132,6 +132,51 @@ CREATE TABLE IF NOT EXISTS `parent_child` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
+--  timetable
+--  School administrators manage class schedules.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `timetable` (
+  `id`         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `school_id`  BIGINT UNSIGNED NOT NULL,
+  `subject`    VARCHAR(100)    NOT NULL,
+  `day`        ENUM('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday') NOT NULL,
+  `start_time` TIME            NOT NULL,
+  `end_time`   TIME            NOT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_timetable_school` FOREIGN KEY (`school_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+--  assignments & submissions
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `assignments` (
+  `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `lesson_id`   BIGINT UNSIGNED NOT NULL,
+  `teacher_id`  BIGINT UNSIGNED NOT NULL,
+  `title`       VARCHAR(255)    NOT NULL,
+  `description` TEXT,
+  `due_date`    TIMESTAMP       NULL,
+  `created_at`  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_assign_lesson`  FOREIGN KEY (`lesson_id`)  REFERENCES `lessons` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_assign_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `submissions` (
+  `id`            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `assignment_id` BIGINT UNSIGNED NOT NULL,
+  `student_id`    BIGINT UNSIGNED NOT NULL,
+  `content_url`   VARCHAR(255)    NULL,
+  `grade`         VARCHAR(10)     NULL,                     -- E.g. A, B, 85/100
+  `feedback`      TEXT,
+  `submitted_at`  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_submission` (`assignment_id`, `student_id`),
+  CONSTRAINT `fk_sub_assign`  FOREIGN KEY (`assignment_id`) REFERENCES `assignments` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_sub_student` FOREIGN KEY (`student_id`)    REFERENCES `users` (`id`)    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
 --  Housekeeping (run via a cPanel cron job, e.g. daily):
 --    DELETE FROM revoked_tokens  WHERE expires_at   < UTC_TIMESTAMP();
 --    DELETE FROM login_attempts  WHERE attempted_at < (UTC_TIMESTAMP() - INTERVAL 1 DAY);
