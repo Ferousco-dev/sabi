@@ -177,6 +177,23 @@ CREATE TABLE IF NOT EXISTS `submissions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
+--  student_progress
+--  Tracks student progress through lessons and courses.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `student_progress` (
+  `id`           BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `student_id`   BIGINT UNSIGNED NOT NULL,
+  `lesson_id`    BIGINT UNSIGNED NOT NULL,
+  `status`       ENUM('started', 'completed') NOT NULL DEFAULT 'started',
+  `xp_earned`    INT UNSIGNED    DEFAULT 0,
+  `updated_at`   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_progress` (`student_id`, `lesson_id`),
+  CONSTRAINT `fk_prog_student` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_prog_lesson`  FOREIGN KEY (`lesson_id`)  REFERENCES `lessons` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
 --  Housekeeping (run via a cPanel cron job, e.g. daily):
 --    DELETE FROM revoked_tokens  WHERE expires_at   < UTC_TIMESTAMP();
 --    DELETE FROM login_attempts  WHERE attempted_at < (UTC_TIMESTAMP() - INTERVAL 1 DAY);
