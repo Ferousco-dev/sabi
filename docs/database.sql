@@ -72,6 +72,51 @@ CREATE TABLE IF NOT EXISTS `login_attempts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
+--  courses & lessons
+--  Creators publish courses; teachers build multimedia lessons within them.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `courses` (
+  `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `creator_id`  BIGINT UNSIGNED NOT NULL,
+  `title`       VARCHAR(255)    NOT NULL,
+  `description` TEXT,
+  `price`       DECIMAL(10,2)   DEFAULT 0.00,
+  `created_at`  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_course_creator` FOREIGN KEY (`creator_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `lessons` (
+  `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `course_id`   BIGINT UNSIGNED NOT NULL,
+  `teacher_id`  BIGINT UNSIGNED NOT NULL,
+  `title`       VARCHAR(255)    NOT NULL,
+  `content`     LONGTEXT,                                   -- HTML/Markdown/JSON lesson body
+  `multimedia_url` VARCHAR(255) NULL,                       -- Link to video/audio on R2
+  `created_at`  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `fk_lesson_course` FOREIGN KEY (`course_id`) REFERENCES `courses` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_lesson_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+--  enrollments
+--  Links students to schools and the courses they are taking.
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `enrollments` (
+  `id`          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `student_id`  BIGINT UNSIGNED NOT NULL,
+  `school_id`   BIGINT UNSIGNED NULL,                       -- can be null for independent students
+  `course_id`   BIGINT UNSIGNED NOT NULL,
+  `enrolled_at` TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_enrollment` (`student_id`, `course_id`),
+  CONSTRAINT `fk_enrol_student` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_enrol_school`  FOREIGN KEY (`school_id`)  REFERENCES `users` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_enrol_course`  FOREIGN KEY (`course_id`)  REFERENCES `courses` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
 --  Housekeeping (run via a cPanel cron job, e.g. daily):
 --    DELETE FROM revoked_tokens  WHERE expires_at   < UTC_TIMESTAMP();
 --    DELETE FROM login_attempts  WHERE attempted_at < (UTC_TIMESTAMP() - INTERVAL 1 DAY);
