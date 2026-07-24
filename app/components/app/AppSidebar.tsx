@@ -8,6 +8,8 @@ import {
   Clock, ClipboardCheck, FileText, Megaphone, Bell,
   Upload, Building2, CalendarDays, ListOrdered, Sun,
   ScrollText, History, Shield,
+  BookCopy, Clock as ClockIcon, FileSpreadsheet, MessageCircle,
+  Calendar, Eye, Zap, Search, Trophy, Badge,
 } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
 import type { Role } from "@/app/lib/auth";
@@ -48,20 +50,38 @@ const ROLE_NAV: Record<Role, NavItem[]> = {
   ],
   teacher: [
     { label: "Dashboard", href: "/teacher", icon: LayoutDashboard },
+    { label: "Roster", href: "/teacher/roster", icon: Users },
     { label: "Lessons", href: "/teacher/lessons", icon: BookOpen },
     { label: "Assignments", href: "/teacher/assignments", icon: ClipboardList },
+    { label: "Attendance", href: "/teacher/attendance", icon: CalendarCheck },
+    { label: "Assessments", href: "/teacher/assessments", icon: ClipboardCheck },
+    { label: "Resources", href: "/teacher/resources", icon: BookCopy },
+    { label: "Messages", href: "/teacher/messages", icon: MessageSquare },
+    { label: "Reports", href: "/teacher/reports", icon: BarChart3 },
     { label: "Grading", href: "/teacher/grading", icon: BarChart3 },
   ],
   student: [
     { label: "Dashboard", href: "/student", icon: LayoutDashboard },
+    { label: "Timetable", href: "/student/timetable", icon: Calendar },
     { label: "Content", href: "/student/content", icon: BookOpen },
     { label: "Assignments", href: "/student/assignments", icon: ClipboardList },
+    { label: "Submissions", href: "/student/submissions", icon: FileSpreadsheet },
+    { label: "Assessments", href: "/student/assessments", icon: ClipboardCheck },
+    { label: "Attendance", href: "/student/attendance", icon: CalendarCheck },
     { label: "Progress", href: "/student/progress", icon: GraduationCap },
+    { label: "Messages", href: "/student/messages", icon: MessageSquare },
+    { label: "Settings", href: "/student/settings", icon: Settings },
   ],
   parent: [
     { label: "Dashboard", href: "/parent", icon: LayoutDashboard },
     { label: "Children", href: "/parent/children", icon: Users },
+    { label: "Grades", href: "/parent/results", icon: FileText },
+    { label: "Assignments", href: "/parent/assignments", icon: ClipboardList },
+    { label: "Attendance", href: "/parent/attendance", icon: CalendarCheck },
+    { label: "Events", href: "/parent/events", icon: Calendar },
+    { label: "Emergency", href: "/parent/emergency-contacts", icon: Users },
     { label: "Alerts", href: "/parent/alerts", icon: MessageSquare },
+    { label: "Notifications", href: "/parent/notifications", icon: Bell },
   ],
   creator: [
     { label: "Dashboard", href: "/creator", icon: LayoutDashboard },
