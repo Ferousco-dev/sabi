@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# project files
+*.tar.gz
+*.zip
+.idea/
+
+# php deployment scripts
+debug.php
+deploy.php
+ls.php
+read_log.php
+ftp_*.txt
