@@ -1,27 +1,20 @@
-"use client";
-import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import { BarChart3, Users, BookOpen, CalendarCheck } from "lucide-react";
 import { getStudents, getAttendance, getTimetable } from "@/app/lib/api/schools";
 
-export default function AnalyticsPage() {
-  const [loading, setLoading] = useState(true);
-  const [studentCount, setStudentCount] = useState(0);
-  const [todayPresent, setTodayPresent] = useState(0);
-  const [todayTotal, setTodayTotal] = useState(0);
-  const [classCount, setClassCount] = useState(0);
+export const dynamic = "force-dynamic";
 
-  useEffect(() => {
-    Promise.all([getStudents(), getAttendance(), getTimetable()]).then(([s, a, t]) => {
-      if (s.ok && s.data) setStudentCount(s.data.students.length);
-      if (a.ok && a.data) {
-        setTodayPresent(a.data.attendance.filter((r) => r.status === "present").length);
-        setTodayTotal(a.data.attendance.length);
-      }
-      if (t.ok && t.data) setClassCount(t.data.timetable.length);
-    }).finally(() => setLoading(false));
-  }, []);
+async function AnalyticsContent() {
+  const [students, attendance, timetable] = await Promise.all([
+    getStudents(),
+    getAttendance(),
+    getTimetable(),
+  ]);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading analytics…</div>;
+  const studentCount = students.ok && students.data ? students.data.students.length : 0;
+  const todayPresent = attendance.ok && attendance.data ? attendance.data.attendance.filter((r: any) => r.status === "present").length : 0;
+  const todayTotal = attendance.ok && attendance.data ? attendance.data.attendance.length : 0;
+  const classCount = timetable.ok && timetable.data ? timetable.data.timetable.length : 0;
 
   const metrics = [
     { icon: Users, label: "Total Students", value: studentCount, change: "+12 this term" },
@@ -33,7 +26,6 @@ export default function AnalyticsPage() {
   return (
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Analytics</h1>
-
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 }}>
         {metrics.map(({ icon: Icon, label, value, change }) => (
           <div key={label} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "18px 20px", boxShadow: "var(--shadow-xs)" }}>
@@ -47,5 +39,13 @@ export default function AnalyticsPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function AnalyticsPage() {
+  return (
+    <Suspense fallback={<div style={{ color: "var(--gray-500)" }}>Loading analytics…</div>}>
+      <AnalyticsContent />
+    </Suspense>
   );
 }

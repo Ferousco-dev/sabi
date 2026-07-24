@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BarChart3, Users, BookOpen, TrendingUp, Clock, FileText, Download } from "lucide-react";
@@ -106,3 +108,4 @@ export default function ReportsPage() {
     </div>
   );
 }
+

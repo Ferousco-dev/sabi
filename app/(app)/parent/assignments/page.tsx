@@ -1,17 +1,33 @@
 "use client";
 import { useEffect, useState } from "react";
-import { FileText, CheckCircle2, Clock, AlertCircle } from "lucide-react";
-import { getChildAssignments } from "@/app/lib/api/parent";
+import { FileText, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { getChildren, getChildAssignments } from "@/app/lib/api/parent";
 
 export default function ParentAssignmentsPage() {
+  const [children, setChildren] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedChild, setSelectedChild] = useState<number | null>(null);
 
   useEffect(() => {
-    getChildAssignments().then((res) => {
-      if (res.ok && res.data) setAssignments(res.data.assignments);
+    getChildren().then((res) => {
+      if (res.ok && res.data) setChildren(res.data.children);
     }).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (selectedChild) {
+      getChildAssignments(selectedChild).then((res) => {
+        if (res.ok && res.data) setAssignments(res.data.assignments);
+      });
+    }
+  }, [selectedChild]);
+
+  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading…</div>;
+
+  if (!selectedChild && children.length > 0) {
+    setSelectedChild(children[0].id);
+  }
 
   if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading assignments…</div>;
 
@@ -26,7 +42,7 @@ export default function ParentAssignmentsPage() {
           <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No assignments yet.</p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+<div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {assignments.map((a) => {
             const submitted = !!a.submitted_at;
             const overdue = a.due_date && new Date(a.due_date) < new Date() && !submitted;
@@ -41,7 +57,11 @@ export default function ParentAssignmentsPage() {
                 <p style={{ fontSize: 13, color: "var(--gray-500)", marginBottom: 4 }}>{a.description}</p>
                 <div style={{ fontSize: 12, color: "var(--gray-400)", display: "flex", gap: 12 }}>
                   <span>{a.subject} · Due: {a.due_date ? new Date(a.due_date).toLocaleDateString() : "No due date"}</span>
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>{submitted ? <><CheckCircle2 size={13} color="#0E8345" /> Submitted</> : <><Clock size={13} color="var(--gray-400)" /> Pending</>}</span>
+                  {submitted ? (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><CheckCircle2 size={13} color="#0E8345" /> Submitted</span>
+                  ) : (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}><Clock size={13} color="var(--gray-400)" /> Pending</span>
+                  )}
                 </div>
               </div>
             );

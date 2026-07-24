@@ -225,11 +225,13 @@ export function bulkRecordAttendance(data: { date: string; records: { student_id
   return fetchJson("/schools/attendance.php", { method: "POST", body: JSON.stringify({ action: "bulk", ...data }) });
 }
 
+export type AttendanceCorrection = { id: number; student_name: string; original_status: string; new_status: string; reason: string; status: string; submitted_at: string };
+
 export function submitAttendanceCorrection(attendanceId: number, newStatus: string, reason: string): Promise<FetchResult<{ success: boolean }>> {
   return fetchJson("/schools/attendance-corrections.php", { method: "POST", body: JSON.stringify({ attendance_id: attendanceId, new_status: newStatus, reason }) });
 }
 
-export function getAttendanceCorrections(): Promise<FetchResult<{ success: true; corrections: { id: number; student_name: string; original_status: string; new_status: string; reason: string; status: string; submitted_at: string }[] }>> {
+export function getAttendanceCorrections(): Promise<FetchResult<{ success: true; corrections: AttendanceCorrection[] }>> {
   return fetchJson("/schools/attendance-corrections.php", { method: "GET" });
 }
 

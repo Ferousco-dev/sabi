@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { UserPlus, Search, Users } from "lucide-react";
 import { getEnrollments, getClasses, type Enrollment, type ClassItem } from "@/app/lib/api/schools";
@@ -83,3 +85,4 @@ export default function EnrollmentsPage() {
     </div>
   );
 }
+

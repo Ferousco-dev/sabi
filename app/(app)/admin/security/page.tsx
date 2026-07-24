@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Shield, Save } from "lucide-react";
 import { updateSecuritySettings } from "@/app/lib/api/schools";
@@ -68,3 +70,4 @@ export default function SecurityPage() {
     </div>
   );
 }
+

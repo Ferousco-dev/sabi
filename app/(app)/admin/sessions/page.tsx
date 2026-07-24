@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { CalendarDays, Plus, CheckCircle2 } from "lucide-react";
 import { getAcademicSessions, createAcademicSession, setCurrentSession, type AcademicSession } from "@/app/lib/api/schools";
@@ -77,3 +79,4 @@ export default function SessionsPage() {
     </div>
   );
 }
+

@@ -1,30 +1,25 @@
-"use client";
-import { useEffect, useState } from "react";
+import { Suspense } from "react";
 import { Award, TrendingUp, BarChart3 } from "lucide-react";
 import { getScoreHistory } from "@/app/lib/api/student";
 
-export default function ScoreHistoryPage() {
-  const [history, setHistory] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export const dynamic = "force-dynamic";
 
-  useEffect(() => {
-    getScoreHistory().then((res) => {
-      if (res.ok && res.data) setHistory(res.data.history);
-    }).finally(() => setLoading(false));
-  }, []);
+async function ScoreHistoryContent() {
+  const res = await getScoreHistory();
+  const history = res.ok && res.data ? res.data.history : [];
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading score history…</div>;
+  if (history.length === 0) {
+    return (
+      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
+        <Award size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
+        <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No score history yet.</p>
+      </div>
+    );
+  }
 
   return (
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Score History</h1>
-
-      {history.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <Award size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No score history yet.</p>
-        </div>
-      )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {history.map((subject) => (
@@ -51,5 +46,13 @@ export default function ScoreHistoryPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function ScoreHistoryPage() {
+  return (
+    <Suspense fallback={<div style={{ color: "var(--gray-500)" }}>Loading score history…</div>}>
+      <ScoreHistoryContent />
+    </Suspense>
   );
 }

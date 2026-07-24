@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { ClipboardList, CheckCircle2, XCircle } from "lucide-react";
 import { getAttendanceCorrections, approveAttendanceCorrection } from "@/app/lib/api/schools";
@@ -63,3 +65,4 @@ export default function AttendanceCorrectionsPage() {
     </div>
   );
 }
+

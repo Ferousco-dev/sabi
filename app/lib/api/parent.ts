@@ -56,9 +56,15 @@ export function getChildReportCard(childId: number, termId: number): Promise<Fet
 
 // ── Assignments ─────────────────────────────────────────────────────────
 
-export function getChildAssignments(childId?: number): Promise<FetchResult<{ success: true; assignments: { id: number; title: string; subject: string; due_date: string; submitted: boolean; grade?: string; feedback?: string }[] }>> {
-  const q = childId != null ? `?child_id=${childId}` : "";
-  return fetchJson(`/parent/assignments.php${q}`, { method: "GET" });
+export function getChildAssignments(childId: number): Promise<FetchResult<{ success: true; assignments: { id: number; title: string; subject: string; due_date: string; submitted: boolean; grade?: string; feedback?: string }[] }>> {
+  return fetchJson(`/parent/assignments.php?child_id=${childId}`, { method: "GET" });
+}
+
+// ── Child Grades ──────────────────────────────────────────────────────────
+
+export type ChildGrade = { id: number; subject: string; term: string; session: string; score: number; grade: string; report_card_url?: string };
+export function getChildGrades(childId: number): Promise<FetchResult<{ success: true; grades: ChildGrade[] }>> {
+  return fetchJson(`/parent/grades.php?child_id=${childId}`, { method: "GET" });
 }
 
 // ── Events / Calendar ───────────────────────────────────────────────────
@@ -77,14 +83,6 @@ export function addEmergencyContact(data: { name: string; phone: string; relatio
   return fetchJson("/parent/emergency-contacts.php", { method: "POST", body: JSON.stringify(data) });
 }
 
-// ── Grades & report cards ─────────────────────────────────────────────────
-// Backs the parent grades/[id] and results/[id] pages. Returns the child's
-// published grades (with the optional teacher comment shown on the detail view).
-
-export function getChildGrades(childId: number): Promise<FetchResult<{ success: true; grades: { subject: string; score: number; grade: string; term: string; session: string; teacher_comment?: string }[] }>> {
-  return fetchJson(`/parent/grades.php?child_id=${childId}`, { method: "GET" });
-}
-
-export function getReportCard(childId: number): Promise<FetchResult<{ success: true; report_card: { pdf_url: string } }>> {
-  return fetchJson(`/parent/report-card.php?child_id=${childId}`, { method: "GET" });
+export function getReportCard(childId: number, gradeId: number): Promise<FetchResult<{ success: true; pdf_url: string }>> {
+  return fetchJson(`/parent/report-card.php?child_id=${childId}&grade_id=${gradeId}`, { method: "GET" });
 }

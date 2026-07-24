@@ -8,7 +8,7 @@ import {
   Clock, ClipboardCheck, FileText, Megaphone, Bell,
   Upload, Building2, CalendarDays, ListOrdered, Sun,
   ScrollText, History, Shield,
-  Calendar, UserCheck, HelpCircle,
+  Calendar, CalendarCheck, UserCheck, HelpCircle,
   AlertTriangle, MessageSquare as StudentMsg,
   CalendarCheck,
 } from "lucide-react";

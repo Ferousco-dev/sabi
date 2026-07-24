@@ -44,7 +44,11 @@ export default function ChildGradesPage() {
               <span>Term: <strong style={{ color: "var(--gray-900)" }}>{g.term}</strong></span>
               <span>Session: <strong style={{ color: "var(--gray-900)" }}>{g.session}</strong></span>
             </div>
-            {g.teacher_comment && <div style={{ marginTop: 8, fontSize: 13, color: "var(--gray-600)" }}>Teacher: {g.teacher_comment}</div>}
+            {g.teacher_comment && (
+              <div style={{ marginTop: 8, fontSize: 13, color: "var(--gray-600)" }}>
+                Teacher: {g.teacher_comment}
+              </div>
+            )}
           </div>
         ))}
       </div>

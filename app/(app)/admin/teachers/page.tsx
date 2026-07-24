@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Users, Search, BookOpen, GraduationCap } from "lucide-react";
@@ -75,3 +77,4 @@ export default function TeachersPage() {
     </div>
   );
 }
+

@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Building2, Plus, Trash2, MapPin } from "lucide-react";
 import { getCampuses, createCampus, deleteCampus, type Campus } from "@/app/lib/api/schools";
@@ -72,3 +74,4 @@ export default function CampusesPage() {
     </div>
   );
 }
+

@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Columns3, Plus, Users } from "lucide-react";
 import { getClasses, getSections, createSection, type ClassItem, type Section } from "@/app/lib/api/schools";
@@ -79,3 +81,4 @@ export default function SectionsPage() {
     </div>
   );
 }
+

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Plus, BookOpen } from "lucide-react";
 import { getCreatorCourses, type Course } from "@/app/lib/api/creator";
 
+export const dynamic = "force-dynamic";
+
 export default function CreatorCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);

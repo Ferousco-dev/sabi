@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Send, Mail, Search, Users } from "lucide-react";
 import { getUsers, inviteUser, type AppUser } from "@/app/lib/api/schools";
@@ -107,3 +109,4 @@ export default function InvitationsPage() {
     </div>
   );
 }
+

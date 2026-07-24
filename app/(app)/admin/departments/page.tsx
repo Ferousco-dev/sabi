@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Building, Plus, BookOpen, Users } from "lucide-react";
 import { getDepartments, createDepartment, type Department } from "@/app/lib/api/schools";
@@ -61,3 +63,4 @@ export default function DepartmentsPage() {
     </div>
   );
 }
+

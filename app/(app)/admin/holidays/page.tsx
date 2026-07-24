@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Sun, Plus, Trash2 } from "lucide-react";
 import { getHolidays, createHoliday, type Holiday } from "@/app/lib/api/schools";
@@ -88,3 +90,4 @@ export default function HolidaysPage() {
     </div>
   );
 }
+

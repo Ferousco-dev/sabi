@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Building2, Save } from "lucide-react";
 import { getSchoolProfile, updateSchoolProfile, type SchoolProfile } from "@/app/lib/api/schools";
@@ -72,3 +74,4 @@ export default function SchoolProfilePage() {
     </div>
   );
 }
+

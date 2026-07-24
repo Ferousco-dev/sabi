@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Megaphone, Plus } from "lucide-react";
 import { getAnnouncements, createAnnouncement, type Announcement } from "@/app/lib/api/schools";
@@ -89,3 +91,4 @@ export default function AnnouncementsPage() {
     </div>
   );
 }
+

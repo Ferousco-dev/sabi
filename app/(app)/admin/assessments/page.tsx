@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { ClipboardCheck, Plus } from "lucide-react";
 import { getAssessmentConfigs, createAssessmentConfig, getAcademicSessions, getTerms, type AssessmentConfig, type AcademicSession, type Term } from "@/app/lib/api/schools";
@@ -77,3 +79,4 @@ export default function AssessmentsPage() {
     </div>
   );
 }
+

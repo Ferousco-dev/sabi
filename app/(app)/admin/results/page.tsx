@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { FileText, CheckCircle2, XCircle, Send } from "lucide-react";
 import { getResults, reviewResult, publishResults, type Result } from "@/app/lib/api/schools";
@@ -97,3 +99,4 @@ export default function ResultsPage() {
     </div>
   );
 }
+

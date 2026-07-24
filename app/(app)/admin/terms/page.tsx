@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { ListOrdered, Plus } from "lucide-react";
 import { getAcademicSessions, getTerms, createTerm, type AcademicSession, type Term } from "@/app/lib/api/schools";
@@ -85,3 +87,4 @@ export default function TermsPage() {
     </div>
   );
 }
+

@@ -30,7 +30,7 @@ export default function TeacherDashboard() {
         onMouseLeave={(e) => e.currentTarget.style.boxShadow = "var(--shadow-xs)"}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Icon size={20} style={{ color: "var(--teal)" }} />
+            <Icon size={20} color={color} />
           </div>
           <ArrowRight size={16} style={{ color: "var(--gray-300)" }} />
         </div>

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { FileUp, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { getStudentAssignments, submitAssignment } from "@/app/lib/api/student";
 
@@ -7,7 +7,7 @@ export default function StudentSubmissionsPage() {
   const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState<string | null>(null);
-  const fileInput = useRef<HTMLInputElement>(null);
+  const [fileInput, setFileInput] = useState<HTMLInputElement | null>(null);
 
   useEffect(() => {
     getStudentAssignments().then((res) => {
@@ -25,7 +25,7 @@ export default function StudentSubmissionsPage() {
       setAssignments((prev) => prev.map((a) => a.id === Number(assignmentId) ? { ...a, submitted_at: new Date().toISOString() } : a));
     }
     setUploading(null);
-    if (fileInput.current) fileInput.current.value = "";
+    e.target.value = "";
   }
 
   if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading submissions…</div>;
@@ -58,8 +58,8 @@ export default function StudentSubmissionsPage() {
                   <span>{a.course_title} · Due: {a.due_date ? new Date(a.due_date).toLocaleDateString() : "No due date"}</span>
                   {!submitted && (
                     <label style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
-                      <input type="file" ref={(el) => { fileInput.current = el; }} onChange={(e) => handleUpload(a.id.toString(), e)} style={{ display: "none" }} />
-                      <button type="button" onClick={() => fileInput.current?.click()} disabled={uploading === a.id} style={{ height: 32, padding: "0 12px", borderRadius: 6, fontSize: 12, fontWeight: 600, border: "1px solid var(--teal)", background: "var(--teal-50)", color: "var(--teal)", cursor: "pointer" }}>
+                      <input type="file" onChange={(e) => handleUpload(a.id.toString(), e)} style={{ display: "none" }} />
+                      <button type="button" disabled={uploading === a.id} style={{ height: 32, padding: "0 12px", borderRadius: 6, fontSize: 12, fontWeight: 600, border: "1px solid var(--teal)", background: "var(--teal-50)", color: "var(--teal)", cursor: "pointer" }}>
                         <FileUp size={13} /> {uploading === a.id ? "Uploading…" : "Submit File"}
                       </button>
                     </label>

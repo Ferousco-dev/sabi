@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { ArrowRight, Users, Search } from "lucide-react";
 import { getStudents, getClasses, transferStudent, type Student, type ClassItem } from "@/app/lib/api/schools";
@@ -75,3 +77,4 @@ export default function TransfersPage() {
     </div>
   );
 }
+

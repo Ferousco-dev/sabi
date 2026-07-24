@@ -1,4 +1,6 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useState } from "react";
 import { Upload, FileSpreadsheet, CheckCircle2, XCircle } from "lucide-react";
 import { bulkImportStudents, bulkImportTeachers } from "@/app/lib/api/schools";
@@ -74,3 +76,4 @@ export default function BulkImportPage() {
     </div>
   );
 }
+
