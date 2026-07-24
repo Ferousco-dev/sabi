@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { ClipboardList, CheckCircle2, XCircle } from "lucide-react";
-import { getAttendanceCorrections, approveAttendanceCorrection, type AttendanceCorrection } from "@/app/lib/api/schools";
+import { getAttendanceCorrections, approveAttendanceCorrection } from "@/app/lib/api/schools";
 
 export default function AttendanceCorrectionsPage() {
   const [corrections, setCorrections] = useState<any[]>([]);

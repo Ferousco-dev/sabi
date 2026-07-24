@@ -35,7 +35,7 @@ export default function NewLessonPage() {
       {error && <div style={{ padding: "10px 14px", borderRadius: 8, background: "#FEF3F2", border: "1px solid #FECDCA", color: "#B42318", fontSize: 13, marginBottom: 16 }}>{error}</div>}
 
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-        <Input label="Title" value={title} onChange={setTitle} placeholder="e.g. Photosynthesis - JSS2 Science" />
+        <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Photosynthesis - JSS2 Science" />
         <div>
           <label style={{ fontSize: 12, fontWeight: 700, color: "var(--teal)", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: 8 }}>Content</label>
           <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={8}

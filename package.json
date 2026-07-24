@@ -7,6 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "slop-check": "node scripts/check-slop.mjs",
+    "test:e2e": "playwright test",
+    "verify": "npm run typecheck && npm run slop-check && npm run build",
     "postinstall": "node scripts/postinstall.mjs"
   },
   "dependencies": {
@@ -17,6 +21,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

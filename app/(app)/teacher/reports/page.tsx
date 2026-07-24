@@ -11,7 +11,7 @@ export default function TeacherReportsPage() {
   useEffect(() => {
     setLoading(true);
     const p = tab === "performance" ? getTeacherPerformanceReport() : tab === "trends" ? getTeacherAttendanceTrends() : getCompletionRates();
-    p.then((res) => { if (res.ok && res.data) setReport(res.data.report ?? res.data.trends ?? res.data.rates ?? []); }).finally(() => setLoading(false));
+    p.then((res) => { if (res.ok && res.data) { const d = res.data as any; setReport(d.report ?? d.trends ?? d.rates ?? []); } }).finally(() => setLoading(false));
   }, [tab]);
 
   if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading reports…</div>;

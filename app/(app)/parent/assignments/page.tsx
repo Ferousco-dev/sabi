@@ -41,7 +41,7 @@ export default function ParentAssignmentsPage() {
                 <p style={{ fontSize: 13, color: "var(--gray-500)", marginBottom: 4 }}>{a.description}</p>
                 <div style={{ fontSize: 12, color: "var(--gray-400)", display: "flex", gap: 12 }}>
                   <span>{a.subject} · Due: {a.due_date ? new Date(a.due_date).toLocaleDateString() : "No due date"}</span>
-                  <span>{submitted ? <CheckCircle2 size={13} color="#0E8345" /> Submitted : <Clock size={13} color="var(--gray-400)" /> Pending}</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>{submitted ? <><CheckCircle2 size={13} color="#0E8345" /> Submitted</> : <><Clock size={13} color="var(--gray-400)" /> Pending</>}</span>
                 </div>
               </div>
             );
