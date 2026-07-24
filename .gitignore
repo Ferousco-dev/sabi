@@ -51,3 +51,8 @@ deploy.php
 ls.php
 read_log.php
 ftp_*.txt
+
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache

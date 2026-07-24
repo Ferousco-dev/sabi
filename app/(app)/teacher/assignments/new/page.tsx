@@ -41,13 +41,13 @@ export default function NewAssignmentPage() {
       {error && <div style={{ padding: "10px 14px", borderRadius: 8, background: "#FEF3F2", border: "1px solid #FECDCA", color: "#B42318", fontSize: 13, marginBottom: 16 }}>{error}</div>}
 
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-        <Input label="Title" value={title} onChange={setTitle} placeholder="e.g. Photosynthesis Worksheet" />
+        <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Photosynthesis Worksheet" />
         <div>
           <label style={{ fontSize: 12, fontWeight: 700, color: "var(--teal)", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: 8 }}>Description</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4}
             style={{ width: "100%", padding: "13px 16px", fontSize: 16, border: "1.5px solid var(--border)", borderRadius: 8, background: "#fff", color: "var(--teal)", outline: "none", fontFamily: "var(--font-sans)", resize: "vertical" }} />
         </div>
-        <Input label="Due Date" type="date" value={dueDate} onChange={setDueDate} />
+        <Input label="Due Date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
         <button type="submit" disabled={loading}
           style={{ height: 48, padding: "0 24px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 15, fontWeight: 600, border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.65 : 1, alignSelf: "flex-start" }}>
           {loading ? "Creating…" : "Create Assignment"}

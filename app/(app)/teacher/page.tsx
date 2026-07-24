@@ -23,14 +23,14 @@ export default function TeacherDashboard() {
 
   if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading dashboard…</div>;
 
-  const statCard = (icon: typeof BookOpen, label: string, value: number | string, href: string, color: string) => (
+  const statCard = (Icon: typeof BookOpen, label: string, value: number | string, href: string, color: string) => (
     <Link href={href} style={{ textDecoration: "none", display: "block" }}>
       <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "18px 20px", boxShadow: "var(--shadow-xs)", transition: "box-shadow 0.15s" }}
         onMouseEnter={(e) => e.currentTarget.style.boxShadow = "var(--shadow-md)"}
         onMouseLeave={(e) => e.currentTarget.style.boxShadow = "var(--shadow-xs)"}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            {icon}
+            <Icon size={20} style={{ color: "var(--teal)" }} />
           </div>
           <ArrowRight size={16} style={{ color: "var(--gray-300)" }} />
         </div>
