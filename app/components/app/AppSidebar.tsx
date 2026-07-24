@@ -8,8 +8,8 @@ import {
   Clock, ClipboardCheck, FileText, Megaphone, Bell,
   Upload, Building2, CalendarDays, ListOrdered, Sun,
   ScrollText, History, Shield,
-  BookCopy, Clock as ClockIcon, FileSpreadsheet, MessageCircle,
-  Calendar, Eye, Zap, Search, Trophy, Badge,
+  Calendar, UserCheck, HelpCircle,
+  AlertTriangle, MessageSquare as StudentMsg,
 } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
 import type { Role } from "@/app/lib/auth";
@@ -55,7 +55,7 @@ const ROLE_NAV: Record<Role, NavItem[]> = {
     { label: "Assignments", href: "/teacher/assignments", icon: ClipboardList },
     { label: "Attendance", href: "/teacher/attendance", icon: CalendarCheck },
     { label: "Assessments", href: "/teacher/assessments", icon: ClipboardCheck },
-    { label: "Resources", href: "/teacher/resources", icon: BookCopy },
+    { label: "Resources", href: "/teacher/resources", icon: BookText },
     { label: "Messages", href: "/teacher/messages", icon: MessageSquare },
     { label: "Reports", href: "/teacher/reports", icon: BarChart3 },
     { label: "Grading", href: "/teacher/grading", icon: BarChart3 },
@@ -65,7 +65,7 @@ const ROLE_NAV: Record<Role, NavItem[]> = {
     { label: "Timetable", href: "/student/timetable", icon: Calendar },
     { label: "Content", href: "/student/content", icon: BookOpen },
     { label: "Assignments", href: "/student/assignments", icon: ClipboardList },
-    { label: "Submissions", href: "/student/submissions", icon: FileSpreadsheet },
+    { label: "Submissions", href: "/student/submissions", icon: FileText },
     { label: "Assessments", href: "/student/assessments", icon: ClipboardCheck },
     { label: "Attendance", href: "/student/attendance", icon: CalendarCheck },
     { label: "Progress", href: "/student/progress", icon: GraduationCap },
@@ -79,7 +79,7 @@ const ROLE_NAV: Record<Role, NavItem[]> = {
     { label: "Assignments", href: "/parent/assignments", icon: ClipboardList },
     { label: "Attendance", href: "/parent/attendance", icon: CalendarCheck },
     { label: "Events", href: "/parent/events", icon: Calendar },
-    { label: "Emergency", href: "/parent/emergency-contacts", icon: Users },
+    { label: "Emergency", href: "/parent/emergency-contacts", icon: UserCheck },
     { label: "Alerts", href: "/parent/alerts", icon: MessageSquare },
     { label: "Notifications", href: "/parent/notifications", icon: Bell },
   ],
