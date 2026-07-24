@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { MessageSquare, Send } from "lucide-react";
 import { getStudentMessages, sendStudentMessage, type MessageThread } from "@/app/lib/api/student";
 
-export default function MessagesPage() {
+export default function StudentMessagesPage() {
   const [threads, setThreads] = useState<MessageThread[]>([]);
   const [loading, setLoading] = useState(true);
   const [recipient, setRecipient] = useState("");
@@ -22,8 +22,8 @@ export default function MessagesPage() {
     if (!recipient.trim() || !message.trim()) return;
     setSending(true);
     await sendStudentMessage({ recipient_id: Number(recipient), subject, message: message.trim() });
-    setRecipient(""); setSubject(""); setMessage("");
     setSending(false);
+    setRecipient(""); setSubject(""); setMessage("");
   }
 
   if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading messages…</div>;
