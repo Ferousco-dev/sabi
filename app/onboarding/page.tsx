@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { School, Presentation, BookOpen, Users, Store, Check, ArrowRight } from "lucide-react";
-import { updateRole, type Role } from "../lib/auth";
+import { updateRole, HOME_BY_ROLE, type Role } from "../lib/auth";
 
 const ROLES: { key: Role; label: string; desc: string; Icon: typeof School }[] = [
   { key: "school_admin", label: "School", desc: "Manage enrolment, staff and analytics", Icon: School },
@@ -21,7 +21,7 @@ export default function OnboardingPage() {
     if (!role) return;
     setLoading(true);
     await updateRole(role); // best-effort; proceed regardless in this early build
-    router.push("/");
+    router.push(HOME_BY_ROLE[role]);
   }
 
   return (

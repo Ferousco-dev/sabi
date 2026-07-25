@@ -33,6 +33,15 @@ export type User = {
   role: Role;
 };
 
+/** Landing route for each role after login or onboarding. */
+export const HOME_BY_ROLE: Record<Role, string> = {
+  school_admin: "/admin",
+  teacher: "/teacher",
+  student: "/student",
+  parent: "/parent",
+  creator: "/creator",
+};
+
 /** Success body shared by signup + login. */
 export type AuthSuccess = {
   success: true;
