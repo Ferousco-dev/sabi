@@ -1,49 +1,27 @@
 <?php
-// public_html/api/teacher/grading.php
-require __DIR__ . '/../lib/cors.php';     apply_cors();
-require __DIR__ . '/../lib/auth_middleware.php';
+// api/teacher/grading.php
+require_once __DIR__ . '/../lib/auth_middleware.php';
+require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../lib/response.php';
 
-$user = require_auth();
-require_role($user, ['teacher', 'school_admin']);
+$user = authenticate(['teacher']);
+$db = db();
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // List all submissions for a specific assignment
-    $assignmentId = (int) ($_GET['assignment_id'] ?? 0);
-    if (!$assignmentId) fail(400, 'Assignment ID is required.');
+    $assignment_id = $_GET['assignment_id'] ?? null;
+    if (!$assignment_id) json_response(['success' => false, 'error' => 'Assignment ID required'], 400);
 
-    $stmt = db()->prepare(
-        'SELECT s.*, u.name as student_name
-         FROM submissions s
-         JOIN users u ON s.student_id = u.id
-         WHERE s.assignment_id = :aid'
-    );
-    $stmt->execute([':aid' => $assignmentId]);
-    json_out(200, ['success' => true, 'submissions' => $stmt->fetchAll()]);
-} else if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Grade a submission
-    $body = read_json_body();
-    $submissionId = (int) ($body['submission_id'] ?? 0);
-    $grade        = trim((string) ($body['grade'] ?? ''));
-    $feedback     = trim((string) ($body['feedback'] ?? ''));
+    $stmt = $db->prepare("SELECT s.*, u.name as student_name FROM submissions s JOIN users u ON u.id = s.student_id WHERE s.assignment_id = ?");
+    $stmt->execute([$assignment_id]);
+    json_response(['success' => true, 'submissions' => $stmt->fetchAll()]);
+}
 
-    if (!$submissionId || $grade === '') {
-        fail(400, 'Submission ID and grade are required.');
-    }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (empty($data['submission_id']) || !isset($data['grade'])) json_response(['success' => false, 'error' => 'Submission ID and grade required'], 400);
 
-    try {
-        $stmt = db()->prepare(
-            'UPDATE submissions SET grade = :grade, feedback = :feedback
-             WHERE id = :sid'
-        );
-        $stmt->execute([
-            ':grade'    => $grade,
-            ':feedback' => $feedback,
-            ':sid'      => $submissionId
-        ]);
-        json_out(200, ['success' => true, 'message' => 'Submission graded successfully.']);
-    } catch (PDOException $e) {
-        fail(500, 'Could not grade submission.');
-    }
-} else {
-    fail(405, 'Method not allowed');
+    $stmt = $db->prepare("UPDATE submissions SET grade = ?, feedback = ? WHERE id = ?");
+    $stmt->execute([$data['grade'], $data['feedback'] ?? null, $data['submission_id']]);
+
+    json_response(['success' => true, 'message' => 'Grade updated']);
 }
