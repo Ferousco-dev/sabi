@@ -29,14 +29,14 @@ jobs:
           printf '%s\n' "${{ secrets.CPANEL_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-      - name: Deploy api/ (keeps server config + SQL)
+      - name: Deploy api/ over SSH (tar stream; keeps server config + SQL)
         run: |
-          rsync -rlz --delete \
-            --exclude 'config.php' \
-            --exclude 'database_v2.sql' \
-            --exclude 'database_v2_seed.sql' \
-            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.CPANEL_PORT }} -o StrictHostKeyChecking=no" \
-            api/ "${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}:public_html/api/"
+          # Stream a tar of the repo's api/ contents and extract on the server.
+          # config.php and the SQL dumps are not in the repo, so they are never
+          # in the tarball and stay exactly as they are on the server.
+          tar czf - -C api . | ssh -i ~/.ssh/deploy_key -p "${{ secrets.CPANEL_PORT }}" \
+            -o StrictHostKeyChecking=no "${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}" \
+            'mkdir -p public_html/api && tar xzf - -C public_html/api && echo "extracted OK"'
 
       - name: Health check
         run: |
