@@ -2,10 +2,15 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { TrendingUp, Users, BookOpen, CalendarCheck } from "lucide-react";
+import { Users, BookOpen, CalendarCheck, UserCheck } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
 import { getStudents, getAttendance, getTimetable, type Student, type AttendanceRecord, type TimetableEntry } from "@/app/lib/api/schools";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { StatCard } from "@/app/components/dashboard/StatCard";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { initials } from "@/app/lib/dashboard";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -24,62 +29,81 @@ export default function AdminDashboard() {
 
   const present = attendance.filter((a) => a.status === "present").length;
   const total = attendance.length;
+  const rate = total > 0 ? Math.round((present / total) * 100) : 0;
+  const firstName = user?.name?.split(" ")[0] ?? "there";
 
   if (loading) return <LoadingPage />;
 
   return (
-    <div>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.02em" }}>
-          Welcome, {user?.name?.split(" ")[0]}
-        </h1>
-        <p style={{ fontSize: 14, color: "var(--gray-500)" }}>School overview for today</p>
-      </div>
+    <>
+      <PageHeader title={`Welcome, ${firstName}`} subtitle="School overview for today" />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 28 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 20 }}>
         {[
-          { icon: Users, label: "Total Students", value: students.length, color: "var(--teal)" },
-          { icon: BookOpen, label: "Today's Classes", value: timetable.length, color: "var(--gold)" },
-          { icon: CalendarCheck, label: "Present Today", value: total > 0 ? `${Math.round((present / total) * 100)}%` : "—", color: "#0E8345" },
-          { icon: TrendingUp, label: "Attendance Rate", value: total > 0 ? `${present}/${total}` : "—", color: "var(--teal)" },
-        ].map(({ icon: Icon, label, value, color }) => (
-          <div key={label} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "18px 20px", boxShadow: "var(--shadow-xs)" }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-              <Icon size={20} color={color} />
-            </div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.02em", lineHeight: 1 }}>{value}</div>
-            <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 4 }}>{label}</div>
+          { key: "students", label: "Total students", value: students.length, Icon: Users },
+          { key: "classes", label: "Today's classes", value: timetable.length, Icon: BookOpen },
+          { key: "present", label: "Present today", value: present, Icon: UserCheck },
+          { key: "rate", label: "Attendance rate", value: rate, suffix: "%", Icon: CalendarCheck },
+        ].map((s, i) => (
+          <div key={s.key} className="dash-rise" style={{ animationDelay: `${i * 70}ms` }}>
+            <StatCard label={s.label} value={s.value} suffix={s.suffix} Icon={s.Icon} />
           </div>
         ))}
       </div>
 
-      {students.length > 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-          <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-            <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--gray-900)" }}>Enrolled Students</h2>
-          </div>
+      <Card title="Enrolled students" padded={false}>
+        {students.length === 0 ? (
+          <EmptyState Icon={Users} title="No students yet" description="Enrolled students will appear here once they are registered." />
+        ) : (
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 480 }}>
               <thead>
-                <tr style={{ background: "var(--gray-50)" }}>
-                  <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Name</th>
-                  <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Email</th>
-                  <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Enrolled</th>
+                <tr>
+                  {["Student", "Email", "Enrolled"].map((h) => (
+                    <th key={h} style={thStyle}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {students.map((s) => (
-                  <tr key={s.id} style={{ borderTop: "1px solid var(--border)" }}>
-                    <td style={{ padding: "12px 20px", fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{s.name}</td>
-                    <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{s.email}</td>
-                    <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{new Date(s.enrolled_at).toLocaleDateString()}</td>
+                  <tr key={s.id}>
+                    <td style={tdStyle}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                        <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: "var(--radius-full)", background: "var(--teal-50)", color: "var(--teal)", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                          {initials(s.name)}
+                        </span>
+                        <span style={{ fontWeight: 600, color: "var(--gray-900)" }}>{s.name}</span>
+                      </span>
+                    </td>
+                    <td style={{ ...tdStyle, color: "var(--text-subtle)" }}>{s.email}</td>
+                    <td style={{ ...tdStyle, color: "var(--text-subtle)" }}>{new Date(s.enrolled_at).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </Card>
+    </>
   );
 }
+
+const thStyle = {
+  textAlign: "left" as const,
+  padding: "11px 16px",
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--text-subtle)",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.04em",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};
+
+const tdStyle = {
+  padding: "13px 16px",
+  fontSize: 14,
+  color: "var(--text-muted)",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};
