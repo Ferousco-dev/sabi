@@ -1,30 +1,29 @@
 <?php
-// public_html/api/creator/revenue.php
-require __DIR__ . '/../lib/cors.php';     apply_cors();
-require __DIR__ . '/../lib/auth_middleware.php';
+// api/creator/revenue.php
+require_once __DIR__ . '/../lib/auth_middleware.php';
+require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../lib/response.php';
 
-$user = require_auth();
-require_role($user, ['creator', 'school_admin']);
+$user = authenticate(['creator']);
+$db = db();
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Calculate total revenue from course enrollments
-    $stmt = db()->prepare(
-        'SELECT SUM(c.price) as total_revenue, COUNT(e.id) as total_sales
-         FROM courses c
-         JOIN enrollments e ON c.id = e.course_id
-         WHERE c.creator_id = :cid'
-    );
-    $stmt->execute([':cid' => $user['id']]);
+    // Simplified revenue calculation based on enrollments for creator's courses
+    $stmt = $db->prepare("
+        SELECT SUM(c.price) as total, COUNT(e.id) as sales, 'NGN' as currency
+        FROM courses c
+        JOIN enrollments e ON e.course_id = c.id
+        WHERE c.creator_id = ?
+    ");
+    $stmt->execute([$user['id']]);
     $revenue = $stmt->fetch();
 
-    json_out(200, [
+    json_response([
         'success' => true,
         'revenue' => [
-            'total' => (float) ($revenue['total_revenue'] ?? 0.00),
-            'sales' => (int) ($revenue['total_sales'] ?? 0),
-            'currency' => 'NGN'
+            'total' => (float)($revenue['total'] ?? 0),
+            'sales' => (int)($revenue['sales'] ?? 0),
+            'currency' => $revenue['currency'] ?? 'NGN'
         ]
     ]);
-} else {
-    fail(405, 'Method not allowed');
 }
