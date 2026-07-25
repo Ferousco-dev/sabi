@@ -24,7 +24,7 @@ export default function OnboardingPage() {
     if (!role) return;
     setLoading(true);
     await updateRole(role); // best-effort; proceed regardless in this early build
-    router.push("/");
+    router.push("/dashboard");
   }
 
   return (

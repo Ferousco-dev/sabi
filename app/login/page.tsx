@@ -32,7 +32,7 @@ export default function LoginPage() {
     if (res.status === 0) return setError("Couldn't reach the server. Check your connection and try again.");
     if (res.ok && res.data && res.data.success) {
       setToken((res.data as AuthSuccess).token);
-      router.push("/");
+      router.push("/dashboard");
       return;
     }
     setError(res.data && res.data.success === false ? res.data.error : "Invalid email or password.");
