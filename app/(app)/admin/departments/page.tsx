@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Building, Plus, BookOpen, Users } from "lucide-react";
 import { getDepartments, createDepartment, type Department } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -24,7 +26,7 @@ export default function DepartmentsPage() {
     load();
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading departments…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -58,7 +60,13 @@ export default function DepartmentsPage() {
             </div>
           </div>
         ))}
-        {departments.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32 }}>No departments created yet.</p>}
+        {departments.length === 0 && (
+          <EmptyState
+            icon={Building}
+            title="No departments"
+            description="Categorize your subjects and teachers into departments."
+          />
+        )}
       </div>
     </div>
   );

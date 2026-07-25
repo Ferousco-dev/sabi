@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { History, Search } from "lucide-react";
 import { getLoginHistory } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function LoginHistoryPage() {
   const [history, setHistory] = useState<any[]>([]);
@@ -18,7 +20,7 @@ export default function LoginHistoryPage() {
 
   const filtered = history.filter((h) => h.user_name.toLowerCase().includes(query.toLowerCase()));
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading login history…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -51,7 +53,13 @@ export default function LoginHistoryPage() {
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 && <p style={{ padding: "32px", textAlign: "center", color: "var(--gray-400)" }}>No login history.</p>}
+        {filtered.length === 0 && (
+          <EmptyState
+            icon={History}
+            title="No login history"
+            description={query ? "No logins match your search." : "Login activity will be shown here."}
+          />
+        )}
       </div>
     </div>
   );

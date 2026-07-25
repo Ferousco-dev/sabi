@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { Award, TrendingUp, BarChart3 } from "lucide-react";
 import { getScoreHistory } from "@/app/lib/api/student";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +12,11 @@ async function ScoreHistoryContent() {
 
   if (history.length === 0) {
     return (
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-        <Award size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-        <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No score history yet.</p>
-      </div>
+      <EmptyState
+        icon={Award}
+        title="No score history yet"
+        description="Your assessment scores and grades will appear here once published."
+      />
     );
   }
 
@@ -51,7 +54,7 @@ async function ScoreHistoryContent() {
 
 export default function ScoreHistoryPage() {
   return (
-    <Suspense fallback={<div style={{ color: "var(--gray-500)" }}>Loading score history…</div>}>
+    <Suspense fallback={<LoadingPage />}>
       <ScoreHistoryContent />
     </Suspense>
   );

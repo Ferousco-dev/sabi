@@ -1,7 +1,10 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Calendar, Clock, BookOpen } from "lucide-react";
 import { getStudentTimetable, type StudentTimetableEntry } from "@/app/lib/api/student";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
@@ -15,7 +18,7 @@ export default function TimetablePage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading timetable…</div>;
+  if (loading) return <LoadingPage />;
 
   const byDay = DAYS.map((d) => ({ day: d, items: entries.filter((e) => e.day === d).sort((a, b) => a.start_time.localeCompare(b.start_time)) }));
 

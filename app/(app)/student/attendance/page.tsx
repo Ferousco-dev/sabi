@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { CalendarCheck, XCircle, Clock } from "lucide-react";
 import { getStudentAttendance, requestAttendanceCorrection } from "@/app/lib/api/student";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 const STATUS_COLORS: Record<string, string> = { present: "#0E8345", absent: "#B42318", late: "var(--gold)", excused: "#4A6FA5" };
 const STATUS_ICONS: Record<string, any> = { present: CalendarCheck, absent: XCircle, late: Clock };
@@ -26,7 +30,7 @@ export default function StudentAttendancePage() {
     alert("Correction request submitted for review.");
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading attendance…</div>;
+  if (loading) return <LoadingPage />;
 
   const present = records.filter((r) => r.status === "present").length;
   const absent = records.filter((r) => r.status === "absent").length;
@@ -73,7 +77,13 @@ export default function StudentAttendancePage() {
             </div>
           );
         })}
-        {records.length === 0 && <p style={{ padding: 32, textAlign: "center", color: "var(--gray-400)" }}>No attendance records yet.</p>}
+        {records.length === 0 && (
+          <EmptyState
+            icon={CalendarCheck}
+            title="No attendance records"
+            description="Your daily attendance history will be shown here."
+          />
+        )}
       </div>
     </div>
   );

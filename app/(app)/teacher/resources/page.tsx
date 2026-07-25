@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { BookOpen, Plus, Link, FileText } from "lucide-react";
 import { getResources, createResource, type Resource } from "@/app/lib/api/teacher";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function ResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([]);
@@ -25,7 +29,7 @@ export default function ResourcesPage() {
     load();
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading resources…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -60,7 +64,13 @@ export default function ResourcesPage() {
             <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 600, color: "var(--teal)", textDecoration: "none" }}>Open</a>
           </div>
         ))}
-        {resources.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32 }}>No resources added yet.</p>}
+        {resources.length === 0 && (
+          <EmptyState
+            icon={Link}
+            title="No resources yet"
+            description="Add helpful links, videos, or documents for your students."
+          />
+        )}
       </div>
     </div>
   );

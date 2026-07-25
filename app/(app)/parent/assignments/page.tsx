@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { FileText, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
 import { getChildren, getChildAssignments } from "@/app/lib/api/parent";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function ParentAssignmentsPage() {
   const [children, setChildren] = useState<any[]>([]);
@@ -23,13 +27,13 @@ export default function ParentAssignmentsPage() {
     }
   }, [selectedChild]);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading…</div>;
+  if (loading) return <LoadingPage />;
 
   if (!selectedChild && children.length > 0) {
     setSelectedChild(children[0].id);
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading assignments…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -37,10 +41,11 @@ export default function ParentAssignmentsPage() {
       <p style={{ fontSize: 14, color: "var(--gray-500)", marginBottom: 20 }}>{assignments.length} total</p>
 
       {assignments.length === 0 ? (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <FileText size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No assignments yet.</p>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="No assignments"
+          description="Select a child to view their current assignments."
+        />
       ) : (
 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {assignments.map((a) => {

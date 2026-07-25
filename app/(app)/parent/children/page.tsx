@@ -1,8 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, UserPlus } from "lucide-react";
+import { ArrowLeft, UserPlus, Users } from "lucide-react";
 import { getChildren, linkChild, type Child } from "@/app/lib/api/parent";
+import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function ChildrenPage() {
   const [children, setChildren] = useState<Child[]>([]);
@@ -28,7 +32,7 @@ export default function ChildrenPage() {
     else setLinkError(res.data && "error" in res.data ? (res.data as any).error : "Could not link child.");
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 640 }}>
@@ -45,13 +49,19 @@ export default function ChildrenPage() {
             style={{ flex: 1, height: 42, padding: "0 14px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 8, outline: "none" }} />
           <button type="submit" disabled={linking || !email.trim()}
             style={{ height: 42, padding: "0 18px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", whiteSpace: "nowrap", opacity: linking ? 0.65 : 1 }}>
-            {linking ? "Linking…" : "Link Child"}
+          {linking ? <LoadingSpinner size={16} color="#fff" /> : "Link Child"}
           </button>
         </form>
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {children.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 24 }}>No children linked yet.</p>}
+        {children.length === 0 && (
+          <EmptyState
+            icon={Users}
+            title="No children linked"
+            description="Link your child's school account using their school email."
+          />
+        )}
         {children.map((c) => (
           <div key={c.id} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", boxShadow: "var(--shadow-xs)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

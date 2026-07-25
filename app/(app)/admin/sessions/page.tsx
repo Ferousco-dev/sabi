@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { CalendarDays, Plus, CheckCircle2 } from "lucide-react";
 import { getAcademicSessions, createAcademicSession, setCurrentSession, type AcademicSession } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function SessionsPage() {
   const [sessions, setSessions] = useState<AcademicSession[]>([]);
@@ -31,7 +33,7 @@ export default function SessionsPage() {
     load();
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading sessions…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -74,7 +76,13 @@ export default function SessionsPage() {
             )}
           </div>
         ))}
-        {sessions.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32 }}>No sessions created yet.</p>}
+        {sessions.length === 0 && (
+          <EmptyState
+            icon={CalendarDays}
+            title="No sessions created"
+            description="Define your academic sessions to start managing terms and enrollments."
+          />
+        )}
       </div>
     </div>
   );

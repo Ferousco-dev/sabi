@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { FileUp, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { getStudentAssignments, submitAssignment } from "@/app/lib/api/student";
+import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function StudentSubmissionsPage() {
   const [assignments, setAssignments] = useState<any[]>([]);
@@ -28,7 +32,7 @@ export default function StudentSubmissionsPage() {
     e.target.value = "";
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading submissions…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -36,10 +40,11 @@ export default function StudentSubmissionsPage() {
       <p style={{ fontSize: 14, color: "var(--gray-500)", marginBottom: 20 }}>{assignments.length} total</p>
 
       {assignments.length === 0 ? (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <Clock size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No assignments yet.</p>
-        </div>
+        <EmptyState
+          icon={Clock}
+          title="No assignments yet"
+          description="Your assignments and submission options will appear here."
+        />
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {assignments.map((a) => {
@@ -59,8 +64,8 @@ export default function StudentSubmissionsPage() {
                   {!submitted && (
                     <label style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
                       <input type="file" onChange={(e) => handleUpload(a.id.toString(), e)} style={{ display: "none" }} />
-                      <button type="button" disabled={uploading === a.id} style={{ height: 32, padding: "0 12px", borderRadius: 6, fontSize: 12, fontWeight: 600, border: "1px solid var(--teal)", background: "var(--teal-50)", color: "var(--teal)", cursor: "pointer" }}>
-                        <FileUp size={13} /> {uploading === a.id ? "Uploading…" : "Submit File"}
+                      <button type="button" disabled={uploading === a.id} style={{ height: 32, padding: "0 12px", borderRadius: 6, fontSize: 12, fontWeight: 600, border: "1px solid var(--teal)", background: "var(--teal-50)", color: "var(--teal)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}>
+                        {uploading === a.id ? <LoadingSpinner size={12} /> : <FileUp size={13} />} {uploading === a.id ? "Uploading…" : "Submit File"}
                       </button>
                     </label>
                   )}

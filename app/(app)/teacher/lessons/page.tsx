@@ -1,8 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, BookOpen } from "lucide-react";
 import { getLessons, type Lesson } from "@/app/lib/api/teacher";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function LessonsPage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -14,7 +18,7 @@ export default function LessonsPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading lessons…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -29,14 +33,15 @@ export default function LessonsPage() {
       </div>
 
       {lessons.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <BookOpen size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <h2 style={{ fontSize: 18, fontWeight: 600, color: "var(--gray-900)", marginBottom: 6 }}>No lessons yet</h2>
-          <p style={{ fontSize: 14, color: "var(--gray-500)", marginBottom: 20 }}>Create your first lesson to get started.</p>
-          <Link href="/teacher/lessons/new" style={{ display: "inline-flex", alignItems: "center", height: 44, padding: "0 20px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
-            Create Lesson
-          </Link>
-        </div>
+        <EmptyState
+          icon={BookOpen}
+          title="No lessons yet"
+          description="Create your first lesson to get started with teaching."
+          action={{
+            label: "Create Lesson",
+            onClick: () => window.location.href = "/teacher/lessons/new",
+          }}
+        />
       )}
 
       {lessons.length > 0 && (

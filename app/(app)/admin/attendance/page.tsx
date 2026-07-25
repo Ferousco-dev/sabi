@@ -1,6 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { getAttendance, recordAttendance, type AttendanceRecord } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
+import { ClipboardList } from "lucide-react";
 
 export default function AttendancePage() {
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
@@ -24,7 +29,7 @@ export default function AttendancePage() {
     setSaving(null);
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading attendance…</div>;
+  if (loading) return <LoadingPage />;
 
   const present = records.filter((r) => r.status === "present").length;
 
@@ -40,7 +45,13 @@ export default function AttendancePage() {
         <span style={{ fontSize: 14, color: "var(--gray-500)" }}>Present: <strong style={{ color: "var(--teal)" }}>{present}</strong> / {records.length}</span>
       </div>
 
-      {records.length === 0 && <p style={{ color: "var(--gray-400)" }}>No attendance records for this date.</p>}
+      {records.length === 0 && (
+        <EmptyState
+          icon={ClipboardList}
+          title="No records found"
+          description="No attendance records available for this date."
+        />
+      )}
 
       <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>

@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { BookText, Plus, Building } from "lucide-react";
 import { getSubjects, createSubject, getDepartments, type Subject, type Department } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function SubjectsPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -28,7 +30,7 @@ export default function SubjectsPage() {
     load();
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading subjects…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -70,7 +72,13 @@ export default function SubjectsPage() {
             </div>
           </div>
         ))}
-        {subjects.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32 }}>No subjects created yet.</p>}
+        {subjects.length === 0 && (
+          <EmptyState
+            icon={BookText}
+            title="No subjects"
+            description="Add the subjects taught at your school to organize curriculum."
+          />
+        )}
       </div>
     </div>
   );

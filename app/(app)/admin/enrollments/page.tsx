@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { UserPlus, Search, Users } from "lucide-react";
 import { getEnrollments, getClasses, type Enrollment, type ClassItem } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function EnrollmentsPage() {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
@@ -30,7 +32,7 @@ export default function EnrollmentsPage() {
     e.class_name.toLowerCase().includes(query.toLowerCase())
   );
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading enrollments…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -52,10 +54,11 @@ export default function EnrollmentsPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <Users size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No enrollments found.</p>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No enrollments found"
+          description={query ? "No students match your search criteria." : "Students enrolled in classes will appear here."}
+        />
       ) : (
         <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>

@@ -1,8 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Trophy, Zap, BookOpen, Badge } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { getProgress, type ProgressData } from "@/app/lib/api/student";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function ProgressPage() {
   const searchParams = useSearchParams();
@@ -16,8 +20,15 @@ export default function ProgressPage() {
     }).finally(() => setLoading(false));
   }, [studentId]);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading progress…</div>;
-  if (!progress) return <div style={{ color: "var(--gray-400)" }}>No progress data.</div>;
+  if (loading) return <LoadingPage />;
+
+  if (!progress) return (
+    <EmptyState
+      icon={Trophy}
+      title="No progress data"
+      description="Start completing lessons to track your learning journey."
+    />
+  );
 
   return (
     <div>

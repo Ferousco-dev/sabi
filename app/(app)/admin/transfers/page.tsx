@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { ArrowRight, Users, Search } from "lucide-react";
 import { getStudents, getClasses, transferStudent, type Student, type ClassItem } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function TransfersPage() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -31,7 +33,7 @@ export default function TransfersPage() {
     setTimeout(() => { setStatus(null); setSelected(null); setNewClassId(null); }, 2000);
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 720 }}>

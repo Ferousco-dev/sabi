@@ -1,9 +1,13 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, FileText, Download } from "lucide-react";
+import { ArrowLeft, FileText, Download, Award } from "lucide-react";
 import { getChildGrades, getReportCard } from "@/app/lib/api/parent";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function ChildGradesPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,7 +20,7 @@ export default function ChildGradesPage() {
     }).finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading grades…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -44,7 +48,13 @@ export default function ChildGradesPage() {
             </div>
           </div>
         ))}
-        {grades.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32 }}>No published grades yet.</p>}
+        {grades.length === 0 && (
+          <EmptyState
+            icon={Award}
+            title="No published grades"
+            description="Grades and report cards will be visible here once released by the school."
+          />
+        )}
       </div>
     </div>
   );

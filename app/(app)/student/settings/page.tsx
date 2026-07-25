@@ -1,7 +1,10 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Bell, Save, Eye, Monitor, Zap } from "lucide-react";
 import { getStudentSettings, updateStudentSettings } from "@/app/lib/api/student";
+import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 
 export default function StudentSettingsPage() {
   const [settings, setSettings] = useState<any>({ notifications: { email: true, sms: false, push: true }, accessibility: { high_contrast: false, large_text: false, reduce_motion: false } });
@@ -30,14 +33,14 @@ export default function StudentSettingsPage() {
     setSettings((s: any) => ({ ...s, accessibility: { ...s.accessibility, [key]: !s.accessibility[key] } }));
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading settings…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 640 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
         <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)" }}>Settings</h1>
         <button onClick={handleSave} disabled={saving} style={{ height: 42, padding: "0 18px", borderRadius: 8, background: saved ? "#0E8345" : "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-          <Save size={16} /> {saved ? "Saved!" : saving ? "Saving…" : "Save"}
+          {saved ? "Saved!" : saving ? <LoadingSpinner size={16} color="#fff" /> : <><Save size={16} /> Save</>}
         </button>
       </div>
 

@@ -1,7 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getAssignments, type Assignment } from "@/app/lib/api/teacher";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
+import { BarChart3 } from "lucide-react";
 
 export default function GradingPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -13,26 +18,20 @@ export default function GradingPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Grading</h1>
       <p style={{ fontSize: 14, color: "var(--gray-500)", marginBottom: 20 }}>Select an assignment to grade submissions.</p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {assignments.map((a) => (
-          <Link key={a.id} href={`/teacher/assignments/${a.id}`} style={{ textDecoration: "none" }}>
-            <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", boxShadow: "var(--shadow-xs)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>{a.title}</div>
-                <div style={{ fontSize: 13, color: "var(--gray-400)" }}>{a.submission_count} submissions</div>
-              </div>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--teal)" }}>Grade &rarr;</span>
-            </div>
-          </Link>
-        ))}
-      </div>
+      {assignments.length === 0 && (
+        <EmptyState
+          icon={BarChart3}
+          title="No assignments to grade"
+          description="Assignments you create for your classes will appear here for grading."
+        />
+      )}
     </div>
   );
 }

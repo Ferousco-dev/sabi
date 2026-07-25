@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Users, Search, BookOpen, GraduationCap } from "lucide-react";
 import { getTeachers, type Teacher } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function TeachersPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -21,7 +23,7 @@ export default function TeachersPage() {
     t.name.toLowerCase().includes(query.toLowerCase()) || t.email.toLowerCase().includes(query.toLowerCase())
   );
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading teachers…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -38,10 +40,11 @@ export default function TeachersPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <Users size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>{query ? "No matching teachers." : "No teachers found."}</p>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No teachers found"
+          description={query ? "No teachers match your search." : "A list of your school's faculty will appear here."}
+        />
       ) : (
         <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>

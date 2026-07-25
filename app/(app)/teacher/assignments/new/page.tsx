@@ -1,10 +1,13 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ClipboardList } from "lucide-react";
 import { Input } from "@/app/components/ui/Input";
 import { createAssignment } from "@/app/lib/api/teacher";
+import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 
 export default function NewAssignmentPage() {
   const router = useRouter();
@@ -50,7 +53,7 @@ export default function NewAssignmentPage() {
         <Input label="Due Date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
         <button type="submit" disabled={loading}
           style={{ height: 48, padding: "0 24px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 15, fontWeight: 600, border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.65 : 1, alignSelf: "flex-start" }}>
-          {loading ? "Creating…" : "Create Assignment"}
+          {loading ? <LoadingSpinner size={18} color="#fff" /> : "Create Assignment"}
         </button>
       </form>
     </div>

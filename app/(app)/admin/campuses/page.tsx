@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Building2, Plus, Trash2, MapPin } from "lucide-react";
 import { getCampuses, createCampus, deleteCampus, type Campus } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function CampusesPage() {
   const [campuses, setCampuses] = useState<Campus[]>([]);
@@ -30,7 +32,7 @@ export default function CampusesPage() {
     load();
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading campuses…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -69,7 +71,13 @@ export default function CampusesPage() {
             </button>
           </div>
         ))}
-        {campuses.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32 }}>No campuses added yet.</p>}
+        {campuses.length === 0 && (
+          <EmptyState
+            icon={Building2}
+            title="No campuses yet"
+            description="Add your school campuses to manage them individually."
+          />
+        )}
       </div>
     </div>
   );

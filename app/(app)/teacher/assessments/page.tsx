@@ -1,8 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { ClipboardCheck } from "lucide-react";
 import { getAssessmentConfigs, type AssessmentConfig } from "@/app/lib/api/schools";
 import { getAssessmentScores, submitAssessmentScores } from "@/app/lib/api/teacher";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function TeacherAssessmentsPage() {
   const [assessments, setAssessments] = useState<AssessmentConfig[]>([]);
@@ -35,7 +39,7 @@ export default function TeacherAssessmentsPage() {
     setSaving(false);
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading assessments…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -53,7 +57,13 @@ export default function TeacherAssessmentsPage() {
       {selected && (
         <div>
           <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, marginBottom: 20 }}>
-            {Object.keys(scores).length === 0 && <p style={{ padding: 32, textAlign: "center", color: "var(--gray-400)" }}>No students loaded. Select a class first.</p>}
+            {Object.keys(scores).length === 0 && (
+              <EmptyState
+                icon={ClipboardCheck}
+                title="No students loaded"
+                description="Select an assessment above to load students for score entry."
+              />
+            )}
             {Object.entries(scores).map(([studentId, score]) => (
               <div key={studentId} style={{ padding: "10px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>Student #{studentId}</span>

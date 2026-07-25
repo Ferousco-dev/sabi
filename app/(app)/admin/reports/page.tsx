@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BarChart3, Users, BookOpen, TrendingUp, Clock, FileText, Download } from "lucide-react";
 import { getEnrollmentReport, getTeacherWorkloadReport, getUserActivityReport } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function ReportsPage() {
   const [enrollment, setEnrollment] = useState<any[]>([]);
@@ -21,7 +23,7 @@ export default function ReportsPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading reports…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>

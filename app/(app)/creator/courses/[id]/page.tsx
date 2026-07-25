@@ -1,9 +1,13 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Users, Edit, Trash2, DollarSign } from "lucide-react";
+import { ArrowLeft, Users, Edit, Trash2, DollarSign, BookOpen } from "lucide-react";
 import { getCreatorCourses } from "@/app/lib/api/creator";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -21,8 +25,14 @@ export default function CourseDetailPage() {
     }).finally(() => setLoading(false));
   }, [id, router]);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading…</div>;
-  if (!course) return null;
+  if (loading) return <LoadingPage />;
+  if (!course) return (
+    <EmptyState
+      icon={BookOpen}
+      title="Course not found"
+      description="The course you are looking for does not exist or has been removed."
+    />
+  );
 
   return (
     <div style={{ maxWidth: 800 }}>

@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Columns3, Plus, Users } from "lucide-react";
 import { getClasses, getSections, createSection, type ClassItem, type Section } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function SectionsPage() {
   const [classes, setClasses] = useState<ClassItem[]>([]);
@@ -38,7 +40,7 @@ export default function SectionsPage() {
     if (res.ok && res.data) setSections(res.data.sections);
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading sections…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -76,7 +78,13 @@ export default function SectionsPage() {
             </div>
           </div>
         ))}
-        {sections.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32 }}>No sections for this class.</p>}
+        {sections.length === 0 && (
+          <EmptyState
+            icon={Columns3}
+            title="No sections"
+            description="Create sections (like A, B, or Gold, Silver) for this class."
+          />
+        )}
       </div>
     </div>
   );

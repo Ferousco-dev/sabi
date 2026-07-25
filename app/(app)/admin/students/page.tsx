@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Users, Search } from "lucide-react";
 import { getStudents, type Student } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function AdminStudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -19,7 +23,7 @@ export default function AdminStudentsPage() {
     s.email.toLowerCase().includes(query.toLowerCase())
   );
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading students…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -33,10 +37,11 @@ export default function AdminStudentsPage() {
       </div>
 
       {filtered.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <Users size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>{query ? "No matching students." : "No students enrolled."}</p>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No students found"
+          description={query ? "No students match your search." : "Enrolled students will appear here."}
+        />
       )}
 
       {filtered.length > 0 && (

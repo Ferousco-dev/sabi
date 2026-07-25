@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { ClipboardCheck, Plus } from "lucide-react";
 import { getAssessmentConfigs, createAssessmentConfig, getAcademicSessions, getTerms, type AssessmentConfig, type AcademicSession, type Term } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function AssessmentsPage() {
   const [assessments, setAssessments] = useState<AssessmentConfig[]>([]);
@@ -36,7 +38,7 @@ export default function AssessmentsPage() {
     if (r.ok && r.data) setAssessments(r.data.assessments);
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -74,7 +76,13 @@ export default function AssessmentsPage() {
             </div>
           </div>
         ))}
-        {assessments.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32 }}>No assessment types configured.</p>}
+        {assessments.length === 0 && (
+          <EmptyState
+            icon={ClipboardCheck}
+            title="No assessments configured"
+            description="Define assessment types like Mid-Term Tests, Exams, or Quizzes."
+          />
+        )}
       </div>
     </div>
   );

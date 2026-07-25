@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { BarChart3, Users, BookOpen, CalendarCheck } from "lucide-react";
 import { getStudents, getAttendance, getTimetable } from "@/app/lib/api/schools";
+import { LoadingSpinner, LoadingPage } from "@/app/components/ui/LoadingSpinner";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +45,7 @@ async function AnalyticsContent() {
 
 export default function AnalyticsPage() {
   return (
-    <Suspense fallback={<div style={{ color: "var(--gray-500)" }}>Loading analytics…</div>}>
+    <Suspense fallback={<LoadingPage />}>
       <AnalyticsContent />
     </Suspense>
   );

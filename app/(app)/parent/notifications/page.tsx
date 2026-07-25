@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Calendar, Bell, Search } from "lucide-react";
 import { getParentNotifications } from "@/app/lib/api/parent";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -14,7 +18,7 @@ export default function NotificationsPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading…</div>;
+  if (loading) return <LoadingPage />;
 
   const filtered = filter === "unread" ? notifications.filter((n) => !n.read) : notifications;
 
@@ -33,10 +37,11 @@ export default function NotificationsPage() {
       </div>
 
       {filtered.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <Bell size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>{filter === "unread" ? "No unread notifications." : "No notifications yet."}</p>
-        </div>
+        <EmptyState
+          icon={Bell}
+          title="No notifications"
+          description={filter === "unread" ? "You have no unread notifications." : "Your notification history is empty."}
+        />
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

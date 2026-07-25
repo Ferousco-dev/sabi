@@ -1,9 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BookOpen, ClipboardList, Plus, ArrowRight } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
 import { getLessons, getAssignments, type Lesson, type Assignment } from "@/app/lib/api/teacher";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 
 export default function TeacherDashboard() {
   const { user } = useAuth();
@@ -21,7 +24,7 @@ export default function TeacherDashboard() {
   const recentLessons = lessons.slice(0, 5);
   const recentAssignments = assignments.slice(0, 5);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading dashboard…</div>;
+  if (loading) return <LoadingPage />;
 
   const statCard = (Icon: typeof BookOpen, label: string, value: number | string, href: string, color: string) => (
     <Link href={href} style={{ textDecoration: "none", display: "block" }}>

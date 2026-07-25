@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { GraduationCap, Plus, Users, BookOpen, ChevronRight } from "lucide-react";
 import { getClasses, createClass, type ClassItem } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function ClassesPage() {
   const [classes, setClasses] = useState<ClassItem[]>([]);
@@ -25,7 +27,7 @@ export default function ClassesPage() {
     load();
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading classes…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -66,7 +68,15 @@ export default function ClassesPage() {
             </div>
           </Link>
         ))}
-        {classes.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32, gridColumn: "1 / -1" }}>No classes created yet.</p>}
+        {classes.length === 0 && (
+          <div style={{ gridColumn: "1 / -1" }}>
+            <EmptyState
+              icon={GraduationCap}
+              title="No classes created"
+              description="Organize your students into classes like JSS 1 or Grade 10."
+            />
+          </div>
+        )}
       </div>
     </div>
   );

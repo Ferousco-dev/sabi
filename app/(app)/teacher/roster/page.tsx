@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Users, Search } from "lucide-react";
 import { getClassRoster, type ClassRosterStudent } from "@/app/lib/api/teacher";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function RosterPage() {
   const [students, setStudents] = useState<ClassRosterStudent[]>([]);
@@ -16,7 +20,7 @@ export default function RosterPage() {
 
   const filtered = students.filter((s) => s.name.toLowerCase().includes(query.toLowerCase()) || s.email.toLowerCase().includes(query.toLowerCase()));
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading roster…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -29,10 +33,11 @@ export default function RosterPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <Users size={40} style={{ color: "var(--gray-300)" }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)", marginTop: 12 }}>No students found.</p>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No students found"
+          description={query ? "No students match your search query." : "Your class roster will appear here once students are enrolled."}
+        />
       ) : (
         <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>

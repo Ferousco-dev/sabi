@@ -1,9 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BookOpen, ClipboardList, Trophy, Zap } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
 import { getContent, getStudentAssignments, getProgress, type StudentContent, type StudentAssignment, type ProgressData } from "@/app/lib/api/student";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -23,7 +26,7 @@ export default function StudentDashboard() {
   const pendingAssignments = assignments.filter((a) => !a.submitted_at).length;
   const dueSoon = assignments.filter((a) => a.due_date && new Date(a.due_date) > new Date() && !a.submitted_at).length;
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading dashboard…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>

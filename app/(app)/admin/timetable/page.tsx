@@ -1,6 +1,9 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { getTimetable, createTimetableEntry, type TimetableEntry } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
@@ -29,7 +32,7 @@ export default function TimetablePage() {
     }
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading timetable…</div>;
+  if (loading) return <LoadingPage />;
 
   const byDay = DAYS.map((d) => ({ day: d, items: entries.filter((e) => e.day === d).sort((a, b) => a.start_time.localeCompare(b.start_time)) }));
 

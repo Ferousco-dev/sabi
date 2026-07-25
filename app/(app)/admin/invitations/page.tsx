@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Send, Mail, Search, Users } from "lucide-react";
 import { getUsers, inviteUser, type AppUser } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 const ROLES = [
   { key: "school_admin", label: "School Admin" },
@@ -42,7 +44,7 @@ export default function InvitationsPage() {
 
   const filtered = users.filter((u) => u.name.toLowerCase().includes(query.toLowerCase()) || u.email.toLowerCase().includes(query.toLowerCase()));
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading users…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 800 }}>
@@ -74,10 +76,11 @@ export default function InvitationsPage() {
       </div>
 
       {filtered.length === 0 ? (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <Users size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No users yet.</p>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No users yet"
+          description={query ? "No users match your search." : "Invite staff and teachers to join your school platform."}
+        />
       ) : (
         <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>

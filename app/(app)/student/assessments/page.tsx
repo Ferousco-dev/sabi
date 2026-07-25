@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Calendar, AlertTriangle, Clock } from "lucide-react";
 import { getUpcomingAssessments, type UpcomingAssessment } from "@/app/lib/api/student";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function AssessmentsPage() {
   const [assessments, setAssessments] = useState<UpcomingAssessment[]>([]);
@@ -13,17 +17,18 @@ export default function AssessmentsPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading assessments…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Upcoming Assessments</h1>
 
       {assessments.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <Calendar size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No upcoming assessments.</p>
-        </div>
+        <EmptyState
+          icon={Calendar}
+          title="No upcoming assessments"
+          description="You don't have any exams or tests scheduled at the moment."
+        />
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

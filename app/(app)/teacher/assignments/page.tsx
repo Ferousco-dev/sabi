@@ -1,8 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, ClipboardList } from "lucide-react";
 import { getAssignments, type Assignment } from "@/app/lib/api/teacher";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function AssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -14,7 +18,7 @@ export default function AssignmentsPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading assignments…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -29,10 +33,11 @@ export default function AssignmentsPage() {
       </div>
 
       {assignments.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <ClipboardList size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No assignments yet.</p>
-        </div>
+        <EmptyState
+          icon={ClipboardList}
+          title="No assignments yet"
+          description="Create your first assignment to start tracking student progress."
+        />
       )}
 
       {assignments.length > 0 && (

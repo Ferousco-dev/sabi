@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { ClipboardList, CheckCircle2, XCircle } from "lucide-react";
 import { getAttendanceCorrections, approveAttendanceCorrection } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function AttendanceCorrectionsPage() {
   const [corrections, setCorrections] = useState<any[]>([]);
@@ -23,17 +25,18 @@ export default function AttendanceCorrectionsPage() {
     setProcessing(null);
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading corrections…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 720 }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Attendance Corrections</h1>
 
       {corrections.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <ClipboardList size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No pending corrections.</p>
-        </div>
+        <EmptyState
+          icon={ClipboardList}
+          title="No pending corrections"
+          description="Requests for attendance corrections from students or teachers will appear here."
+        />
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

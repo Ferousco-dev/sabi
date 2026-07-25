@@ -1,8 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import { getContent, type StudentContent } from "@/app/lib/api/student";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function ContentPage() {
   const [content, setContent] = useState<StudentContent[]>([]);
@@ -14,17 +18,18 @@ export default function ContentPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading content…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Course Content</h1>
 
       {content.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <BookOpen size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No content available yet.</p>
-        </div>
+        <EmptyState
+          icon={BookOpen}
+          title="No content available"
+          description="Check back later for lessons and learning materials."
+        />
       )}
 
       <div style={{ display: "grid", gap: 12 }}>

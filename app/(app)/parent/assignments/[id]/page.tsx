@@ -1,9 +1,13 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ClipboardList, Clock } from "lucide-react";
 import { getChildAssignments } from "@/app/lib/api/parent";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function ChildAssignmentsPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,7 +20,7 @@ export default function ChildAssignmentsPage() {
     }).finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading assignments…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 640 }}>
@@ -27,10 +31,11 @@ export default function ChildAssignmentsPage() {
       <p style={{ fontSize: 14, color: "var(--gray-500)", marginBottom: 20 }}>{assignments.length} total</p>
 
       {assignments.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <ClipboardList size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No assignments yet.</p>
-        </div>
+        <EmptyState
+          icon={ClipboardList}
+          title="No assignments"
+          description="This child has no assignments assigned yet."
+        />
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

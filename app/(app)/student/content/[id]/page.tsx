@@ -1,9 +1,13 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Clock, FileText, Play } from "lucide-react";
+import { ArrowLeft, Clock, FileText, Play, BookOpen } from "lucide-react";
 import { getContentDetail, type StudentContent } from "@/app/lib/api/student";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function ContentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -18,8 +22,15 @@ export default function ContentDetailPage() {
     }).finally(() => setLoading(false));
   }, [id, router]);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading…</div>;
-  if (!content) return null;
+  if (loading) return <LoadingPage />;
+
+  if (!content) return (
+    <EmptyState
+      icon={BookOpen}
+      title="Content not found"
+      description="The lesson content you are looking for does not exist or has been removed."
+    />
+  );
 
   return (
     <div style={{ maxWidth: 800 }}>

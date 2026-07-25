@@ -1,9 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BookOpen, DollarSign, Plus, Users } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
 import { getCreatorCourses, getRevenue, type Course, type RevenueData } from "@/app/lib/api/creator";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 
 export default function CreatorDashboard() {
   const { user } = useAuth();
@@ -20,7 +23,7 @@ export default function CreatorDashboard() {
 
   const totalEnrollments = courses.reduce((sum, c) => sum + c.enrollment_count, 0);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading dashboard…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, UserPlus } from "lucide-react";
 import { registerStudent } from "@/app/lib/api/schools";
+import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 
 export default function StudentRegistrationPage() {
   const router = useRouter();
@@ -69,7 +70,7 @@ export default function StudentRegistrationPage() {
 
         <button type="submit" disabled={loading}
           style={{ marginTop: 24, height: 48, padding: "0 24px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 15, fontWeight: 600, border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.65 : 1, display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <UserPlus size={18} /> {loading ? "Registering…" : "Register Student"}
+          <UserPlus size={18} /> {loading ? <LoadingSpinner size={18} color="#fff" /> : "Register Student"}
         </button>
       </form>
     </div>

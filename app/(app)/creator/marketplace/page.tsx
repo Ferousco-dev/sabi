@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Store, Search } from "lucide-react";
 import { getCreatorCourses, type Course } from "@/app/lib/api/creator";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function MarketplacePage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -13,7 +17,7 @@ export default function MarketplacePage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading marketplace…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -25,10 +29,11 @@ export default function MarketplacePage() {
       </div>
 
       {courses.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <Store size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No courses published yet.</p>
-        </div>
+        <EmptyState
+          icon={Store}
+          title="Marketplace is empty"
+          description="Courses published by creators will appear here for schools to discover."
+        />
       )}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 14 }}>

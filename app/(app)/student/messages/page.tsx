@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { MessageSquare, Send } from "lucide-react";
 import { getStudentMessages, sendStudentMessage, type MessageThread } from "@/app/lib/api/student";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function StudentMessagesPage() {
   const [threads, setThreads] = useState<MessageThread[]>([]);
@@ -26,7 +30,7 @@ export default function StudentMessagesPage() {
     setRecipient(""); setSubject(""); setMessage("");
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading messages…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -58,7 +62,13 @@ export default function StudentMessagesPage() {
             {t.unread_count > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: "var(--gold)", borderRadius: 999, padding: "2px 7px" }}>{t.unread_count}</span>}
           </div>
         ))}
-        {threads.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 24 }}>No conversations yet.</p>}
+        {threads.length === 0 && (
+          <EmptyState
+            icon={MessageSquare}
+            title="No conversations"
+            description="Start a new message to chat with your teachers or classmates."
+          />
+        )}
       </div>
     </div>
   );

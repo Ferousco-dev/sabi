@@ -1,9 +1,13 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, XCircle, Send } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, Send, ClipboardList } from "lucide-react";
 import { getAssignmentDetail, gradeSubmission, type Submission } from "@/app/lib/api/teacher";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function AssignmentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -29,7 +33,7 @@ export default function AssignmentDetailPage() {
     setGrading(null);
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading…</div>;
+  if (loading) return <LoadingPage />;
   if (!assignment) return null;
 
   return (
@@ -55,7 +59,17 @@ export default function AssignmentDetailPage() {
             </tr>
           </thead>
           <tbody>
-            {submissions.length === 0 && <tr><td colSpan={4} style={{ padding: 32, textAlign: "center", color: "var(--gray-400)" }}>No submissions yet.</td></tr>}
+            {submissions.length === 0 && (
+              <tr>
+                <td colSpan={4} style={{ padding: 32 }}>
+                  <EmptyState
+                    icon={ClipboardList}
+                    title="No submissions"
+                    description="Students haven't submitted this assignment yet."
+                  />
+                </td>
+              </tr>
+            )}
             {submissions.map((s) => (
               <tr key={s.id} style={{ borderTop: "1px solid var(--border)" }}>
                 <td style={{ padding: "12px 20px", fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{s.student_name}</td>

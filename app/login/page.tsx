@@ -1,10 +1,13 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { AuthShell, Field, AuthButton, AuthError, GoogleButton, AuthDivider } from "../components/site/AuthUI";
 import { login, setToken, type AuthSuccess } from "../lib/auth";
+import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -87,7 +90,7 @@ export default function LoginPage() {
           }
         />
         <AuthButton loading={loading}>
-          {loading ? "Signing in…" : <>Sign in <ArrowRight size={16} aria-hidden="true" /></>}
+          {loading ? <LoadingSpinner size={18} color="#fff" /> : <>Sign in <ArrowRight size={16} aria-hidden="true" /></>}
         </AuthButton>
       </form>
 

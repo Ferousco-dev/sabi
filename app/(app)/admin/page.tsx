@@ -1,8 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { TrendingUp, Users, BookOpen, CalendarCheck } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
 import { getStudents, getAttendance, getTimetable, type Student, type AttendanceRecord, type TimetableEntry } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -22,7 +25,7 @@ export default function AdminDashboard() {
   const present = attendance.filter((a) => a.status === "present").length;
   const total = attendance.length;
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading dashboard…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>

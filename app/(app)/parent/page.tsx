@@ -1,8 +1,13 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/AuthContext";
 import { getChildren, getAlertPreferences, type Child, type AlertPreferences } from "@/app/lib/api/parent";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
+import { Users } from "lucide-react";
 
 export default function ParentDashboard() {
   const { user } = useAuth();
@@ -17,7 +22,7 @@ export default function ParentDashboard() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading dashboard…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -29,15 +34,15 @@ export default function ParentDashboard() {
       </div>
 
       {children.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "40px", textAlign: "center", boxShadow: "var(--shadow-xs)" }}>
-          <h2 style={{ fontSize: 18, fontWeight: 600, color: "var(--gray-900)", marginBottom: 8 }}>No children linked yet</h2>
-          <p style={{ fontSize: 14, color: "var(--gray-500)", marginBottom: 20, maxWidth: 400, marginInline: "auto" }}>
-            Link your child&apos;s account using their school email to start tracking their progress, attendance, and grades.
-          </p>
-          <Link href="/parent/children" style={{ display: "inline-flex", alignItems: "center", height: 44, padding: "0 20px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
-            Link a Child
-          </Link>
-        </div>
+        <EmptyState
+          icon={Users}
+          title="No children linked yet"
+          description="Link your child's account using their school email to start tracking their progress, attendance, and grades."
+          action={{
+            label: "Link a Child",
+            onClick: () => window.location.href = "/parent/children",
+          }}
+        />
       )}
 
       {children.length > 0 && (

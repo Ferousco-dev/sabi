@@ -1,56 +1,30 @@
 <?php
-// public_html/api/parent/children.php
-require __DIR__ . '/../lib/cors.php';     apply_cors();
-require __DIR__ . '/../lib/auth_middleware.php';
+// api/parent/children.php
+require_once __DIR__ . '/../lib/auth_middleware.php';
+require_once __DIR__ . '/../db.php';
+require_once __DIR__ . '/../lib/response.php';
 
-$user = require_auth();
-require_role($user, ['parent', 'school_admin']);
+$user = authenticate(['parent']);
+$db = db();
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // List all children linked to this parent
-    $stmt = db()->prepare(
-        'SELECT u.id, u.name, u.email, pc.created_at as linked_at
-         FROM users u
-         JOIN parent_child pc ON u.id = pc.student_id
-         WHERE pc.parent_id = :pid'
-    );
-    $stmt->execute([':pid' => $user['id']]);
-    $children = $stmt->fetchAll();
+    $stmt = $db->prepare("SELECT u.id, u.name, u.email, pc.created_at as linked_at FROM users u JOIN parent_child pc ON pc.student_id = u.id WHERE pc.parent_id = ?");
+    $stmt->execute([$user['id']]);
+    json_response(['success' => true, 'children' => $stmt->fetchAll()]);
+}
 
-    json_out(200, ['success' => true, 'children' => $children]);
-} else if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Link a child to this parent (e.g. via student email)
-    $body = read_json_body();
-    $email = mb_strtolower(trim((string) ($body['email'] ?? '')));
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (empty($data['email'])) json_response(['success' => false, 'error' => 'Child email required'], 400);
 
-    if ($email === '') {
-        fail(400, "Student email is required to link a child.");
-    }
+    $stmt = $db->prepare("SELECT id FROM users WHERE email = ? AND role = 'student'");
+    $stmt->execute([$data['email']]);
+    $child = $stmt->fetch();
 
-    $stmt = db()->prepare('SELECT id, role FROM users WHERE email = :email LIMIT 1');
-    $stmt->execute([':email' => $email]);
-    $student = $stmt->fetch();
+    if (!$child) json_response(['success' => false, 'error' => 'Student not found'], 404);
 
-    if (!$student || $student['role'] !== 'student') {
-        fail(404, "Student account with this email not found.");
-    }
+    $stmt = $db->prepare("INSERT IGNORE INTO parent_child (parent_id, student_id) VALUES (?, ?)");
+    $stmt->execute([$user['id'], $child['id']]);
 
-    try {
-        $stmt = db()->prepare(
-            'INSERT INTO parent_child (parent_id, student_id)
-             VALUES (:pid, :sid)'
-        );
-        $stmt->execute([
-            ':pid' => $user['id'],
-            ':sid' => $student['id']
-        ]);
-        json_out(201, ['success' => true, 'message' => 'Child linked successfully.']);
-    } catch (PDOException $e) {
-        if ($e->getCode() === '23000') {
-            fail(409, 'This child is already linked to your account.');
-        }
-        fail(500, 'Could not link child.');
-    }
-} else {
-    fail(405, 'Method not allowed');
+    json_response(['success' => true]);
 }

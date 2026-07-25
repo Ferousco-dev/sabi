@@ -1,8 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { School, Presentation, BookOpen, Users, Store, Check, ArrowRight } from "lucide-react";
 import { updateRole, type Role } from "../lib/auth";
+import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 
 const ROLES: { key: Role; label: string; desc: string; Icon: typeof School }[] = [
   { key: "school_admin", label: "School", desc: "Manage enrolment, staff and analytics", Icon: School },
@@ -95,7 +98,7 @@ export default function OnboardingPage() {
           boxShadow: "var(--shadow-sm)",
         }}
       >
-        {loading ? "Setting up…" : <>Continue <ArrowRight size={17} aria-hidden="true" className="btn-arrow" /></>}
+        {loading ? <LoadingSpinner size={20} color="#fff" /> : <>Continue <ArrowRight size={17} aria-hidden="true" className="btn-arrow" /></>}
       </button>
     </main>
   );

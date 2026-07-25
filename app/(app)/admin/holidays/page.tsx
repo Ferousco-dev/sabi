@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Sun, Plus, Trash2 } from "lucide-react";
 import { getHolidays, createHoliday, type Holiday } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function HolidaysPage() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
@@ -26,7 +28,7 @@ export default function HolidaysPage() {
     load();
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading holidays…</div>;
+  if (loading) return <LoadingPage />;
 
   const sorted = [...holidays].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const upcoming = sorted.filter((h) => new Date(h.date) >= new Date());
@@ -86,7 +88,13 @@ export default function HolidaysPage() {
         </details>
       )}
 
-      {holidays.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32 }}>No holidays scheduled.</p>}
+      {holidays.length === 0 && (
+        <EmptyState
+          icon={Sun}
+          title="No holidays scheduled"
+          description="Add public holidays or school breaks to the calendar."
+        />
+      )}
     </div>
   );
 }

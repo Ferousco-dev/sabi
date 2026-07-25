@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { BarChart3, TrendingUp, CheckCircle2 } from "lucide-react";
 import { getTeacherPerformanceReport, getTeacherAttendanceTrends, getCompletionRates } from "@/app/lib/api/teacher";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function TeacherReportsPage() {
   const [tab, setTab] = useState("performance");
@@ -14,7 +18,7 @@ export default function TeacherReportsPage() {
     p.then((res: any) => { if (res.ok && res.data) setReport(res.data.report ?? res.data.trends ?? res.data.rates ?? []); }).finally(() => setLoading(false));
   }, [tab]);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading reports…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -27,7 +31,13 @@ export default function TeacherReportsPage() {
         ))}
       </div>
 
-      {report.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32 }}>No data available.</p>}
+      {report.length === 0 && (
+        <EmptyState
+          icon={BarChart3}
+          title="No data available"
+          description="Reports will be generated once students start participating in lessons and assessments."
+        />
+      )}
 
       {report.length > 0 && (
         <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>

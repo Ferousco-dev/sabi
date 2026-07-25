@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { DollarSign, TrendingUp, ShoppingCart } from "lucide-react";
 import { getRevenue, type RevenueData } from "@/app/lib/api/creator";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function RevenuePage() {
   const [revenue, setRevenue] = useState<RevenueData | null>(null);
@@ -13,13 +17,13 @@ export default function RevenuePage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading revenue…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Revenue</h1>
 
-      {revenue && (
+      {revenue ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 }}>
           {[
             { icon: DollarSign, label: "Total Revenue", value: `${revenue.currency} ${revenue.total.toLocaleString()}`, color: "var(--gold)" },
@@ -35,6 +39,12 @@ export default function RevenuePage() {
             </div>
           ))}
         </div>
+      ) : (
+        <EmptyState
+          icon={DollarSign}
+          title="No revenue data"
+          description="Your sales and earnings summary will appear here once you start selling courses."
+        />
       )}
     </div>
   );

@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Building2, Save } from "lucide-react";
 import { getSchoolProfile, updateSchoolProfile, type SchoolProfile } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function SchoolProfilePage() {
   const [profile, setProfile] = useState<SchoolProfile | null>(null);
@@ -29,8 +31,15 @@ export default function SchoolProfilePage() {
     setProfile((p) => p ? { ...p, [field]: value } : p);
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading profile…</div>;
-  if (!profile) return <div style={{ color: "var(--gray-400)" }}>No profile data.</div>;
+  if (loading) return <LoadingPage />;
+
+  if (!profile) return (
+    <EmptyState
+      icon={Building2}
+      title="Profile not found"
+      description="Could not load your school profile data."
+    />
+  );
 
   return (
     <div style={{ maxWidth: 720 }}>

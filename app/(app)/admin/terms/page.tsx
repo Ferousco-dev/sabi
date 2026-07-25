@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { ListOrdered, Plus } from "lucide-react";
 import { getAcademicSessions, getTerms, createTerm, type AcademicSession, type Term } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function TermsPage() {
   const [sessions, setSessions] = useState<AcademicSession[]>([]);
@@ -40,7 +42,7 @@ export default function TermsPage() {
     loadTerms();
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading terms…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -82,7 +84,13 @@ export default function TermsPage() {
             </div>
           </div>
         ))}
-        {terms.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32 }}>No terms for this session.</p>}
+        {terms.length === 0 && (
+          <EmptyState
+            icon={ListOrdered}
+            title="No terms"
+            description="Define terms (like First Term, Second Term) for the selected session."
+          />
+        )}
       </div>
     </div>
   );

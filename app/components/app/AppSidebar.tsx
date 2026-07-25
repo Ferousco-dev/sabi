@@ -10,7 +10,6 @@ import {
   ScrollText, History, Shield,
   Calendar, CalendarCheck, UserCheck, HelpCircle,
   AlertTriangle, MessageSquare as StudentMsg,
-  CalendarCheck,
 } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
 import type { Role } from "@/app/lib/auth";

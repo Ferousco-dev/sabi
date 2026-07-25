@@ -1,8 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Bell } from "lucide-react";
 import { getAlertPreferences, updateAlertPreferences, type AlertPreferences } from "@/app/lib/api/parent";
+import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<AlertPreferences | null>(null);
@@ -31,7 +34,7 @@ export default function AlertsPage() {
     setSaving(false);
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading alert preferences…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 560 }}>
@@ -48,8 +51,10 @@ export default function AlertsPage() {
             <div style={{ fontSize: 13, color: "var(--gray-500)" }}>Receive attendance and grade alerts via SMS</div>
           </div>
           <button onClick={toggleSms} disabled={saving}
-            style={{ width: 48, height: 26, borderRadius: 999, border: "none", cursor: "pointer", background: alerts?.sms_enabled ? "var(--teal)" : "var(--gray-200)", transition: "background 0.2s", position: "relative" }}>
-            <span style={{ position: "absolute", top: 3, left: alerts?.sms_enabled ? 24 : 3, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }} />
+            style={{ width: 48, height: 26, borderRadius: 999, border: "none", cursor: "pointer", background: alerts?.sms_enabled ? "var(--teal)" : "var(--gray-200)", transition: "background 0.2s", position: "relative", display: "flex", alignItems: "center" }}>
+            <span style={{ position: "absolute", top: 3, left: alerts?.sms_enabled ? 24 : 3, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {saving && <LoadingSpinner size={10} color={alerts?.sms_enabled ? "var(--teal)" : "var(--gray-400)"} />}
+            </span>
           </button>
         </div>
 

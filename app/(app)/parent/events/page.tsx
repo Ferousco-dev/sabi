@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Calendar, AlertTriangle } from "lucide-react";
 import { getSchoolEvents } from "@/app/lib/api/parent";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function EventsPage() {
   const [events, setEvents] = useState<any[]>([]);
@@ -13,7 +17,7 @@ export default function EventsPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading events…</div>;
+  if (loading) return <LoadingPage />;
 
   const upcoming = events.filter((e) => new Date(e.date) >= new Date());
   const past = events.filter((e) => new Date(e.date) < new Date());
@@ -62,7 +66,13 @@ export default function EventsPage() {
         </details>
       )}
 
-      {events.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32 }}>No events scheduled.</p>}
+      {events.length === 0 && (
+        <EmptyState
+          icon={Calendar}
+          title="No events scheduled"
+          description="Upcoming school events and holidays will appear here."
+        />
+      )}
     </div>
   );
 }

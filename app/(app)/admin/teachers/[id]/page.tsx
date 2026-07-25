@@ -1,9 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Mail, BookOpen, GraduationCap } from "lucide-react";
 import { getTeacherDetail, assignTeacherSubject, assignTeacherClass, type Teacher } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 
 export default function TeacherDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -18,7 +21,7 @@ export default function TeacherDetailPage() {
     }).finally(() => setLoading(false));
   }, [id, router]);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading teacher…</div>;
+  if (loading) return <LoadingPage />;
   if (!teacher) return null;
 
   return (

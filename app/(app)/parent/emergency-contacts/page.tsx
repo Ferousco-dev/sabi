@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { UserPlus, Phone, User } from "lucide-react";
+import { UserPlus, Phone, User, Users } from "lucide-react";
 import { getEmergencyContacts, addEmergencyContact, type EmergencyContact } from "@/app/lib/api/parent";
+import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function EmergencyContactsPage() {
   const [contacts, setContacts] = useState<EmergencyContact[]>([]);
@@ -27,7 +31,7 @@ export default function EmergencyContactsPage() {
     setAdding(false);
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 560 }}>
@@ -49,7 +53,7 @@ export default function EmergencyContactsPage() {
           </div>
         </div>
         <button type="submit" disabled={adding} style={{ marginTop: 16, height: 42, padding: "0 18px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", opacity: adding ? 0.65 : 1, display: "flex", alignItems: "center", gap: 6 }}>
-          <UserPlus size={16} /> {adding ? "Adding…" : "Add Contact"}
+          {adding ? <LoadingSpinner size={16} color="#fff" /> : <><UserPlus size={16} /> Add Contact</>}
         </button>
       </form>
 
@@ -68,7 +72,13 @@ export default function EmergencyContactsPage() {
             {c.is_primary && <span style={{ fontSize: 11, fontWeight: 600, color: "var(--teal)", background: "var(--teal-50)", padding: "2px 8px", borderRadius: 999 }}>Primary</span>}
           </div>
         ))}
-        {contacts.length === 0 && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 24 }}>No emergency contacts added.</p>}
+        {contacts.length === 0 && (
+          <EmptyState
+            icon={Users}
+            title="No emergency contacts"
+            description="Add trusted contacts who can be reached in case of an emergency."
+          />
+        )}
       </div>
     </div>
   );

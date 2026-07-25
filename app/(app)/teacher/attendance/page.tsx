@@ -1,8 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { ClipboardCheck } from "lucide-react";
 import { getTeacherAttendance, recordTeacherAttendance } from "@/app/lib/api/teacher";
 import { getClassRoster, type ClassRosterStudent } from "@/app/lib/api/teacher";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function TeacherAttendancePage() {
   const [students, setStudents] = useState<ClassRosterStudent[]>([]);
@@ -32,7 +36,7 @@ export default function TeacherAttendancePage() {
     setSaving(false);
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>

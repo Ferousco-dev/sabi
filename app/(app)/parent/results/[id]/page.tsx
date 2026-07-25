@@ -1,9 +1,13 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, FileText, Award } from "lucide-react";
 import { getChildGrades } from "@/app/lib/api/parent";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function ChildGradesPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,7 +20,7 @@ export default function ChildGradesPage() {
     }).finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading grades…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 640 }}>
@@ -26,10 +30,11 @@ export default function ChildGradesPage() {
       <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Published Results</h1>
 
       {grades.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <Award size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>No published results yet.</p>
-        </div>
+        <EmptyState
+          icon={Award}
+          title="No results published"
+          description="Results will be available once they are processed and published by the school."
+        />
       )}
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

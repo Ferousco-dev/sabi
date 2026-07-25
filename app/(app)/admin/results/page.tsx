@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { FileText, CheckCircle2, XCircle, Send } from "lucide-react";
 import { getResults, reviewResult, publishResults, type Result } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function ResultsPage() {
   const [results, setResults] = useState<Result[]>([]);
@@ -33,7 +35,7 @@ export default function ResultsPage() {
     load();
   }
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading results…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -94,7 +96,13 @@ export default function ResultsPage() {
             ))}
           </tbody>
         </table>
-        {results.length === 0 && <p style={{ padding: "32px", textAlign: "center", color: "var(--gray-400)" }}>No results found.</p>}
+      {results.length === 0 && (
+        <EmptyState
+          icon={FileText}
+          title="No results found"
+          description="Student results will appear here once submitted by teachers."
+        />
+      )}
       </div>
     </div>
   );

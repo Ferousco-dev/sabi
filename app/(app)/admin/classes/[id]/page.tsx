@@ -1,9 +1,12 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, GraduationCap, Users, Columns3 } from "lucide-react";
 import { getSections, getEnrollments, type Section, type Enrollment } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 
 export default function ClassDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,7 +22,7 @@ export default function ClassDetailPage() {
     }).finally(() => setLoading(false));
   }, [classId]);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading class…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 800 }}>

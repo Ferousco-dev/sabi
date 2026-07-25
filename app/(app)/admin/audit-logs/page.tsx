@@ -4,6 +4,8 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { ScrollText, Search } from "lucide-react";
 import { getAuditLogs, type AuditLog } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function AuditLogsPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -22,7 +24,7 @@ export default function AuditLogsPage() {
     l.resource.toLowerCase().includes(query.toLowerCase())
   );
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading audit logs…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -57,7 +59,13 @@ export default function AuditLogsPage() {
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 && <p style={{ padding: "32px", textAlign: "center", color: "var(--gray-400)" }}>No logs found.</p>}
+        {filtered.length === 0 && (
+          <EmptyState
+            icon={ScrollText}
+            title="No logs found"
+            description={query ? "No administrative actions match your search." : "Administrative actions will be tracked here."}
+          />
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,11 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Bell, CheckCircle2 } from "lucide-react";
 import { getNotificationLogs, type NotificationLog } from "@/app/lib/api/schools";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationLog[]>([]);
@@ -13,14 +17,20 @@ export default function NotificationsPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading notifications…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 720 }}>
       <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Notification Tracking</h1>
 
       <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-        {notifications.length === 0 && <p style={{ padding: "32px", textAlign: "center", color: "var(--gray-400)" }}>No notifications logged.</p>}
+        {notifications.length === 0 && (
+          <EmptyState
+            icon={Bell}
+            title="No notifications logged"
+            description="A history of all sent notifications will appear here."
+          />
+        )}
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ background: "var(--gray-50)" }}>

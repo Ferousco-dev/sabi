@@ -1,10 +1,13 @@
 "use client";
+
+export const dynamic = "force-dynamic";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Input } from "@/app/components/ui/Input";
 import { createCourse } from "@/app/lib/api/creator";
+import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 
 export default function NewCoursePage() {
   const router = useRouter();
@@ -48,7 +51,7 @@ export default function NewCoursePage() {
         <Input label="Price (₦)" type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" />
         <button type="submit" disabled={loading}
           style={{ height: 48, padding: "0 24px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 15, fontWeight: 600, border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.65 : 1, alignSelf: "flex-start" }}>
-          {loading ? "Creating…" : "Create Course"}
+          {loading ? <LoadingSpinner size={18} color="#fff" /> : "Create Course"}
         </button>
       </form>
     </div>

@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, BookOpen } from "lucide-react";
 import { getCreatorCourses, type Course } from "@/app/lib/api/creator";
+import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +18,7 @@ export default function CreatorCoursesPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div style={{ color: "var(--gray-500)" }}>Loading courses…</div>;
+  if (loading) return <LoadingPage />;
 
   return (
     <div>
@@ -31,13 +33,15 @@ export default function CreatorCoursesPage() {
       </div>
 
       {courses.length === 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 48, textAlign: "center" }}>
-          <BookOpen size={40} style={{ color: "var(--gray-300)", marginBottom: 12 }} />
-          <p style={{ fontSize: 14, color: "var(--gray-500)", marginBottom: 20 }}>No courses yet.</p>
-          <Link href="/creator/courses/new" style={{ display: "inline-flex", alignItems: "center", height: 44, padding: "0 20px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
-            Create Course
-          </Link>
-        </div>
+        <EmptyState
+          icon={BookOpen}
+          title="No courses yet"
+          description="Create your first course to start reaching schools and students."
+          action={{
+            label: "Create Course",
+            onClick: () => window.location.href = "/creator/courses/new",
+          }}
+        />
       )}
 
       {courses.length > 0 && (
