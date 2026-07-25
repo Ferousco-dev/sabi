@@ -36,15 +36,20 @@ export default function OnboardingPage() {
         padding: "56px 24px 64px",
       }}
     >
-      <span style={{ width: 44, height: 44, borderRadius: 10, background: "#fff", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", boxShadow: "var(--shadow-xs)", marginBottom: 28 }}>
+      <span className="dash-rise" style={{ width: 44, height: 44, borderRadius: 10, background: "#fff", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", boxShadow: "var(--shadow-xs)", marginBottom: 24 }}>
         <img src="/logo.png" alt="SabiHub" style={{ width: 30, height: 30, objectFit: "contain" }} />
       </span>
 
-      <h1 style={{ fontSize: "clamp(26px, 3vw, 34px)", fontWeight: 700, letterSpacing: "-0.03em", color: "var(--gray-900)", textAlign: "center", marginBottom: 8 }}>
-        Welcome to SabiHub
+      <span className="dash-rise" style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "5px 12px", borderRadius: "var(--radius-full)", background: "#fff", border: "1px solid var(--border)", boxShadow: "var(--shadow-xs)", fontSize: 12.5, fontWeight: 600, color: "var(--teal)", marginBottom: 18, animationDelay: "60ms" }}>
+        <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: "var(--radius-full)", background: "var(--teal)" }} />
+        Last step · Set up your account
+      </span>
+
+      <h1 className="dash-rise" style={{ fontSize: "clamp(26px, 3vw, 34px)", fontWeight: 700, letterSpacing: "-0.03em", color: "var(--gray-900)", textAlign: "center", marginBottom: 8, animationDelay: "90ms" }}>
+        Who are you on SabiHub?
       </h1>
-      <p style={{ fontSize: 16, color: "var(--gray-500)", textAlign: "center", marginBottom: 36 }}>
-        What best describes you? You can change this later.
+      <p className="dash-rise" style={{ fontSize: 16, color: "var(--gray-500)", textAlign: "center", marginBottom: 36, maxWidth: "44ch", animationDelay: "120ms" }}>
+        Pick the role that fits you best. This tailors your dashboard, you can change it later.
       </p>
 
       <div
@@ -52,7 +57,7 @@ export default function OnboardingPage() {
         aria-label="Choose your role"
         style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 14, width: "100%", maxWidth: 760, marginBottom: 32 }}
       >
-        {ROLES.map(({ key, label, desc, Icon }) => {
+        {ROLES.map(({ key, label, desc, Icon }, i) => {
           const active = role === key;
           return (
             <button
@@ -60,14 +65,18 @@ export default function OnboardingPage() {
               role="radio"
               aria-checked={active}
               onClick={() => setRole(key)}
+              className="dash-rise"
+              onMouseEnter={(e) => { if (!active) e.currentTarget.style.transform = "translateY(-2px)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "none"; }}
               style={{
                 position: "relative", textAlign: "left", cursor: "pointer",
                 padding: "20px 18px", borderRadius: 12,
                 background: active ? "var(--teal-50)" : "#fff",
                 border: `1.5px solid ${active ? "var(--teal)" : "var(--border)"}`,
                 boxShadow: active ? "none" : "var(--shadow-xs)",
-                transition: "border-color 0.15s, background 0.15s, transform 0.15s",
+                transition: "border-color 0.15s, background 0.15s, transform 0.15s, box-shadow 0.15s",
                 fontFamily: "var(--font-sans)",
+                animationDelay: `${150 + i * 55}ms`,
               }}
             >
               {active && (
@@ -75,7 +84,7 @@ export default function OnboardingPage() {
                   <Check size={13} style={{ color: "#fff" }} aria-hidden="true" />
                 </span>
               )}
-              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 10, background: active ? "var(--teal)" : "var(--teal-50)", marginBottom: 14 }}>
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 10, background: active ? "var(--teal)" : "var(--teal-50)", marginBottom: 14, transition: "background 0.15s" }}>
                 <Icon size={20} strokeWidth={1.9} style={{ color: active ? "#fff" : "var(--teal)" }} aria-hidden="true" />
               </span>
               <div style={{ fontSize: 16, fontWeight: 600, color: "var(--gray-900)", marginBottom: 3 }}>{label}</div>
@@ -98,7 +107,7 @@ export default function OnboardingPage() {
           boxShadow: "var(--shadow-sm)",
         }}
       >
-        {loading ? <LoadingSpinner size={20} color="#fff" /> : <>Continue <ArrowRight size={17} aria-hidden="true" className="btn-arrow" /></>}
+        {loading ? <LoadingSpinner size={20} color="#fff" /> : <>Continue to dashboard <ArrowRight size={17} aria-hidden="true" className="btn-arrow" /></>}
       </button>
     </main>
   );
