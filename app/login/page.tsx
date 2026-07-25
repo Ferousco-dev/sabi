@@ -4,9 +4,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { AuthShell, Field, AuthButton, AuthError, GoogleButton, AuthDivider } from "../components/site/AuthUI";
-import { login, setToken, type AuthSuccess } from "../lib/auth";
+import { login, setToken, type AuthSuccess, type Role } from "../lib/auth";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Where each role lands after signing in. */
+const HOME_BY_ROLE: Record<Role, string> = {
+  school_admin: "/admin",
+  teacher: "/teacher",
+  student: "/student",
+  parent: "/parent",
+  creator: "/creator",
+};
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,8 +37,9 @@ export default function LoginPage() {
 
     if (res.status === 0) return setError("Couldn't reach the server. Check your connection and try again.");
     if (res.ok && res.data && res.data.success) {
-      setToken((res.data as AuthSuccess).token);
-      router.push("/");
+      const data = res.data as AuthSuccess;
+      setToken(data.token);
+      router.push(HOME_BY_ROLE[data.user.role] ?? "/");
       return;
     }
     setError(res.data && res.data.success === false ? res.data.error : "Invalid email or password.");
