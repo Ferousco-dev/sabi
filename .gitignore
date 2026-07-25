@@ -56,3 +56,6 @@ ftp_*.txt
 /playwright-report
 /blob-report
 /playwright/.cache
+
+# Backend secrets, never commit real values
+api/config.php
