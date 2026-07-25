@@ -1,0 +1,45 @@
+name: Deploy backend to cPanel
+
+# Deploys the PHP API (api/) to the cPanel server over SSH whenever backend code
+# changes on main. The server-only config.php (real secrets) and the SQL dumps
+# are never touched. Also runnable on demand from the Actions tab.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - ".github/workflows/deploy-backend.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: rsync api to cPanel
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.CPANEL_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Deploy api/ (keeps server config + SQL)
+        run: |
+          rsync -rlz --delete \
+            --exclude 'config.php' \
+            --exclude 'database_v2.sql' \
+            --exclude 'database_v2_seed.sql' \
+            -e "ssh -i ~/.ssh/deploy_key -p ${{ secrets.CPANEL_PORT }} -o StrictHostKeyChecking=no" \
+            api/ "${{ secrets.CPANEL_USER }}@${{ secrets.CPANEL_HOST }}:public_html/api/"
+
+      - name: Health check
+        run: |
+          echo "Pinging the live API..."
+          curl -fsS -o /dev/null -w "healthcheck HTTP %{http_code}\n" https://api.sabihub.ng/healthcheck.php \
+            || echo "Note: healthcheck did not return 2xx; verify the endpoint path."
