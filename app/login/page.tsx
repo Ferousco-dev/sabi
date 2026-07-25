@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { AuthShell, Field, AuthButton, AuthError, GoogleButton, AuthDivider } from "../components/site/AuthUI";
 import { login, setToken, type AuthSuccess } from "../lib/auth";
-import { LoadingSpinner } from "./components/ui/LoadingSpinner";
+import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

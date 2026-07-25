@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Megaphone, Plus } from "lucide-react";
 import { getAnnouncements, createAnnouncement, type Announcement } from "@/app/lib/api/schools";
-import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { EmptyState } from "@/app/components/ui/EmptyState";
 
 export default function AnnouncementsPage() {
@@ -63,7 +63,7 @@ export default function AnnouncementsPage() {
             </div>
             <button type="submit" disabled={sending || !title.trim() || !content.trim()}
               style={{ height: 42, padding: "0 18px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, opacity: sending ? 0.65 : 1 }}>
-              <Plus size={16} /> {sending ? "Sending…" : "Send Announcement"}
+              {sending ? <LoadingSpinner size={16} color="#fff" /> : <Plus size={16} />} {sending ? "Sending…" : "Send Announcement"}
             </button>
           </div>
         </div>

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { School, Presentation, BookOpen, Users, Store, Check, ArrowRight } from "lucide-react";
 import { updateRole, type Role } from "../lib/auth";
-import { LoadingSpinner } from "./components/ui/LoadingSpinner";
+import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 
 const ROLES: { key: Role; label: string; desc: string; Icon: typeof School }[] = [
   { key: "school_admin", label: "School", desc: "Manage enrolment, staff and analytics", Icon: School },
