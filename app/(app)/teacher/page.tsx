@@ -3,10 +3,16 @@
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BookOpen, ClipboardList, Plus, ArrowRight } from "lucide-react";
+import { BookOpen, ClipboardList, Plus, ArrowRight, FileCheck2, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
 import { getLessons, getAssignments, type Lesson, type Assignment } from "@/app/lib/api/teacher";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { StatCard } from "@/app/components/dashboard/StatCard";
+import { Card } from "@/app/components/dashboard/Card";
+import { Badge } from "@/app/components/dashboard/Badge";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { Button } from "@/app/components/ui/Button";
 
 export default function TeacherDashboard() {
   const { user } = useAuth();
@@ -21,103 +27,102 @@ export default function TeacherDashboard() {
     }).finally(() => setLoading(false));
   }, []);
 
-  const recentLessons = lessons.slice(0, 5);
-  const recentAssignments = assignments.slice(0, 5);
-
   if (loading) return <LoadingPage />;
 
-  const statCard = (Icon: typeof BookOpen, label: string, value: number | string, href: string, color: string) => (
-    <Link href={href} style={{ textDecoration: "none", display: "block" }}>
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "18px 20px", boxShadow: "var(--shadow-xs)", transition: "box-shadow 0.15s" }}
-        onMouseEnter={(e) => e.currentTarget.style.boxShadow = "var(--shadow-md)"}
-        onMouseLeave={(e) => e.currentTarget.style.boxShadow = "var(--shadow-xs)"}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Icon size={20} color={color} />
-          </div>
-          <ArrowRight size={16} style={{ color: "var(--gray-300)" }} />
-        </div>
-        <div style={{ fontSize: 24, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.02em", lineHeight: 1 }}>{value}</div>
-        <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 4 }}>{label}</div>
-      </div>
-    </Link>
-  );
+  const recentLessons = lessons.slice(0, 5);
+  const recentAssignments = assignments.slice(0, 5);
+  const submissions = assignments.reduce((sum, a) => sum + (a.submission_count ?? 0), 0);
+  const overdue = assignments.filter((a) => a.due_date && new Date(a.due_date) < new Date()).length;
+  const firstName = user?.name?.split(" ")[0] ?? "there";
 
   return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.02em" }}>
-            Good day, {user?.name?.split(" ")[0]}
-          </h1>
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>Your teaching overview</p>
-        </div>
-        <Link href="/teacher/lessons/new" style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 42, padding: "0 18px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
-          <Plus size={17} /> New Lesson
-        </Link>
+    <>
+      <PageHeader
+        title={`Good day, ${firstName}`}
+        subtitle="Your teaching overview"
+        actions={
+          <Button href="/teacher/lessons/new" icon={<Plus size={16} strokeWidth={2.2} aria-hidden="true" />}>
+            New lesson
+          </Button>
+        }
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 20 }}>
+        {[
+          { key: "lessons", label: "Lessons", value: lessons.length, Icon: BookOpen },
+          { key: "assignments", label: "Assignments", value: assignments.length, Icon: ClipboardList },
+          { key: "submissions", label: "Submissions", value: submissions, Icon: FileCheck2 },
+          { key: "overdue", label: "Overdue", value: overdue, Icon: AlertTriangle },
+        ].map((s, i) => (
+          <div key={s.key} className="dash-rise" style={{ animationDelay: `${i * 70}ms` }}>
+            <StatCard label={s.label} value={s.value} Icon={s.Icon} />
+          </div>
+        ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 28 }}>
-        {statCell(BookOpen, "Lessons", lessons.length, "/teacher/lessons")}
-        {statCell(ClipboardList, "Assignments", assignments.length, "/teacher/assignments")}
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-            <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>Recent Lessons</h2>
-            <Link href="/teacher/lessons" style={{ fontSize: 13, fontWeight: 600, color: "var(--teal)", textDecoration: "none" }}>View all</Link>
-          </div>
-          <div>
-            {recentLessons.length === 0 && <p style={{ padding: "20px", fontSize: 14, color: "var(--gray-400)", textAlign: "center" }}>No lessons yet. Create your first one.</p>}
-            {recentLessons.map((l) => (
-              <div key={l.id} style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{l.title}</div>
-                  <div style={{ fontSize: 12, color: "var(--gray-400)" }}>{l.course_title ?? "General"} · {new Date(l.created_at).toLocaleDateString()}</div>
-                </div>
-              </div>
-            ))}
-          </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "flex-start" }}>
+        <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+          <Card
+            title="Recent lessons"
+            padded={false}
+            action={<Link href="/teacher/lessons" style={linkStyle}>View all <ArrowRight size={14} strokeWidth={2.2} aria-hidden="true" /></Link>}
+          >
+            {recentLessons.length === 0 ? (
+              <EmptyState Icon={BookOpen} title="No lessons yet" description="Create your first lesson to get started." />
+            ) : (
+              <ul style={{ listStyle: "none" }}>
+                {recentLessons.map((l) => (
+                  <li key={l.id} style={{ padding: "13px 16px", borderBottom: "1px solid var(--border)" }}>
+                    <p style={{ fontSize: 14.5, fontWeight: 600, color: "var(--gray-900)" }}>{l.title}</p>
+                    <p style={{ fontSize: 12.5, color: "var(--text-subtle)", marginTop: 2 }}>
+                      {l.course_title ?? "General"} · {new Date(l.created_at).toLocaleDateString()}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
         </div>
 
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-            <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>Recent Assignments</h2>
-            <Link href="/teacher/assignments" style={{ fontSize: 13, fontWeight: 600, color: "var(--teal)", textDecoration: "none" }}>View all</Link>
-          </div>
-          <div>
-            {recentAssignments.length === 0 && <p style={{ padding: "20px", fontSize: 14, color: "var(--gray-400)", textAlign: "center" }}>No assignments yet.</p>}
-            {recentAssignments.map((a) => (
-              <div key={a.id} style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{a.title}</div>
-                  <div style={{ fontSize: 12, color: "var(--gray-400)" }}>{a.submission_count} submissions</div>
-                </div>
-                <span style={{ fontSize: 12, color: a.due_date && new Date(a.due_date) < new Date() ? "#B42318" : "var(--gray-500)" }}>
-                  {a.due_date ? new Date(a.due_date).toLocaleDateString() : "No due date"}
-                </span>
-              </div>
-            ))}
-          </div>
+        <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+          <Card
+            title="Recent assignments"
+            padded={false}
+            action={<Link href="/teacher/assignments" style={linkStyle}>View all <ArrowRight size={14} strokeWidth={2.2} aria-hidden="true" /></Link>}
+          >
+            {recentAssignments.length === 0 ? (
+              <EmptyState Icon={ClipboardList} title="No assignments yet" description="Assignments you create will show here." />
+            ) : (
+              <ul style={{ listStyle: "none" }}>
+                {recentAssignments.map((a) => {
+                  const isOverdue = a.due_date && new Date(a.due_date) < new Date();
+                  return (
+                    <li key={a.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "13px 16px", borderBottom: "1px solid var(--border)" }}>
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ fontSize: 14.5, fontWeight: 600, color: "var(--gray-900)" }}>{a.title}</p>
+                        <p style={{ fontSize: 12.5, color: "var(--text-subtle)", marginTop: 2 }}>{a.submission_count ?? 0} submissions</p>
+                      </div>
+                      <Badge tone={isOverdue ? "danger" : "neutral"}>
+                        {a.due_date ? new Date(a.due_date).toLocaleDateString() : "No due date"}
+                      </Badge>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Card>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
-function statCell(Icon: typeof BookOpen, label: string, value: number | string, href: string) {
-  return (
-    <Link href={href} style={{ textDecoration: "none", display: "block" }}>
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "18px 20px", boxShadow: "var(--shadow-xs)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Icon size={20} color="var(--teal)" />
-          </div>
-        </div>
-        <div style={{ fontSize: 24, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.02em", lineHeight: 1 }}>{value}</div>
-        <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 4 }}>{label}</div>
-      </div>
-    </Link>
-  );
-}
+const linkStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 4,
+  fontSize: 13.5,
+  fontWeight: 600,
+  color: "var(--teal)",
+  textDecoration: "none",
+};

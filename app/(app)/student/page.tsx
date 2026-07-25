@@ -3,10 +3,15 @@
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BookOpen, ClipboardList, Trophy, Zap } from "lucide-react";
+import { BookOpen, ClipboardList, Trophy, Zap, ArrowRight } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
 import { getContent, getStudentAssignments, getProgress, type StudentContent, type StudentAssignment, type ProgressData } from "@/app/lib/api/student";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { StatCard } from "@/app/components/dashboard/StatCard";
+import { Card } from "@/app/components/dashboard/Card";
+import { Badge } from "@/app/components/dashboard/Badge";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -23,79 +28,90 @@ export default function StudentDashboard() {
     }).finally(() => setLoading(false));
   }, []);
 
-  const pendingAssignments = assignments.filter((a) => !a.submitted_at).length;
-  const dueSoon = assignments.filter((a) => a.due_date && new Date(a.due_date) > new Date() && !a.submitted_at).length;
-
   if (loading) return <LoadingPage />;
 
-  return (
-    <div>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.02em" }}>
-          Welcome, {user?.name?.split(" ")[0]}
-        </h1>
-        <p style={{ fontSize: 14, color: "var(--gray-500)" }}>Continue your learning journey</p>
-      </div>
+  const pendingAssignments = assignments.filter((a) => !a.submitted_at).length;
+  const firstName = user?.name?.split(" ")[0] ?? "there";
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 28 }}>
+  return (
+    <>
+      <PageHeader title={`Welcome, ${firstName}`} subtitle="Continue your learning journey" />
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 20 }}>
         {[
-          { icon: BookOpen, label: "Lessons", value: content.length, color: "var(--teal)" },
-          { icon: ClipboardList, label: "Pending Assignments", value: pendingAssignments, color: pendingAssignments > 0 ? "var(--gold)" : "#0E8345" },
-          { icon: Trophy, label: "XP Earned", value: progress?.xp ?? 0, color: "var(--gold)" },
-          { icon: Zap, label: "Completed", value: progress?.completed_lessons ?? 0, color: "var(--teal)" },
-        ].map(({ icon: Icon, label, value, color }) => (
-          <div key={label} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "18px 20px", boxShadow: "var(--shadow-xs)" }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-              <Icon size={20} color={color} />
-            </div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.02em", lineHeight: 1 }}>{value}</div>
-            <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 4 }}>{label}</div>
+          { key: "lessons", label: "Lessons", value: content.length, Icon: BookOpen },
+          { key: "pending", label: "Pending assignments", value: pendingAssignments, Icon: ClipboardList },
+          { key: "xp", label: "XP earned", value: progress?.xp ?? 0, Icon: Trophy },
+          { key: "completed", label: "Completed", value: progress?.completed_lessons ?? 0, Icon: Zap },
+        ].map((s, i) => (
+          <div key={s.key} className="dash-rise" style={{ animationDelay: `${i * 70}ms` }}>
+            <StatCard label={s.label} value={s.value} Icon={s.Icon} />
           </div>
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-            <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>Recent Content</h2>
-            <Link href="/student/content" style={{ fontSize: 13, fontWeight: 600, color: "var(--teal)", textDecoration: "none" }}>View all</Link>
-          </div>
-          <div>
-            {content.length === 0 && <p style={{ padding: "20px", fontSize: 14, color: "var(--gray-400)", textAlign: "center" }}>No content yet.</p>}
-            {content.slice(0, 5).map((c) => (
-              <Link key={c.id} href={`/student/content/${c.id}`} style={{ textDecoration: "none" }}>
-                <div style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)" }}>
-                  <div style={{ fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{c.title}</div>
-                  <div style={{ fontSize: 12, color: "var(--gray-400)" }}>{c.course_title} · {c.teacher_name}</div>
-                </div>
-              </Link>
-            ))}
-          </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "flex-start" }}>
+        <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+          <Card
+            title="Recent content"
+            padded={false}
+            action={<Link href="/student/content" style={linkStyle}>View all <ArrowRight size={14} strokeWidth={2.2} aria-hidden="true" /></Link>}
+          >
+            {content.length === 0 ? (
+              <EmptyState Icon={BookOpen} title="No content yet" description="Your lessons and materials will appear here." />
+            ) : (
+              <ul style={{ listStyle: "none" }}>
+                {content.slice(0, 5).map((c) => (
+                  <li key={c.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                    <Link href={`/student/content/${c.id}`} className="nav-item" style={{ display: "block", padding: "13px 16px", textDecoration: "none" }}>
+                      <p style={{ fontSize: 14.5, fontWeight: 600, color: "var(--gray-900)" }}>{c.title}</p>
+                      <p style={{ fontSize: 12.5, color: "var(--text-subtle)", marginTop: 2 }}>{c.course_title} · {c.teacher_name}</p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
         </div>
 
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-            <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>Assignments</h2>
-            <Link href="/student/assignments" style={{ fontSize: 13, fontWeight: 600, color: "var(--teal)", textDecoration: "none" }}>View all</Link>
-          </div>
-          <div>
-            {assignments.length === 0 && <p style={{ padding: "20px", fontSize: 14, color: "var(--gray-400)", textAlign: "center" }}>No assignments yet.</p>}
-            {assignments.slice(0, 5).map((a) => (
-              <div key={a.id} style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{a.title}</div>
-                  {a.submitted_at ? (
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "#0E8345", background: "#ECFDF3", padding: "2px 8px", borderRadius: 999 }}>Submitted</span>
-                  ) : (
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "var(--gold)", background: "rgba(170,133,46,0.1)", padding: "2px 8px", borderRadius: 999 }}>Pending</span>
-                  )}
-                </div>
-                <div style={{ fontSize: 12, color: "var(--gray-400)", marginTop: 2 }}>{a.course_title} · Due: {a.due_date ? new Date(a.due_date).toLocaleDateString() : "No due date"}</div>
-              </div>
-            ))}
-          </div>
+        <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+          <Card
+            title="Assignments"
+            padded={false}
+            action={<Link href="/student/assignments" style={linkStyle}>View all <ArrowRight size={14} strokeWidth={2.2} aria-hidden="true" /></Link>}
+          >
+            {assignments.length === 0 ? (
+              <EmptyState Icon={ClipboardList} title="No assignments yet" description="Assignments from your teachers will show here." />
+            ) : (
+              <ul style={{ listStyle: "none" }}>
+                {assignments.slice(0, 5).map((a) => (
+                  <li key={a.id} style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, padding: "13px 16px", borderBottom: "1px solid var(--border)" }}>
+                    <div style={{ minWidth: 0 }}>
+                      <p style={{ fontSize: 14.5, fontWeight: 600, color: "var(--gray-900)" }}>{a.title}</p>
+                      <p style={{ fontSize: 12.5, color: "var(--text-subtle)", marginTop: 2 }}>
+                        {a.course_title} · Due {a.due_date ? new Date(a.due_date).toLocaleDateString() : "n/a"}
+                      </p>
+                    </div>
+                    <Badge tone={a.submitted_at ? "success" : "warning"} dot>
+                      {a.submitted_at ? "Submitted" : "Pending"}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
         </div>
       </div>
-    </div>
+    </>
   );
 }
+
+const linkStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 4,
+  fontSize: 13.5,
+  fontWeight: 600,
+  color: "var(--teal)",
+  textDecoration: "none",
+};
