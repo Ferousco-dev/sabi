@@ -16,6 +16,27 @@ export const TOKEN_KEY = "sabihub_token";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api";
 
+// ── Cookie-based session store ─────────────────────────────────────────────
+// The auth token is kept in a cookie (Secure on https, SameSite=Lax, 7-day
+// expiry) instead of localStorage. SSR-safe: all helpers no-op on the server.
+
+export function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+export function writeCookie(name: string, value: string, maxAgeSeconds = 60 * 60 * 24 * 7): void {
+  if (typeof document === "undefined") return;
+  const secure = typeof location !== "undefined" && location.protocol === "https:" ? "; Secure" : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax${secure}`;
+}
+
+export function deleteCookie(name: string): void {
+  if (typeof document === "undefined") return;
+  document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+}
+
 export type FetchResult<T> = {
   /** true only for 2xx responses. */
   ok: boolean;
@@ -25,13 +46,15 @@ export type FetchResult<T> = {
   data: T | null;
 };
 
-/** Read the bearer token from localStorage (SSR-safe: returns null on server). */
+/** Read the bearer token from the session cookie (SSR-safe: null on server).
+ * Falls back to any legacy localStorage token so existing sessions migrate. */
 function readToken(): string | null {
+  const cookie = readCookie(TOKEN_KEY);
+  if (cookie) return cookie;
   if (typeof window === "undefined") return null;
   try {
     return window.localStorage.getItem(TOKEN_KEY);
   } catch {
-    // Storage can throw in private-mode / sandboxed contexts, treat as no token.
     return null;
   }
 }

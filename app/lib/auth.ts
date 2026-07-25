@@ -7,7 +7,7 @@
  * typed body (including the { success:false, error } shape on failure).
  */
 
-import { fetchJson, TOKEN_KEY, API_BASE, type FetchResult } from "./api";
+import { fetchJson, TOKEN_KEY, API_BASE, readCookie, writeCookie, deleteCookie, type FetchResult } from "./api";
 
 /**
  * URL that starts the Google OAuth flow. The backend (/auth/google.php) redirects
@@ -52,8 +52,11 @@ export type LogoutResponse = { success: true } | AuthError;
 
 // ── Token helpers ────────────────────────────────────────────────────────
 
-/** Read the stored JWT (SSR-safe). */
+/** Read the stored JWT from the session cookie (SSR-safe). Falls back to a
+ * legacy localStorage token so already-signed-in users keep their session. */
 export function getToken(): string | null {
+  const cookie = readCookie(TOKEN_KEY);
+  if (cookie) return cookie;
   if (typeof window === "undefined") return null;
   try {
     return window.localStorage.getItem(TOKEN_KEY);
@@ -62,23 +65,20 @@ export function getToken(): string | null {
   }
 }
 
-/** Persist the JWT for subsequent authenticated requests. */
+/** Persist the JWT in the session cookie for subsequent authenticated requests. */
 export function setToken(token: string): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(TOKEN_KEY, token);
-  } catch {
-    // Storage unavailable (private mode), nothing we can do; fail silently.
+  writeCookie(TOKEN_KEY, token);
+  // Clear any legacy localStorage copy so the cookie is the single source.
+  if (typeof window !== "undefined") {
+    try { window.localStorage.removeItem(TOKEN_KEY); } catch { /* no-op */ }
   }
 }
 
 /** Remove the stored JWT (used on logout). */
 export function clearToken(): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.removeItem(TOKEN_KEY);
-  } catch {
-    /* no-op */
+  deleteCookie(TOKEN_KEY);
+  if (typeof window !== "undefined") {
+    try { window.localStorage.removeItem(TOKEN_KEY); } catch { /* no-op */ }
   }
 }
 

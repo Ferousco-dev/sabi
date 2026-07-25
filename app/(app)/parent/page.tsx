@@ -3,11 +3,15 @@
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Users, Bell, ArrowRight, Baby } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
 import { getChildren, getAlertPreferences, type Child, type AlertPreferences } from "@/app/lib/api/parent";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
-import { Users } from "lucide-react";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { StatCard } from "@/app/components/dashboard/StatCard";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { Button } from "@/app/components/ui/Button";
 
 export default function ParentDashboard() {
   const { user } = useAuth();
@@ -24,62 +28,62 @@ export default function ParentDashboard() {
 
   if (loading) return <LoadingPage />;
 
+  const alertsOn = (alerts?.sms_enabled ? 1 : 0) + (alerts?.email_enabled ? 1 : 0);
+  const firstName = user?.name?.split(" ")[0] ?? "there";
+
   return (
-    <div>
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.02em" }}>
-          Welcome, {user?.name?.split(" ")[0]}
-        </h1>
-        <p style={{ fontSize: 14, color: "var(--gray-500)" }}>Stay updated on your children&apos;s progress</p>
+    <>
+      <PageHeader
+        title={`Welcome, ${firstName}`}
+        subtitle="Stay updated on your children's progress"
+        actions={<Button variant="outline" href="/parent/children" icon={<ArrowRight size={16} strokeWidth={2} aria-hidden="true" />}>Manage children</Button>}
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16, marginBottom: 20 }}>
+        <div className="dash-rise"><StatCard label="Linked children" value={children.length} Icon={Baby} /></div>
+        <div className="dash-rise" style={{ animationDelay: "70ms" }}><StatCard label="Alert channels on" value={alertsOn} Icon={Bell} /></div>
       </div>
 
-      {children.length === 0 && (
-        <EmptyState
-          icon={Users}
-          title="No children linked yet"
-          description="Link your child's account using their school email to start tracking their progress, attendance, and grades."
-          action={{
-            label: "Link a Child",
-            onClick: () => window.location.href = "/parent/children",
-          }}
-        />
-      )}
-
-      {children.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16, marginBottom: 24 }}>
+      {children.length === 0 ? (
+        <Card>
+          <EmptyState
+            Icon={Users}
+            title="No children linked yet"
+            description="Link your child's account using their school email to track progress, attendance, and grades."
+            action={<Button href="/parent/children">Link a child</Button>}
+          />
+        </Card>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16 }}>
           {children.map((child) => (
-            <div key={child.id} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "20px", boxShadow: "var(--shadow-xs)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                <span style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--teal)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700 }}>
-                  {child.name[0]}
+            <Card key={child.id}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                <span aria-hidden="true" style={{ width: 48, height: 48, borderRadius: "var(--radius-full)", background: "var(--teal)", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 700, flexShrink: 0 }}>
+                  {child.name[0]?.toUpperCase()}
                 </span>
-                <div>
-                  <div style={{ fontSize: 16, fontWeight: 600, color: "var(--gray-900)" }}>{child.name}</div>
-                  <div style={{ fontSize: 13, color: "var(--gray-500)" }}>{child.email}</div>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.01em" }}>{child.name}</p>
+                  <p style={{ fontSize: 13, color: "var(--text-subtle)" }}>{child.email}</p>
                 </div>
               </div>
-              <Link href={`/student/progress?student_id=${child.id}`} style={{ display: "inline-flex", alignItems: "center", fontSize: 13, fontWeight: 600, color: "var(--teal)", textDecoration: "none" }}>
-                View Progress
-              </Link>
-            </div>
+              <div style={{ display: "flex", gap: 16 }}>
+                <Link href={`/parent/results/${child.id}`} style={linkStyle}>Results <ArrowRight size={14} strokeWidth={2.2} aria-hidden="true" /></Link>
+                <Link href={`/parent/children/${child.id}`} style={linkStyle}>Profile <ArrowRight size={14} strokeWidth={2.2} aria-hidden="true" /></Link>
+              </div>
+            </Card>
           ))}
         </div>
       )}
-
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "20px", boxShadow: "var(--shadow-xs)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>Alert Preferences</h2>
-          <Link href="/parent/alerts" style={{ fontSize: 13, fontWeight: 600, color: "var(--teal)", textDecoration: "none" }}>Configure</Link>
-        </div>
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 13, color: "var(--gray-600)" }}>
-            SMS alerts: <strong style={{ color: alerts?.sms_enabled ? "#0E8345" : "var(--gray-400)" }}>{alerts?.sms_enabled ? "On" : "Off"}</strong>
-          </div>
-          <div style={{ fontSize: 13, color: "var(--gray-600)" }}>
-            Email alerts: <strong style={{ color: alerts?.email_enabled ? "#0E8345" : "var(--gray-400)" }}>{alerts?.email_enabled ? "On" : "Off"}</strong>
-          </div>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
+
+const linkStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 4,
+  fontSize: 13.5,
+  fontWeight: 600,
+  color: "var(--teal)",
+  textDecoration: "none",
+};
