@@ -2,6 +2,16 @@
 // public_html/api/lib/auth_middleware.php
 
 /**
+ * Helper to authenticate and verify role in one call.
+ */
+function authenticate(array $allowedRoles): array
+{
+    $user = require_auth();
+    require_role($user, $allowedRoles);
+    return $user;
+}
+
+/**
  * Ensures the request has a valid Bearer token and returns the user row.
  * Fails with 401 if token is missing, invalid, or revoked.
  */

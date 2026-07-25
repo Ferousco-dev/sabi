@@ -5,9 +5,9 @@
 return [
     'db' => [
         'host'    => 'localhost',
-        'name'    => 'sabihub',
-        'user'    => 'root',
-        'pass'    => '',
+        'name'    => 'sabihubn_db',
+        'user'    => 'sabihubn_app',
+        'pass'    => 'SabiHub_2026_Live!',
         'charset' => 'utf8mb4',
     ],
 
@@ -20,6 +20,7 @@ return [
     'allowed_origins' => [
         'https://sabihub.ng',
         'https://www.sabihub.ng',
-        'http://localhost:3000',                 // Next.js dev server
+        'https://sabi-zeta.vercel.app',
+        'http://localhost:3000',
     ],
 ];

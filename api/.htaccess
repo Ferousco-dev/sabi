@@ -1,13 +1,39 @@
-# Protect sensitive files
+# ------------------------------------------------------------------------------
+# SabiHub API Configuration
+# ------------------------------------------------------------------------------
+
+# 1. CORS Configuration (Global)
+<IfModule mod_headers.c>
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, OPTIONS, DELETE, PUT"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Origin, Accept"
+    Header always set Access-Control-Max-Age "86400"
+</IfModule>
+
+# 2. Handle OPTIONS Preflight
+RewriteEngine On
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=204,L]
+
+# 3. Fix 406 Not Acceptable (Strict Security Bypass)
+<IfModule mod_env.c>
+    SetEnv no-gzip 1
+</IfModule>
+
+# Disable ModSecurity (if permitted by host)
+<IfModule mod_security.c>
+    SecFilterEngine Off
+    SecFilterScanPOST Off
+</IfModule>
+
+# 4. Security: Protect sensitive files
 <FilesMatch "config\.php|db\.php|auth_middleware\.php">
     Order deny,allow
     Deny from all
 </FilesMatch>
 
-# Allow CORS Preflight
-RewriteEngine On
-RewriteCond %{REQUEST_METHOD} OPTIONS
-RewriteRule ^(.*)$ $1 [R=200,L]
-
-# Redirect all to index.php if we used a router,
-# but here we use direct file access.
+# 5. PHP Optimization
+<IfModule mod_php.c>
+    php_value display_errors Off
+    php_value log_errors On
+</IfModule>

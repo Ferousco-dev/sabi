@@ -10,23 +10,29 @@ function json_out(int $status, array $payload): never
     exit;
 }
 
+/** Alias for json_out with default 200 status. */
+function json_response(array $payload, int $status = 200): never
+{
+    json_out($status, $payload);
+}
+
 function fail(int $status, string $error): never
 {
     json_out($status, ['success' => false, 'error' => $error]);
 }
 
 // Decode a JSON request body into an array. 400 on malformed JSON.
+// Fallback to $_POST if JSON body is empty (to bypass some ModSecurity rules).
 function read_json_body(): array
 {
     $raw = file_get_contents('php://input');
-    if ($raw === '' || $raw === false) {
-        return [];
+    if ($raw !== '' && $raw !== false) {
+        $data = json_decode($raw, true);
+        if (is_array($data)) return $data;
     }
-    $data = json_decode($raw, true);
-    if (!is_array($data)) {
-        fail(400, 'Invalid JSON body');
-    }
-    return $data;
+
+    // Fallback to standard POST data
+    return $_POST;
 }
 
 // Only allow the given HTTP method (OPTIONS is handled earlier in cors.php).

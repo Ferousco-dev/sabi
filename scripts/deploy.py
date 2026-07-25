@@ -3,6 +3,7 @@ import tarfile
 import ftplib
 import requests
 import urllib3
+import time
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -11,10 +12,13 @@ SERVER_IP = "131.153.147.186"
 FTP_USER = "sabihubn"
 FTP_PASS = "0GWdp74*XY8wr!"
 REMOTE_PATH = "public_html"
-BASE_URL = "http://www.sabihub.ng"
+BASE_URL = "http://www.sabihub.ng" # Main domain for deployment trigger
+API_URL = "http://api.sabihub.ng"    # Subdomain for API checks
+
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
 }
 
 def package_api():
@@ -25,7 +29,7 @@ def package_api():
         # Add contents of api/ directly
         for item in os.listdir("api"):
             tar.add(os.path.join("api", item), arcname=item)
-        # Add database files directly into the tar root (will be in /api/ on server)
+        # Add database files
         tar.add("docs/database_v2.sql", arcname="database_v2.sql")
         tar.add("docs/database_v2_seed.sql", arcname="database_v2_seed.sql")
     print("✅ Created api.tar.gz")
@@ -35,8 +39,6 @@ def upload_to_cpanel():
     try:
         ftp = ftplib.FTP(SERVER_IP)
         ftp.login(FTP_USER, FTP_PASS)
-
-        print(f"📁 Changing directory to {REMOTE_PATH}...")
         ftp.cwd(REMOTE_PATH)
 
         print("⬆️ Uploading api.tar.gz...")
@@ -47,9 +49,6 @@ def upload_to_cpanel():
         with open("deploy.php", "rb") as f:
             ftp.storbinary("STOR deploy.php", f)
 
-        print("📜 Remote directory listing:")
-        ftp.dir()
-
         ftp.quit()
         print("✅ Upload complete.")
     except Exception as e:
@@ -59,38 +58,45 @@ def upload_to_cpanel():
 def trigger_remote_scripts():
     print("🛠 Triggering remote deployment...")
 
-    # Wait a second for filesystem to sync
-    time.sleep(2)
+    # 1. Deploy (via main domain)
+    print(f"📡 Requesting {BASE_URL}/deploy.php...")
+    try:
+        res = requests.get(f"{BASE_URL}/deploy.php", headers=HEADERS, timeout=30)
+        print(f"--- Deploy Result ({res.status_code}) ---")
+        print(res.text[:300])
+        print("-" * 30)
+    except Exception as e:
+        print(f"❌ Deploy Error: {e}")
 
-    scripts = [
-        ("Deploy", f"{BASE_URL}/deploy.php"),
-        ("DB Setup", f"{BASE_URL}/api/setup.php?key=SabiHub_Setup_2026"),
-        ("Healthcheck", f"{BASE_URL}/api/healthcheck.php")
+    # 2. Database Setup (Try both Subdomain and Main Domain path)
+    setup_urls = [
+        f"{API_URL}/setup.php?key=SabiHub_Setup_2026",
+        f"{BASE_URL}/api/setup.php?key=SabiHub_Setup_2026"
     ]
 
-    for name, url in scripts:
-        print(f"📡 Requesting {url}...")
+    for url in setup_urls:
+        print(f"📡 Requesting DB Setup: {url}...")
         try:
-            # Try both http and https if needed, but start with URL as is
-            res = requests.get(url, headers=HEADERS, timeout=30, verify=False)
-            print(f"--- {name} Result ({res.status_code}) ---")
-            print(res.text[:500] + ("..." if len(res.text) > 500 else ""))
+            res = requests.get(url, headers=HEADERS, timeout=30)
+            print(f"--- Result ({res.status_code}) ---")
+            print(res.text[:300])
+            if res.status_code == 200 and "complete" in res.text:
+                print("✅ DB Setup Success!")
+                break
             print("-" * 30)
         except Exception as e:
-            print(f"❌ {name} Error: {e}")
-            # Try with IP fallback if domain fails
-            if "sabihub.ng" in url:
-                ip_url = url.replace("www.sabihub.ng", SERVER_IP).replace("sabihub.ng", SERVER_IP)
-                print(f"🔄 Retrying with IP: {ip_url}...")
-                try:
-                    res = requests.get(ip_url, headers={"Host": "www.sabihub.ng", **HEADERS}, timeout=30, verify=False)
-                    print(f"--- {name} (IP) Result ({res.status_code}) ---")
-                    print(res.text[:500])
-                    print("-" * 30)
-                except Exception as e2:
-                    print(f"❌ {name} (IP) Error: {e2}")
+            print(f"❌ Error: {e}")
 
-import time
+    # 3. Healthcheck
+    health_urls = [f"{API_URL}/healthcheck.php", f"{BASE_URL}/api/healthcheck.php"]
+    for url in health_urls:
+        print(f"📡 Checking API Health: {url}...")
+        try:
+            res = requests.get(url, headers=HEADERS, timeout=30)
+            print(f"Result ({res.status_code}): {res.text}")
+            if res.status_code == 200: break
+        except Exception as e:
+            print(f"❌ Error: {e}")
 
 if __name__ == "__main__":
     package_api()

@@ -4,17 +4,10 @@
 
 function apply_cors(): void
 {
-    $cfg    = require __DIR__ . '/../config.php';
-    $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-
-    if (in_array($origin, $cfg['allowed_origins'], true)) {
-        header("Access-Control-Allow-Origin: $origin");
-        header('Vary: Origin');                 // so caches don't mix origins
-    }
-
-    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type, Authorization');
-    header('Access-Control-Max-Age: 86400');    // cache preflight for 1 day
+    header("Access-Control-Allow-Origin: *");
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS, DELETE, PUT');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+    header('Access-Control-Max-Age: 86400');
 
     // Preflight: answer and stop before any app logic runs.
     if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {

@@ -157,13 +157,14 @@ CREATE TABLE IF NOT EXISTS `enrollments` (
   `student_id`    BIGINT UNSIGNED NOT NULL,
   `class_id`      BIGINT UNSIGNED NULL,
   `section_id`    BIGINT UNSIGNED NULL,
+  `course_id`     BIGINT UNSIGNED NULL,
   `academic_session_id` BIGINT UNSIGNED NOT NULL,
   `enrolled_at`   TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_enrollment_period` (`student_id`, `academic_session_id`),
   CONSTRAINT `fk_enrol_student` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_enrol_class`   FOREIGN KEY (`class_id`)   REFERENCES `classes` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_enrol_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_enrol_course`  FOREIGN KEY (`course_id`)  REFERENCES `courses` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_enrol_session` FOREIGN KEY (`academic_session_id`) REFERENCES `academic_sessions` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
