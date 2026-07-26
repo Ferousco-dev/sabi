@@ -5,10 +5,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Users, Bell, ArrowRight, Baby } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
-import { getChildren, getAlertPreferences, type Child, type AlertPreferences } from "@/app/lib/api/parent";
+import { getChildren, getAlertPreferences, getChildResults, type Child, type AlertPreferences } from "@/app/lib/api/parent";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { StatCard } from "@/app/components/dashboard/StatCard";
+import { BarChart, type Bar } from "@/app/components/dashboard/BarChart";
 import { Card } from "@/app/components/dashboard/Card";
 import { EmptyState } from "@/app/components/dashboard/EmptyState";
 import { Button } from "@/app/components/ui/Button";
@@ -17,12 +18,25 @@ export default function ParentDashboard() {
   const { user } = useAuth();
   const [children, setChildren] = useState<Child[]>([]);
   const [alerts, setAlerts] = useState<AlertPreferences | null>(null);
+  const [scoreBars, setScoreBars] = useState<Bar[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([getChildren(), getAlertPreferences()]).then(([c, a]) => {
-      if (c.ok && c.data) setChildren(c.data.children);
+    Promise.all([getChildren(), getAlertPreferences()]).then(async ([c, a]) => {
       if (a.ok && a.data) setAlerts(a.data.alerts);
+      if (c.ok && c.data) {
+        const kids = c.data.children;
+        setChildren(kids);
+        const results = await Promise.all(kids.map((k) => getChildResults(k.id)));
+        const avgs = kids.map((k, i) => {
+          const r = results[i];
+          const scores = r.ok && r.data ? r.data.results.map((x) => x.score) : [];
+          const avg = scores.length ? scores.reduce((s, v) => s + v, 0) / scores.length : 0;
+          return { name: k.name, avg: Math.round(avg) };
+        }).filter((x) => x.avg > 0);
+        const max = Math.max(...avgs.map((x) => x.avg), 100);
+        setScoreBars(avgs.map((x) => ({ label: x.name.split(" ")[0], value: x.avg, max })));
+      }
     }).finally(() => setLoading(false));
   }, []);
 
@@ -43,6 +57,12 @@ export default function ParentDashboard() {
         <div className="dash-rise"><StatCard label="Linked children" value={children.length} Icon={Baby} /></div>
         <div className="dash-rise" style={{ animationDelay: "70ms" }}><StatCard label="Alert channels on" value={alertsOn} Icon={Bell} /></div>
       </div>
+
+      {scoreBars.length > 0 && (
+        <Card title="Average score by child" style={{ marginBottom: 20 }}>
+          <BarChart bars={scoreBars} unit="%" caption="Each child's average score across recorded results." />
+        </Card>
+      )}
 
       {children.length === 0 ? (
         <Card>
