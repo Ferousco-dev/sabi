@@ -6,7 +6,11 @@ import Link from "next/link";
 import { Plus, ClipboardList } from "lucide-react";
 import { getAssignments, type Assignment } from "@/app/lib/api/teacher";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { Badge } from "@/app/components/dashboard/Badge";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { Button } from "@/app/components/ui/Button";
 
 export default function AssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -21,53 +25,65 @@ export default function AssignmentsPage() {
   if (loading) return <LoadingPage />;
 
   return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)" }}>Assignments</h1>
-          <p style={{ fontSize: 14, color: "var(--gray-500)", marginTop: 2 }}>{assignments.length} total</p>
-        </div>
-        <Link href="/teacher/assignments/new" style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 42, padding: "0 18px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
-          <Plus size={17} /> New Assignment
-        </Link>
-      </div>
+    <>
+      <PageHeader
+        title="Assignments"
+        subtitle={`${assignments.length} assignment${assignments.length === 1 ? "" : "s"} created`}
+        actions={<Button href="/teacher/assignments/new" icon={<Plus size={16} strokeWidth={2.2} aria-hidden="true" />}>New assignment</Button>}
+      />
 
-      {assignments.length === 0 && (
-        <EmptyState
-          icon={ClipboardList}
-          title="No assignments yet"
-          description="Create your first assignment to start tracking student progress."
-        />
+      {assignments.length === 0 ? (
+        <Card>
+          <EmptyState Icon={ClipboardList} title="No assignments yet" description="Create your first assignment to start tracking student progress." action={<Button href="/teacher/assignments/new">Create assignment</Button>} />
+        </Card>
+      ) : (
+        <Card padded={false}>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 620 }}>
+              <thead>
+                <tr>{["Title", "Submissions", "Due date", "Created"].map((h) => <th key={h} style={thStyle}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {assignments.map((a) => {
+                  const overdue = a.due_date && new Date(a.due_date) < new Date();
+                  return (
+                    <tr key={a.id}>
+                      <td style={tdStyle}>
+                        <Link href={`/teacher/assignments/${a.id}`} style={{ fontSize: 14, fontWeight: 600, color: "var(--teal)", textDecoration: "none" }}>{a.title}</Link>
+                      </td>
+                      <td style={tdStyle}><Badge tone={(a.submission_count ?? 0) > 0 ? "teal" : "neutral"}>{a.submission_count ?? 0}</Badge></td>
+                      <td style={tdStyle}>
+                        {a.due_date ? <Badge tone={overdue ? "danger" : "neutral"} dot={!!overdue}>{new Date(a.due_date).toLocaleDateString()}</Badge> : "—"}
+                      </td>
+                      <td style={tdStyle}>{new Date(a.created_at).toLocaleDateString()}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
-
-      {assignments.length > 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ background: "var(--gray-50)" }}>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Title</th>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Submissions</th>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Due Date</th>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assignments.map((a) => (
-                <tr key={a.id} style={{ borderTop: "1px solid var(--border)" }}>
-                  <td style={{ padding: "12px 20px" }}>
-                    <Link href={`/teacher/assignments/${a.id}`} style={{ fontSize: 14, fontWeight: 500, color: "var(--teal)", textDecoration: "none" }}>{a.title}</Link>
-                  </td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{a.submission_count}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: a.due_date && new Date(a.due_date) < new Date() ? "#B42318" : "var(--gray-500)" }}>
-                    {a.due_date ? new Date(a.due_date).toLocaleDateString() : "—"}
-                  </td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{new Date(a.created_at).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+    </>
   );
 }
+
+const thStyle = {
+  padding: "11px 16px",
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--text-subtle)",
+  textAlign: "left" as const,
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.04em",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};
+
+const tdStyle = {
+  padding: "13px 16px",
+  fontSize: 14,
+  color: "var(--text-muted)",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};
