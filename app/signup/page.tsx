@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ArrowRight } from "lucide-react";
 import { AuthShell, Field, AuthButton, AuthError, GoogleButton, AuthDivider } from "../components/site/AuthUI";
-import { signup, setToken, type AuthSuccess } from "../lib/auth";
+import { signup, setToken, friendlyAuthError, type AuthSuccess } from "../lib/auth";
 import { LoadingSpinner } from "../components/ui/LoadingSpinner";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,20 +35,13 @@ export default function SignupPage() {
     const res = await signup({ name, email: email.trim(), password });
     setLoading(false);
 
-    if (res.status === 0) return setError("Couldn't reach the server. Check your connection and try again.");
     if (res.ok && res.data && res.data.success) {
       setToken((res.data as AuthSuccess).token);
       // Role is chosen next, in onboarding.
       router.push("/onboarding");
       return;
     }
-    setError(
-      res.data && res.data.success === false
-        ? res.data.error
-        : res.status === 409
-          ? "An account with that email already exists."
-          : "Something went wrong. Please try again.",
-    );
+    setError(friendlyAuthError(res.status, res.data && res.data.success === false ? res.data.error : undefined));
   }
 
   return (

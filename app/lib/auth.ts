@@ -40,6 +40,20 @@ export type AuthSuccess = {
   user: User;
 };
 
+/**
+ * Turn a raw API status/error into a friendly, user-safe message. Internal
+ * details (e.g. "Database unavailable") are never shown; the user sees a calm,
+ * actionable line instead.
+ */
+export function friendlyAuthError(status: number, backendError?: string): string {
+  if (status === 0) return "Couldn't reach the server. Check your connection and try again.";
+  if (status === 401) return "Invalid email or password.";
+  if (status === 429) return "Too many attempts. Please wait a minute and try again.";
+  if (status >= 500) return "Something went wrong on our side. Please try again in a moment.";
+  if ((status === 409 || status === 422) && backendError) return backendError;
+  return backendError && backendError.length < 120 ? backendError : "Something went wrong. Please try again.";
+}
+
 /** Failure body returned across every endpoint. */
 export type AuthError = {
   success: false;
