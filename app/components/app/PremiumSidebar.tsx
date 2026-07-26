@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
 import { NAV_BY_ROLE, ROLE_LABEL, type NavItem } from "./dashboardNav";
+import { initials } from "@/app/lib/dashboard";
 
 function isActive(pathname: string, item: NavItem, basePath: string): boolean {
   if (item.href === basePath) return pathname === basePath;
@@ -78,7 +79,18 @@ export function PremiumSidebar({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </div>
 
-      <div style={{ padding: 12, borderTop: "1px solid var(--border)" }}>
+      <div style={{ padding: 12, borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 4 }}>
+        {user && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: "var(--radius-sm)", background: "var(--bg-subtle)", marginBottom: 4 }}>
+            <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: "var(--radius-full)", background: "var(--teal)", color: "#fff", fontSize: 12.5, fontWeight: 700, flexShrink: 0 }}>
+              {initials(user.name)}
+            </span>
+            <span style={{ minWidth: 0, lineHeight: 1.25 }}>
+              <span style={{ display: "block", fontSize: 13.5, fontWeight: 600, color: "var(--gray-900)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user.name}</span>
+              <span style={{ display: "block", fontSize: 12, color: "var(--text-subtle)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user.email}</span>
+            </span>
+          </div>
+        )}
         <button
           type="button"
           onClick={signOut}
