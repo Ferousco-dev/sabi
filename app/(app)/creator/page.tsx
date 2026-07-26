@@ -9,6 +9,7 @@ import { getCreatorCourses, getRevenue, type Course, type RevenueData } from "@/
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { StatCard } from "@/app/components/dashboard/StatCard";
+import { BarChart, type Bar } from "@/app/components/dashboard/BarChart";
 import { Card } from "@/app/components/dashboard/Card";
 import { Badge } from "@/app/components/dashboard/Badge";
 import { EmptyState } from "@/app/components/dashboard/EmptyState";
@@ -31,6 +32,11 @@ export default function CreatorDashboard() {
 
   const totalEnrollments = courses.reduce((sum, c) => sum + c.enrollment_count, 0);
   const firstName = user?.name?.split(" ")[0] ?? "there";
+  const enrollBars: Bar[] = (() => {
+    const ranked = [...courses].sort((a, b) => b.enrollment_count - a.enrollment_count).slice(0, 6);
+    const max = Math.max(...ranked.map((c) => c.enrollment_count), 1);
+    return ranked.map((c) => ({ label: c.title.length > 14 ? c.title.slice(0, 13) + "…" : c.title, value: c.enrollment_count, max }));
+  })();
 
   return (
     <>
@@ -52,6 +58,12 @@ export default function CreatorDashboard() {
           </div>
         ))}
       </div>
+
+      {enrollBars.length > 0 && (
+        <Card title="Enrollments by course" style={{ marginBottom: 20 }}>
+          <BarChart bars={enrollBars} caption="Your courses ranked by number of enrolled students." />
+        </Card>
+      )}
 
       <Card
         title="Your courses"
