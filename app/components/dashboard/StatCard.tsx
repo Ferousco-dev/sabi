@@ -45,6 +45,7 @@ export function StatCard({
 
   return (
     <div
+      className="stat-card"
       style={{
         background: "var(--bg)",
         border: "1px solid var(--border)",

@@ -220,6 +220,11 @@ main { overflow-x: clip; }
 /* Count-up numbers and cards rise in with a short stagger. */
 .dash-rise { opacity: 0; animation: rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) both; }
 
+/* KPI stat card: gentle lift + shadow on hover so the row feels alive. */
+.stat-card { transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.18s ease, border-color 0.18s ease; }
+.stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
+@media (prefers-reduced-motion: reduce) { .stat-card:hover { transform: none; } }
+
 /* Bar chart columns grow up from the baseline. */
 .bar-grow { transform-origin: bottom; animation: bar-grow 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
 @keyframes bar-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
