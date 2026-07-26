@@ -5,10 +5,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BookOpen, ClipboardList, Trophy, Zap, ArrowRight } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
-import { getContent, getStudentAssignments, getProgress, type StudentContent, type StudentAssignment, type ProgressData } from "@/app/lib/api/student";
+import { getContent, getStudentAssignments, getProgress, getScoreHistory, type StudentContent, type StudentAssignment, type ProgressData } from "@/app/lib/api/student";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { StatCard } from "@/app/components/dashboard/StatCard";
+import { AreaChart, type AreaPoint } from "@/app/components/dashboard/AreaChart";
 import { Card } from "@/app/components/dashboard/Card";
 import { Badge } from "@/app/components/dashboard/Badge";
 import { EmptyState } from "@/app/components/dashboard/EmptyState";
@@ -18,13 +19,15 @@ export default function StudentDashboard() {
   const [content, setContent] = useState<StudentContent[]>([]);
   const [assignments, setAssignments] = useState<StudentAssignment[]>([]);
   const [progress, setProgress] = useState<ProgressData | null>(null);
+  const [scoreTrend, setScoreTrend] = useState<AreaPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([getContent(), getStudentAssignments(), getProgress()]).then(([c, a, p]) => {
+    Promise.all([getContent(), getStudentAssignments(), getProgress(), getScoreHistory()]).then(([c, a, p, s]) => {
       if (c.ok && c.data) setContent(c.data.content);
       if (a.ok && a.data) setAssignments(a.data.assignments);
       if (p.ok && p.data) setProgress(p.data.progress);
+      if (s.ok && s.data) setScoreTrend(scorePoints(s.data.history));
     }).finally(() => setLoading(false));
   }, []);
 
@@ -32,6 +35,7 @@ export default function StudentDashboard() {
 
   const pendingAssignments = assignments.filter((a) => !a.submitted_at).length;
   const firstName = user?.name?.split(" ")[0] ?? "there";
+  const avgScore = scoreTrend.length ? Math.round(scoreTrend.reduce((s, p) => s + p.value, 0) / scoreTrend.length) : null;
 
   return (
     <>
@@ -49,6 +53,16 @@ export default function StudentDashboard() {
           </div>
         ))}
       </div>
+
+      {scoreTrend.length >= 2 && (
+        <Card
+          title="Score trend"
+          action={avgScore != null ? <Badge tone="teal">Avg {avgScore}%</Badge> : undefined}
+          style={{ marginBottom: 20 }}
+        >
+          <AreaChart data={scoreTrend} caption="Your assessment scores over time, as a percentage." />
+        </Card>
+      )}
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "flex-start" }}>
         <div style={{ flex: "1 1 320px", minWidth: 0 }}>
@@ -104,6 +118,21 @@ export default function StudentDashboard() {
       </div>
     </>
   );
+}
+
+/** Flatten per-subject score history into chronological percentage points (last 10). */
+function scorePoints(
+  history: { subject: string; scores: { date: string; score: number; max: number }[] }[],
+): AreaPoint[] {
+  const flat = history
+    .flatMap((h) => h.scores.map((s) => ({ date: s.date, pct: s.max > 0 ? (s.score / s.max) * 100 : 0 })))
+    .filter((p) => p.date)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(-10);
+  return flat.map((p) => ({
+    label: new Date(p.date).toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+    value: Math.round(p.pct),
+  }));
 }
 
 const linkStyle = {
