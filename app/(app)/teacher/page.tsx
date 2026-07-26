@@ -9,6 +9,8 @@ import { getLessons, getAssignments, type Lesson, type Assignment } from "@/app/
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { StatCard } from "@/app/components/dashboard/StatCard";
+import { AreaChart, type AreaPoint } from "@/app/components/dashboard/AreaChart";
+import { BarChart, type Bar } from "@/app/components/dashboard/BarChart";
 import { Card } from "@/app/components/dashboard/Card";
 import { Badge } from "@/app/components/dashboard/Badge";
 import { EmptyState } from "@/app/components/dashboard/EmptyState";
@@ -34,6 +36,15 @@ export default function TeacherDashboard() {
   const submissions = assignments.reduce((sum, a) => sum + (a.submission_count ?? 0), 0);
   const overdue = assignments.filter((a) => a.due_date && new Date(a.due_date) < new Date()).length;
   const firstName = user?.name?.split(" ")[0] ?? "there";
+  const lessonTrend = lessonsPerWeek(lessons, 6);
+  const topAssignments: Bar[] = (() => {
+    const ranked = [...assignments]
+      .filter((a) => (a.submission_count ?? 0) > 0)
+      .sort((a, b) => (b.submission_count ?? 0) - (a.submission_count ?? 0))
+      .slice(0, 6);
+    const max = Math.max(...ranked.map((a) => a.submission_count ?? 0), 1);
+    return ranked.map((a) => ({ label: shortLabel(a.title), value: a.submission_count ?? 0, max }));
+  })();
 
   return (
     <>
@@ -58,6 +69,23 @@ export default function TeacherDashboard() {
             <StatCard label={s.label} value={s.value} Icon={s.Icon} />
           </div>
         ))}
+      </div>
+
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "stretch", marginBottom: 20 }}>
+        <div style={{ flex: "1.4 1 420px", minWidth: 0 }}>
+          <Card title="Lessons published" style={{ height: "100%" }}>
+            <AreaChart data={lessonTrend} caption="Lessons you published per week over the last 6 weeks." />
+          </Card>
+        </div>
+        <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+          <Card title="Most-submitted assignments" style={{ height: "100%" }}>
+            {topAssignments.length === 0 ? (
+              <EmptyState Icon={FileCheck2} title="No submissions yet" description="Submission counts appear here as students turn work in." />
+            ) : (
+              <BarChart bars={topAssignments} caption="Assignments ranked by number of student submissions." />
+            )}
+          </Card>
+        </div>
       </div>
 
       <div style={{ display: "flex", flexWrap: "wrap", gap: 20, alignItems: "flex-start" }}>
@@ -115,6 +143,27 @@ export default function TeacherDashboard() {
       </div>
     </>
   );
+}
+
+/** Bucket lessons into the last `weeks` week-windows by created_at. */
+function lessonsPerWeek(lessons: Lesson[], weeks: number): AreaPoint[] {
+  const now = new Date();
+  const week = 7 * 24 * 60 * 60 * 1000;
+  const buckets = Array.from({ length: weeks }, (_, i) => {
+    const end = new Date(now.getTime() - (weeks - 1 - i) * week);
+    return { end, value: 0, label: `${end.getDate()}/${end.getMonth() + 1}` };
+  });
+  for (const l of lessons) {
+    if (!l.created_at) continue;
+    const t = new Date(l.created_at).getTime();
+    const idx = Math.floor((now.getTime() - t) / week);
+    if (idx >= 0 && idx < weeks) buckets[weeks - 1 - idx].value += 1;
+  }
+  return buckets.map((b) => ({ label: b.label, value: b.value }));
+}
+
+function shortLabel(s: string): string {
+  return s.length > 14 ? s.slice(0, 13) + "…" : s;
 }
 
 const linkStyle = {
