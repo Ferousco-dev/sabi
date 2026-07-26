@@ -9,10 +9,21 @@ function AppShell({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
   }, [user, loading, router]);
+
+  // Restore + persist the desktop sidebar collapsed preference.
+  useEffect(() => {
+    try { setCollapsed(localStorage.getItem("sabihub_sidebar_collapsed") === "1"); } catch { /* ignore */ }
+  }, []);
+  const toggleCollapsed = () => setCollapsed((c) => {
+    const next = !c;
+    try { localStorage.setItem("sabihub_sidebar_collapsed", next ? "1" : "0"); } catch { /* ignore */ }
+    return next;
+  });
 
   // Lock scroll + Escape to close while the mobile drawer is open.
   useEffect(() => {
@@ -44,9 +55,9 @@ function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div style={{ display: "flex", minHeight: "100dvh", background: "var(--bg-subtle)" }}>
-      {/* Desktop sidebar, sticky to the viewport. */}
-      <aside className="hidden lg:block" style={{ width: 264, flexShrink: 0, position: "sticky", top: 0, height: "100dvh", alignSelf: "flex-start" }}>
-        <PremiumSidebar />
+      {/* Desktop sidebar, sticky to the viewport, collapsible to an icon rail. */}
+      <aside className="sidebar-root hidden lg:block" style={{ width: collapsed ? 76 : 264, flexShrink: 0, position: "sticky", top: 0, height: "100dvh", alignSelf: "flex-start" }}>
+        <PremiumSidebar collapsed={collapsed} onToggle={toggleCollapsed} />
       </aside>
 
       {/* Mobile drawer + scrim. */}
