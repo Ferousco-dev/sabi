@@ -1,11 +1,16 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
-import { Users, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Users } from "lucide-react";
 import { getStudents, type Student } from "@/app/lib/api/schools";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { Badge } from "@/app/components/dashboard/Badge";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { SearchInput, TableToolbar, ResultCount } from "@/app/components/dashboard/table-controls";
+import { initials } from "@/app/lib/dashboard";
 
 export default function AdminStudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -18,54 +23,76 @@ export default function AdminStudentsPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  const filtered = students.filter((s) =>
-    s.name.toLowerCase().includes(query.toLowerCase()) ||
-    s.email.toLowerCase().includes(query.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return students;
+    return students.filter((s) => s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q));
+  }, [students, query]);
 
   if (loading) return <LoadingPage />;
 
   return (
-    <div>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 6 }}>Students</h1>
-      <p style={{ fontSize: 14, color: "var(--gray-500)", marginBottom: 20 }}>{students.length} enrolled</p>
+    <>
+      <PageHeader
+        title="Students"
+        subtitle="Everyone enrolled at your school."
+        actions={<Badge tone="teal">{students.length} enrolled</Badge>}
+      />
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", marginBottom: 20, maxWidth: 400 }}>
-        <Search size={17} style={{ color: "var(--gray-400)" }} />
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search students…"
-          style={{ flex: 1, border: "none", outline: "none", fontSize: 14, fontFamily: "var(--font-sans)" }} />
-      </div>
+      <Card padded={false}>
+        <TableToolbar>
+          <SearchInput value={query} onChange={setQuery} label="Search students" placeholder="Search by name or email" />
+          <ResultCount shown={filtered.length} total={students.length} />
+        </TableToolbar>
 
-      {filtered.length === 0 && (
-        <EmptyState
-          icon={Users}
-          title="No students found"
-          description={query ? "No students match your search." : "Enrolled students will appear here."}
-        />
-      )}
-
-      {filtered.length > 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ background: "var(--gray-50)" }}>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Name</th>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Email</th>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Enrolled</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((s) => (
-                <tr key={s.id} style={{ borderTop: "1px solid var(--border)" }}>
-                  <td style={{ padding: "12px 20px", fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{s.name}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{s.email}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{new Date(s.enrolled_at).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+        {filtered.length === 0 ? (
+          <EmptyState Icon={Users} title={query ? "No students match" : "No students yet"} description={query ? "Try a different search term." : "Enrolled students will appear here once registered."} />
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 480 }}>
+              <thead>
+                <tr>{["Student", "Email", "Enrolled"].map((h) => <th key={h} style={thStyle}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {filtered.map((s) => (
+                  <tr key={s.id}>
+                    <td style={tdStyle}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                        <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: "var(--radius-full)", background: "var(--teal-50)", color: "var(--teal)", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                          {initials(s.name)}
+                        </span>
+                        <span style={{ fontWeight: 600, color: "var(--gray-900)" }}>{s.name}</span>
+                      </span>
+                    </td>
+                    <td style={{ ...tdStyle, color: "var(--text-subtle)" }}>{s.email}</td>
+                    <td style={{ ...tdStyle, color: "var(--text-subtle)" }}>{new Date(s.enrolled_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </>
   );
 }
+
+const thStyle = {
+  textAlign: "left" as const,
+  padding: "11px 16px",
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--text-subtle)",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.04em",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};
+
+const tdStyle = {
+  padding: "13px 16px",
+  fontSize: 14,
+  color: "var(--text-muted)",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};
