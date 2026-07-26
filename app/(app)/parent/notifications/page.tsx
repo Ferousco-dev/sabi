@@ -2,13 +2,17 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { Calendar, Bell, Search } from "lucide-react";
+import { Bell } from "lucide-react";
 import { getParentNotifications } from "@/app/lib/api/parent";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+
+type Notification = { id: number; title: string; message: string; type: string; read: boolean; created_at: string };
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
@@ -20,42 +24,45 @@ export default function NotificationsPage() {
 
   if (loading) return <LoadingPage />;
 
+  const unread = notifications.filter((n) => !n.read).length;
   const filtered = filter === "unread" ? notifications.filter((n) => !n.read) : notifications;
+  const tabs: { key: "all" | "unread"; label: string; count: number }[] = [
+    { key: "all", label: "All", count: notifications.length },
+    { key: "unread", label: "Unread", count: unread },
+  ];
 
   return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)" }}>Notifications</h1>
-        <div style={{ display: "flex", gap: 8 }}>
-          {["all", "unread"].map((f) => (
-            <button key={f} onClick={() => setFilter(f as any)}
-              style={{ height: 34, padding: "0 14px", borderRadius: 6, fontSize: 12, fontWeight: 600, border: `1.5px solid ${filter === f ? "var(--teal)" : "var(--border)"}`, background: filter === f ? "var(--teal-50)" : "#fff", color: filter === f ? "var(--teal)" : "var(--gray-600)", cursor: "pointer", textTransform: "capitalize" }}>
-              {f}
+    <>
+      <PageHeader title="Notifications" subtitle="Updates and alerts about your children." />
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+        {tabs.map((t) => {
+          const active = filter === t.key;
+          return (
+            <button key={t.key} onClick={() => setFilter(t.key)}
+              style={{ height: 36, padding: "0 14px", borderRadius: "var(--radius-full)", fontSize: 13.5, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-sans)", border: `1px solid ${active ? "var(--teal)" : "var(--border-strong)"}`, background: active ? "var(--teal)" : "var(--bg)", color: active ? "#fff" : "var(--text-muted)" }}>
+              {t.label} <span style={{ opacity: 0.75 }}>· {t.count}</span>
             </button>
+          );
+        })}
+      </div>
+
+      {filtered.length === 0 ? (
+        <Card><EmptyState Icon={Bell} title="No notifications" description={filter === "unread" ? "You have no unread notifications." : "Your notification history is empty."} /></Card>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {filtered.map((n) => (
+            <div key={n.id} style={{ background: "var(--bg)", border: `1px solid ${n.read ? "var(--border)" : "var(--teal)"}`, borderRadius: "var(--radius-lg)", padding: "14px 18px", boxShadow: "var(--shadow-xs)", display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <div aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: n.read ? "var(--gray-300)" : "var(--teal)", marginTop: 6, flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14.5, fontWeight: 600, color: "var(--gray-900)" }}>{n.title}</div>
+                <div style={{ fontSize: 13.5, color: "var(--text-muted)", marginTop: 2, lineHeight: 1.5 }}>{n.message}</div>
+                <div style={{ fontSize: 12, color: "var(--text-subtle)", marginTop: 6 }}>{new Date(n.created_at).toLocaleString()}</div>
+              </div>
+            </div>
           ))}
         </div>
-      </div>
-
-      {filtered.length === 0 && (
-        <EmptyState
-          icon={Bell}
-          title="No notifications"
-          description={filter === "unread" ? "You have no unread notifications." : "Your notification history is empty."}
-        />
       )}
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {filtered.map((n, i) => (
-          <div key={i} style={{ background: "#fff", border: `1px solid ${n.read ? "var(--border)" : "var(--teal)"}`, borderRadius: 10, padding: "14px 18px", boxShadow: "var(--shadow-xs)", display: "flex", alignItems: "flex-start", gap: 12, opacity: n.read ? 0.85 : 1 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: n.read ? "var(--gray-300)" : "var(--gold)", marginTop: 6, flexShrink: 0 }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--gray-900)" }}>{n.title}</div>
-              <div style={{ fontSize: 13, color: "var(--gray-600)", marginTop: 2 }}>{n.message}</div>
-              <div style={{ fontSize: 11, color: "var(--gray-400)", marginTop: 6 }}>{new Date(n.created_at).toLocaleString()}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    </>
   );
 }
