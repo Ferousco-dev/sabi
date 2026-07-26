@@ -2,10 +2,19 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { Megaphone, Plus } from "lucide-react";
+import { Megaphone, Send } from "lucide-react";
 import { getAnnouncements, createAnnouncement, type Announcement } from "@/app/lib/api/schools";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { Badge } from "@/app/components/dashboard/Badge";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+
+const TARGET_LABELS: Record<string, string> = {
+  teacher: "Teachers",
+  student: "Students",
+  parent: "Parents",
+};
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -36,67 +45,78 @@ export default function AnnouncementsPage() {
 
   if (loading) return <LoadingPage />;
 
+  const canSubmit = title.trim() && content.trim();
+
   return (
-    <div style={{ maxWidth: 720 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Announcements</h1>
+    <>
+      <PageHeader
+        title="Announcements"
+        subtitle="Broadcast important updates to students, teachers, or parents."
+        actions={<Badge tone="teal">{announcements.length} posted</Badge>}
+      />
 
-      <form onSubmit={handleSend} style={{ marginBottom: 24, padding: 20, background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)" }}>
-        <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", marginBottom: 14 }}>New Announcement</h2>
-        <div style={{ display: "grid", gap: 14 }}>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "var(--gray-500)", display: "block", marginBottom: 6 }}>Title</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Announcement title" style={{ width: "100%", height: 42, padding: "0 14px", fontSize: 14, border: "1.5px solid var(--border)", borderRadius: 8, outline: "none" }} />
-          </div>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "var(--gray-500)", display: "block", marginBottom: 6 }}>Content</label>
-            <textarea value={content} onChange={(e) => setContent(e.target.value)} rows={4} style={{ width: "100%", padding: "12px 14px", fontSize: 14, border: "1.5px solid var(--border)", borderRadius: 8, outline: "none", fontFamily: "var(--font-sans)", resize: "vertical" }} />
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 10 }}>
+      <div style={{ maxWidth: 760 }}>
+        <Card title="New announcement" style={{ marginBottom: 20 }}>
+          <form onSubmit={handleSend} style={{ display: "grid", gap: 14 }}>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 600, color: "var(--gray-500)", display: "block", marginBottom: 6 }}>Target (optional)</label>
-              <select value={target} onChange={(e) => setTarget(e.target.value)} style={{ height: 42, padding: "0 14px", fontSize: 14, border: "1.5px solid var(--border)", borderRadius: 8, outline: "none", background: "#fff" }}>
-                <option value="">Everyone</option>
-                <option value="teacher">Teachers</option>
-                <option value="student">Students</option>
-                <option value="parent">Parents</option>
-              </select>
+              <label htmlFor="ann-title" style={{ fontSize: 12.5, fontWeight: 600, color: "var(--gray-900)", display: "block", marginBottom: 6 }}>Title</label>
+              <input id="ann-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Announcement title"
+                style={{ width: "100%", height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)" }} />
             </div>
-            <button type="submit" disabled={sending || !title.trim() || !content.trim()}
-              style={{ height: 42, padding: "0 18px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, opacity: sending ? 0.65 : 1 }}>
-              {sending ? <LoadingSpinner size={16} color="#fff" /> : <Plus size={16} />} {sending ? "Sending…" : "Send Announcement"}
-            </button>
-          </div>
-        </div>
-      </form>
+            <div>
+              <label htmlFor="ann-content" style={{ fontSize: 12.5, fontWeight: 600, color: "var(--gray-900)", display: "block", marginBottom: 6 }}>Content</label>
+              <textarea id="ann-content" value={content} onChange={(e) => setContent(e.target.value)} rows={4}
+                style={{ width: "100%", padding: "12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", resize: "vertical" }} />
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ flex: "0 1 200px" }}>
+                <label htmlFor="ann-target" style={{ fontSize: 12.5, fontWeight: 600, color: "var(--gray-900)", display: "block", marginBottom: 6 }}>Target (optional)</label>
+                <select id="ann-target" value={target} onChange={(e) => setTarget(e.target.value)}
+                  style={{ width: "100%", height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", background: "var(--bg)", fontFamily: "var(--font-sans)", color: "var(--text)" }}>
+                  <option value="">Everyone</option>
+                  <option value="teacher">Teachers</option>
+                  <option value="student">Students</option>
+                  <option value="parent">Parents</option>
+                </select>
+              </div>
+              <button type="submit" disabled={sending || !canSubmit}
+                style={{ height: 42, padding: "0 18px", borderRadius: "var(--radius-sm)", background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: sending || !canSubmit ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: 6, opacity: sending || !canSubmit ? 0.6 : 1, fontFamily: "var(--font-sans)" }}>
+                {sending ? <LoadingSpinner size={15} color="#fff" /> : <Send size={16} aria-hidden="true" />} {sending ? "Sending…" : "Send announcement"}
+              </button>
+            </div>
+          </form>
+        </Card>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {announcements.map((a) => (
-          <div key={a.id} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", boxShadow: "var(--shadow-xs)" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <Megaphone size={20} color="var(--teal)" style={{ marginTop: 2, flexShrink: 0 }} />
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>{a.title}</div>
-                  <span style={{ fontSize: 11, color: "var(--gray-400)" }}>{new Date(a.created_at).toLocaleDateString()}</span>
-                </div>
-                <p style={{ fontSize: 13, color: "var(--gray-600)", lineHeight: 1.5, marginBottom: 6 }}>{a.content}</p>
-                <div style={{ fontSize: 11, color: "var(--gray-400)", display: "flex", gap: 12 }}>
-                  <span>By {a.created_by}</span>
-                  <span>{a.read_count} reads</span>
+        {announcements.length === 0 ? (
+          <Card><EmptyState Icon={Megaphone} title="No announcements yet" description="Broadcast important updates to students, teachers, or parents above." /></Card>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {announcements.map((a) => (
+              <div key={a.id} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: "16px 20px", boxShadow: "var(--shadow-xs)" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                  <span aria-hidden="true" style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: "var(--teal-50)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>
+                    <Megaphone size={19} style={{ color: "var(--teal)" }} />
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
+                      <div style={{ fontSize: 15.5, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.01em" }}>{a.title}</div>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                        {a.target_role && <Badge tone="neutral">{TARGET_LABELS[a.target_role] ?? a.target_role}</Badge>}
+                        <span style={{ fontSize: 12, color: "var(--text-subtle)", whiteSpace: "nowrap" }}>{new Date(a.created_at).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <p style={{ fontSize: 13.5, color: "var(--text-muted)", lineHeight: 1.55, marginBottom: 8 }}>{a.content}</p>
+                    <div style={{ fontSize: 12, color: "var(--text-subtle)", display: "flex", gap: 14 }}>
+                      <span>By {a.created_by}</span>
+                      <span>{a.read_count} reads</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
-        {announcements.length === 0 && (
-          <EmptyState
-            icon={Megaphone}
-            title="No announcements yet"
-            description="Broadcast important updates to students, teachers, or parents."
-          />
         )}
       </div>
-    </div>
+    </>
   );
 }
-

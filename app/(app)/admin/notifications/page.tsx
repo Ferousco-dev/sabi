@@ -2,10 +2,13 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { Bell, CheckCircle2 } from "lucide-react";
+import { Bell } from "lucide-react";
 import { getNotificationLogs, type NotificationLog } from "@/app/lib/api/schools";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { Badge } from "@/app/components/dashboard/Badge";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationLog[]>([]);
@@ -20,42 +23,63 @@ export default function NotificationsPage() {
   if (loading) return <LoadingPage />;
 
   return (
-    <div style={{ maxWidth: 720 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Notification Tracking</h1>
+    <>
+      <PageHeader title="Notification Tracking" subtitle="A history of every notification sent across channels." />
 
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-        {notifications.length === 0 && (
-          <EmptyState
-            icon={Bell}
-            title="No notifications logged"
-            description="A history of all sent notifications will appear here."
-          />
+      <Card padded={false}>
+        {notifications.length === 0 ? (
+          <EmptyState Icon={Bell} title="No notifications logged" description="A history of all sent notifications will appear here." />
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 640 }}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>User</th>
+                  <th style={thStyle}>Channel</th>
+                  <th style={thStyle}>Title</th>
+                  <th style={thStyle}>Status</th>
+                  <th style={thStyle}>Sent</th>
+                </tr>
+              </thead>
+              <tbody>
+                {notifications.map((n) => (
+                  <tr key={n.id}>
+                    <td style={{ ...tdStyle, fontWeight: 600, color: "var(--gray-900)" }}>{n.user_name}</td>
+                    <td style={{ ...tdStyle, textTransform: "capitalize" }}>{n.channel}</td>
+                    <td style={tdStyle}>{n.title}</td>
+                    <td style={tdStyle}>
+                      <Badge tone={n.status === "sent" ? "success" : "danger"} dot>
+                        {n.status[0].toUpperCase() + n.status.slice(1)}
+                      </Badge>
+                    </td>
+                    <td style={tdStyle}>{new Date(n.sent_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "var(--gray-50)" }}>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>User</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Channel</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Title</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Status</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Sent</th>
-            </tr>
-          </thead>
-          <tbody>
-            {notifications.map((n) => (
-              <tr key={n.id} style={{ borderTop: "1px solid var(--border)" }}>
-                <td style={{ padding: "12px 20px", fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{n.user_name}</td>
-                <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)", textTransform: "capitalize" }}>{n.channel}</td>
-                <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{n.title}</td>
-                <td style={{ padding: "12px 20px" }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 999, background: n.status === "sent" ? "#ECFDF3" : "#FEF3F2", textTransform: "capitalize", color: n.status === "sent" ? "#0E8345" : "#B42318" }}>{n.status}</span>
-                </td>
-                <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{new Date(n.sent_at).toLocaleDateString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      </Card>
+    </>
   );
 }
+
+const thStyle = {
+  padding: "11px 16px",
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--text-subtle)",
+  textAlign: "left" as const,
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.04em",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};
+
+const tdStyle = {
+  padding: "13px 16px",
+  fontSize: 14,
+  color: "var(--text-muted)",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};

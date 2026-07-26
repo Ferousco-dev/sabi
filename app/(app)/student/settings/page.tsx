@@ -2,9 +2,22 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { Bell, Save, Eye, Monitor, Zap } from "lucide-react";
+import { Bell, Save, Eye, KeyRound, Monitor, Trash2 } from "lucide-react";
 import { getStudentSettings, updateStudentSettings } from "@/app/lib/api/student";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+
+function Switch({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) {
+  return (
+    <button onClick={onClick} role="switch" aria-checked={on} aria-label={label}
+      style={{ position: "relative", width: 46, height: 26, borderRadius: "var(--radius-full)", border: "none", cursor: "pointer", background: on ? "var(--teal)" : "var(--gray-300)", transition: "background 0.18s ease", flexShrink: 0 }}>
+      <span aria-hidden="true" style={{ position: "absolute", top: 3, left: on ? 23 : 3, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.18s cubic-bezier(0.16,1,0.3,1)", boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }} />
+    </button>
+  );
+}
+
+const row = { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "16px 20px" } as const;
 
 export default function StudentSettingsPage() {
   const [settings, setSettings] = useState<any>({ notifications: { email: true, sms: false, push: true }, accessibility: { high_contrast: false, large_text: false, reduce_motion: false } });
@@ -35,64 +48,56 @@ export default function StudentSettingsPage() {
 
   if (loading) return <LoadingPage />;
 
+  const securityItems = [
+    { label: "Change password", Icon: KeyRound, danger: false },
+    { label: "Manage sessions", Icon: Monitor, danger: false },
+    { label: "Delete account", Icon: Trash2, danger: true },
+  ];
+
+  const notifications: [string, boolean][] = Object.entries(settings.notifications);
+  const accessibility: [string, boolean][] = Object.entries(settings.accessibility);
+
   return (
     <div style={{ maxWidth: 640 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)" }}>Settings</h1>
-        <button onClick={handleSave} disabled={saving} style={{ height: 42, padding: "0 18px", borderRadius: 8, background: saved ? "#0E8345" : "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-          {saved ? "Saved!" : saving ? <LoadingSpinner size={16} color="#fff" /> : <><Save size={16} /> Save</>}
-        </button>
-      </div>
-
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", marginBottom: 24 }}>
-        <div style={{ padding: "20px", borderBottom: "1px solid var(--border)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-            <Bell size={18} color="var(--teal)" />
-            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>Notifications</div>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {Object.entries(settings.notifications).map(([key, val]) => (
-              <label key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", padding: "8px 0" }}>
-                <span style={{ fontSize: 14, fontWeight: 500, color: "var(--gray-700)", textTransform: "capitalize" }}>{key}</span>
-                <button onClick={() => toggleNotification(key)} style={{ width: 44, height: 24, borderRadius: 999, border: "none", cursor: "pointer", background: val ? "var(--teal)" : "var(--gray-200)", transition: "background 0.2s", position: "relative" }}>
-                  <span style={{ position: "absolute", top: 2, left: val ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }} />
-                </button>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div style={{ padding: "20px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-            <Eye size={18} color="var(--teal)" />
-            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>Accessibility</div>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {Object.entries(settings.accessibility).map(([key, val]) => (
-              <label key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", padding: "8px 0" }}>
-                <span style={{ fontSize: 14, fontWeight: 500, color: "var(--gray-700)", textTransform: "capitalize" }}>{key.replace("_", " ")}</span>
-                <button onClick={() => setSettings((s: any) => ({ ...s, accessibility: { ...s.accessibility, [key]: !s.accessibility[key] } }))} style={{ width: 44, height: 24, borderRadius: 999, border: "none", cursor: "pointer", background: val ? "var(--teal)" : "var(--gray-200)", transition: "background 0.2s", position: "relative" }}>
-                  <span style={{ position: "absolute", top: 2, left: val ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }} />
-                </button>
-              </label>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 20, boxShadow: "var(--shadow-xs)" }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", marginBottom: 12 }}>Account Security</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <button style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 8, border: "1px solid var(--border)", background: "#fff", fontSize: 14, fontWeight: 500, color: "var(--gray-700)", cursor: "pointer", textAlign: "left" }}>
-            <Zap size={16} color="var(--teal)" /> Change Password
+      <PageHeader
+        title="Settings"
+        subtitle="Manage notifications, accessibility, and account security."
+        actions={
+          <button onClick={handleSave} disabled={saving}
+            style={{ height: 42, padding: "0 18px", borderRadius: "var(--radius-sm)", background: saved ? "#0E8345" : "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: saving ? "default" : "pointer", display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-sans)" }}>
+            {saved ? "Saved!" : saving ? <LoadingSpinner size={16} color="#fff" /> : <><Save size={16} /> Save</>}
           </button>
-          <button style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 8, border: "1px solid var(--border)", background: "#fff", fontSize: 14, fontWeight: 500, color: "var(--gray-700)", cursor: "pointer", textAlign: "left" }}>
-            <Zap size={16} color="var(--teal)" /> Manage Sessions
-          </button>
-          <button style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 8, border: "1px solid var(--border)", background: "#fff", fontSize: 14, fontWeight: 500, color: "#B42318", cursor: "pointer", textAlign: "left" }}>
-            <Zap size={16} color="#B42318" /> Delete Account
-          </button>
-        </div>
+        }
+      />
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <Card padded={false} title={<span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><Bell size={16} color="var(--teal)" /> Notifications</span>}>
+          {notifications.map(([key, val], i) => (
+            <div key={key} style={{ ...row, borderBottom: i < notifications.length - 1 ? "1px solid var(--border)" : "none" }}>
+              <span style={{ fontSize: 14.5, fontWeight: 500, color: "var(--gray-900)", textTransform: "capitalize" }}>{key}</span>
+              <Switch on={val} onClick={() => toggleNotification(key as any)} label={key} />
+            </div>
+          ))}
+        </Card>
+
+        <Card padded={false} title={<span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}><Eye size={16} color="var(--teal)" /> Accessibility</span>}>
+          {accessibility.map(([key, val], i) => (
+            <div key={key} style={{ ...row, borderBottom: i < accessibility.length - 1 ? "1px solid var(--border)" : "none" }}>
+              <span style={{ fontSize: 14.5, fontWeight: 500, color: "var(--gray-900)", textTransform: "capitalize" }}>{key.replace("_", " ")}</span>
+              <Switch on={val} onClick={() => toggleAccessibility(key as any)} label={key.replace("_", " ")} />
+            </div>
+          ))}
+        </Card>
+
+        <Card padded={false} title="Account security">
+          {securityItems.map(({ label, Icon, danger }, i) => (
+            <button key={label} style={{ ...row, width: "100%", background: "transparent", border: "none", borderBottom: i < securityItems.length - 1 ? "1px solid var(--border)" : "none", cursor: "pointer", textAlign: "left", fontFamily: "var(--font-sans)" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 10, fontSize: 14.5, fontWeight: 500, color: danger ? "#B42318" : "var(--gray-900)" }}>
+                <Icon size={16} color={danger ? "#B42318" : "var(--teal)"} /> {label}
+              </span>
+            </button>
+          ))}
+        </Card>
       </div>
     </div>
   );

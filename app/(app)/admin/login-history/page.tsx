@@ -2,10 +2,13 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { History, Search } from "lucide-react";
+import { History } from "lucide-react";
 import { getLoginHistory } from "@/app/lib/api/schools";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { SearchInput, TableToolbar, ResultCount } from "@/app/components/dashboard/table-controls";
 
 export default function LoginHistoryPage() {
   const [history, setHistory] = useState<any[]>([]);
@@ -23,45 +26,66 @@ export default function LoginHistoryPage() {
   if (loading) return <LoadingPage />;
 
   return (
-    <div>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 6 }}>Login History</h1>
-      <p style={{ fontSize: 14, color: "var(--gray-500)", marginBottom: 20 }}>Recent login activity across the school</p>
+    <>
+      <PageHeader title="Login History" subtitle="Recent login activity across the school." />
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", marginBottom: 20, maxWidth: 400 }}>
-        <Search size={17} style={{ color: "var(--gray-400)" }} />
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search users…" style={{ flex: 1, border: "none", outline: "none", fontSize: 14, fontFamily: "var(--font-sans)", background: "transparent" }} />
-      </div>
+      <Card padded={false}>
+        <TableToolbar>
+          <SearchInput value={query} onChange={setQuery} placeholder="Search users…" />
+          <ResultCount shown={filtered.length} total={history.length} />
+        </TableToolbar>
 
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "var(--gray-50)" }}>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>User</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>IP Address</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>User Agent</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Login Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((h) => (
-              <tr key={h.id} style={{ borderTop: "1px solid var(--border)" }}>
-                <td style={{ padding: "12px 20px", fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{h.user_name}</td>
-                <td style={{ padding: "12px 20px", fontSize: 13, fontFamily: "monospace", color: "var(--gray-500)" }}>{h.ip_address}</td>
-                <td style={{ padding: "12px 20px", fontSize: 12, color: "var(--gray-400)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.user_agent}</td>
-                <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{new Date(h.login_at).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {filtered.length === 0 && (
+        {filtered.length === 0 ? (
           <EmptyState
-            icon={History}
+            Icon={History}
             title="No login history"
             description={query ? "No logins match your search." : "Login activity will be shown here."}
           />
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 720 }}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>User</th>
+                  <th style={thStyle}>IP Address</th>
+                  <th style={thStyle}>User Agent</th>
+                  <th style={thStyle}>Login Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((h) => (
+                  <tr key={h.id}>
+                    <td style={{ ...tdStyle, fontWeight: 600, color: "var(--gray-900)" }}>{h.user_name}</td>
+                    <td style={{ ...tdStyle, fontFamily: "monospace", fontSize: 13, color: "var(--text-subtle)" }}>{h.ip_address}</td>
+                    <td style={{ ...tdStyle, maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", fontSize: 13, color: "var(--text-subtle)" }}>{h.user_agent}</td>
+                    <td style={tdStyle}>{new Date(h.login_at).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
-    </div>
+      </Card>
+    </>
   );
 }
 
+const thStyle = {
+  padding: "11px 16px",
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--text-subtle)",
+  textAlign: "left" as const,
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.04em",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};
+
+const tdStyle = {
+  padding: "13px 16px",
+  fontSize: 14,
+  color: "var(--text-muted)",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};

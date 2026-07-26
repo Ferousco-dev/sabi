@@ -2,10 +2,15 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { UserPlus, Search, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { getEnrollments, getClasses, type Enrollment, type ClassItem } from "@/app/lib/api/schools";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { Badge } from "@/app/components/dashboard/Badge";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { SearchInput, TableToolbar, ResultCount, FilterSelect } from "@/app/components/dashboard/table-controls";
+import { initials } from "@/app/lib/dashboard";
 
 export default function EnrollmentsPage() {
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
@@ -35,57 +40,79 @@ export default function EnrollmentsPage() {
   if (loading) return <LoadingPage />;
 
   return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)" }}>Enrollments</h1>
-          <p style={{ fontSize: 14, color: "var(--gray-500)", marginTop: 2 }}>{enrollments.length} total</p>
-        </div>
-        <select value={classId ?? ""} onChange={(e) => setClassId(e.target.value ? Number(e.target.value) : undefined)}
-          style={{ height: 38, padding: "0 12px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 6, outline: "none", background: "#fff" }}>
-          <option value="">All Classes</option>
-          {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-      </div>
+    <>
+      <PageHeader
+        title="Enrollments"
+        subtitle="Students enrolled across your classes and sessions."
+        actions={<Badge tone="teal">{enrollments.length} total</Badge>}
+      />
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", marginBottom: 20, maxWidth: 400 }}>
-        <Search size={17} style={{ color: "var(--gray-400)" }} />
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search enrollments…" style={{ flex: 1, border: "none", outline: "none", fontSize: 14, fontFamily: "var(--font-sans)", background: "transparent" }} />
-      </div>
+      <Card padded={false}>
+        <TableToolbar>
+          <SearchInput value={query} onChange={setQuery} placeholder="Search enrollments…" />
+          <FilterSelect
+            value={classId != null ? String(classId) : ""}
+            onChange={(v) => setClassId(v ? Number(v) : undefined)}
+            label="Filter by class"
+            options={[{ value: "", label: "All classes" }, ...classes.map((c) => ({ value: String(c.id), label: c.name }))]}
+          />
+          <ResultCount shown={filtered.length} total={enrollments.length} />
+        </TableToolbar>
 
-      {filtered.length === 0 ? (
-        <EmptyState
-          icon={Users}
-          title="No enrollments found"
-          description={query ? "No students match your search criteria." : "Students enrolled in classes will appear here."}
-        />
-      ) : (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ background: "var(--gray-50)" }}>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Student</th>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Class</th>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Section</th>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Session</th>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Enrolled</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((e) => (
-                <tr key={e.id} style={{ borderTop: "1px solid var(--border)" }}>
-                  <td style={{ padding: "12px 20px", fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{e.student_name}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{e.class_name}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{e.section_name ?? "—"}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{e.session_name}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{new Date(e.enrolled_at).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+        {filtered.length === 0 ? (
+          <EmptyState
+            Icon={Users}
+            title="No enrollments found"
+            description={query ? "No students match your search criteria." : "Students enrolled in classes will appear here."}
+          />
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 640 }}>
+              <thead>
+                <tr>{["Student", "Class", "Section", "Session", "Enrolled"].map((h, i) => (
+                  <th key={i} style={thStyle}>{h}</th>
+                ))}</tr>
+              </thead>
+              <tbody>
+                {filtered.map((e) => (
+                  <tr key={e.id}>
+                    <td style={tdStyle}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                        <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: "var(--radius-full)", background: "var(--teal-50)", color: "var(--teal)", fontSize: 12, fontWeight: 700 }}>{initials(e.student_name)}</span>
+                        <span style={{ fontWeight: 600, color: "var(--gray-900)" }}>{e.student_name}</span>
+                      </span>
+                    </td>
+                    <td style={tdStyle}>{e.class_name}</td>
+                    <td style={tdStyle}>{e.section_name ?? "—"}</td>
+                    <td style={tdStyle}>{e.session_name}</td>
+                    <td style={tdStyle}>{new Date(e.enrolled_at).toLocaleDateString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </>
   );
 }
 
+const thStyle = {
+  padding: "11px 16px",
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--text-subtle)",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.04em",
+  borderBottom: "1px solid var(--border)",
+  textAlign: "left" as const,
+  whiteSpace: "nowrap" as const,
+};
+
+const tdStyle = {
+  padding: "13px 16px",
+  fontSize: 14,
+  color: "var(--text-muted)",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};

@@ -2,10 +2,14 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { ArrowRight, Users, Search } from "lucide-react";
+import { ArrowRight, Users, Check } from "lucide-react";
 import { getStudents, getClasses, transferStudent, type Student, type ClassItem } from "@/app/lib/api/schools";
-import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { SearchInput } from "@/app/components/dashboard/table-controls";
+import { initials } from "@/app/lib/dashboard";
 
 export default function TransfersPage() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -35,48 +39,60 @@ export default function TransfersPage() {
 
   if (loading) return <LoadingPage />;
 
+  const selectedStudent = students.find((s) => s.id === selected);
+
   return (
-    <div style={{ maxWidth: 720 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 6 }}>Student Transfers</h1>
-      <p style={{ fontSize: 14, color: "var(--gray-500)", marginBottom: 20 }}>Move a student from one class to another</p>
+    <>
+      <PageHeader title="Student Transfers" subtitle="Move a student from one class to another." />
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", marginBottom: 20, maxWidth: 400 }}>
-        <Search size={17} style={{ color: "var(--gray-400)" }} />
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search students…" style={{ flex: 1, border: "none", outline: "none", fontSize: 14, fontFamily: "var(--font-sans)", background: "transparent" }} />
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {filtered.map((s) => (
-          <div key={s.id} style={{ background: "#fff", border: `1px solid ${selected === s.id ? "var(--teal)" : "var(--border)"}`, borderRadius: 10, padding: "14px 18px", boxShadow: "var(--shadow-xs)", cursor: "pointer" }}
-            onClick={() => setSelected(s.id)}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--gray-900)" }}>{s.name}</div>
-                <div style={{ fontSize: 12, color: "var(--gray-400)" }}>{s.email} {s.class_name ? `· ${s.class_name}` : ""}</div>
-              </div>
-              {selected === s.id && <span style={{ fontSize: 12, fontWeight: 600, color: "var(--teal)" }}>Selected</span>}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {selected && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 20, marginTop: 20, boxShadow: "var(--shadow-xs)" }}>
-          <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", marginBottom: 12 }}>Transfer to New Class</h2>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <select value={newClassId ?? ""} onChange={(e) => setNewClassId(Number(e.target.value))}
-              style={{ flex: 1, height: 42, padding: "0 14px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 8, outline: "none", background: "#fff" }}>
-              <option value="">Select class…</option>
-              {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-            <button onClick={handleTransfer} disabled={!newClassId || status !== null}
-              style={{ height: 42, padding: "0 18px", borderRadius: 8, background: status === "done" ? "#0E8345" : "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, opacity: !newClassId || status !== null ? 0.65 : 1 }}>
-              <ArrowRight size={16} /> {status === "transferring" ? "Transferring…" : status === "done" ? "Transferred ✓" : "Transfer"}
-            </button>
-          </div>
+      <div style={{ maxWidth: 720 }}>
+        <div style={{ marginBottom: 20 }}>
+          <SearchInput value={query} onChange={setQuery} placeholder="Search students…" />
         </div>
-      )}
-    </div>
+
+        {filtered.length === 0 ? (
+          <Card><EmptyState Icon={Users} title="No students found" description={query ? "No students match your search." : "Students will appear here once added."} /></Card>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
+            {filtered.map((s) => {
+              const isSel = selected === s.id;
+              return (
+                <button key={s.id} type="button" onClick={() => setSelected(s.id)}
+                  style={{ textAlign: "left", background: "var(--bg)", border: `1.5px solid ${isSel ? "var(--teal)" : "var(--border)"}`, borderRadius: "var(--radius-lg)", padding: "14px 16px", boxShadow: "var(--shadow-xs)", cursor: "pointer", fontFamily: "var(--font-sans)", display: "flex", alignItems: "center", gap: 12 }}>
+                  <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 38, height: 38, borderRadius: "var(--radius-full)", background: "var(--teal-50)", color: "var(--teal)", fontSize: 13, fontWeight: 700, flexShrink: 0 }}>{initials(s.name)}</span>
+                  <span style={{ minWidth: 0, flex: 1 }}>
+                    <span style={{ display: "block", fontSize: 14, fontWeight: 600, color: "var(--gray-900)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</span>
+                    <span style={{ display: "block", fontSize: 12, color: "var(--text-subtle)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.email}{s.class_name ? ` · ${s.class_name}` : ""}</span>
+                  </span>
+                  {isSel && <Check size={18} style={{ color: "var(--teal)", flexShrink: 0 }} aria-hidden="true" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {selected && (
+          <Card title="Transfer to new class" style={{ marginTop: 20 }}>
+            {selectedStudent && (
+              <p style={{ fontSize: 13, color: "var(--text-subtle)", marginBottom: 14 }}>
+                Moving <strong style={{ color: "var(--gray-900)" }}>{selectedStudent.name}</strong>{selectedStudent.class_name ? ` from ${selectedStudent.class_name}` : ""}.
+              </p>
+            )}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <select value={newClassId ?? ""} onChange={(e) => setNewClassId(Number(e.target.value))}
+                style={{ flex: "1 1 200px", height: 42, padding: "0 14px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", background: "var(--bg)", fontFamily: "var(--font-sans)", color: "var(--text)" }}>
+                <option value="">Select class…</option>
+                {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              <button onClick={handleTransfer} disabled={!newClassId || status !== null}
+                style={{ height: 42, padding: "0 18px", borderRadius: "var(--radius-sm)", background: status === "done" ? "#0E8345" : "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: !newClassId || status !== null ? "not-allowed" : "pointer", display: "inline-flex", alignItems: "center", gap: 6, opacity: !newClassId || status !== null ? 0.65 : 1, fontFamily: "var(--font-sans)" }}>
+                {status === "transferring" ? <LoadingSpinner size={15} color="#fff" /> : status === "done" ? <Check size={16} aria-hidden="true" /> : <ArrowRight size={16} aria-hidden="true" />}
+                {status === "transferring" ? "Transferring…" : status === "done" ? "Transferred" : "Transfer"}
+              </button>
+            </div>
+          </Card>
+        )}
+      </div>
+    </>
   );
 }
-

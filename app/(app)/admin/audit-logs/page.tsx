@@ -2,10 +2,13 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { ScrollText, Search } from "lucide-react";
+import { ScrollText } from "lucide-react";
 import { getAuditLogs, type AuditLog } from "@/app/lib/api/schools";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { SearchInput, TableToolbar, ResultCount } from "@/app/components/dashboard/table-controls";
 
 export default function AuditLogsPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
@@ -27,47 +30,68 @@ export default function AuditLogsPage() {
   if (loading) return <LoadingPage />;
 
   return (
-    <div>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 6 }}>Audit Logs</h1>
-      <p style={{ fontSize: 14, color: "var(--gray-500)", marginBottom: 20 }}>Track all administrative actions</p>
+    <>
+      <PageHeader title="Audit Logs" subtitle="Track all administrative actions across the school." />
 
-      <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 14px", marginBottom: 20, maxWidth: 400 }}>
-        <Search size={17} style={{ color: "var(--gray-400)" }} />
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search logs…" style={{ flex: 1, border: "none", outline: "none", fontSize: 14, fontFamily: "var(--font-sans)", background: "transparent" }} />
-      </div>
+      <Card padded={false}>
+        <TableToolbar>
+          <SearchInput value={query} onChange={setQuery} placeholder="Search by user, action, or resource…" />
+          <ResultCount shown={filtered.length} total={logs.length} />
+        </TableToolbar>
 
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ background: "var(--gray-50)" }}>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>User</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Action</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Resource</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>IP</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Timestamp</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((l) => (
-              <tr key={l.id} style={{ borderTop: "1px solid var(--border)" }}>
-                <td style={{ padding: "12px 20px", fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{l.user_name}</td>
-                <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)", textTransform: "capitalize" }}>{l.action}</td>
-                <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{l.resource}</td>
-                <td style={{ padding: "12px 20px", fontSize: 13, color: "var(--gray-400)", fontFamily: "monospace" }}>{l.ip_address}</td>
-                <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{new Date(l.created_at).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {filtered.length === 0 && (
+        {filtered.length === 0 ? (
           <EmptyState
-            icon={ScrollText}
+            Icon={ScrollText}
             title="No logs found"
             description={query ? "No administrative actions match your search." : "Administrative actions will be tracked here."}
           />
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 720 }}>
+              <thead>
+                <tr>
+                  <th style={thStyle}>User</th>
+                  <th style={thStyle}>Action</th>
+                  <th style={thStyle}>Resource</th>
+                  <th style={thStyle}>IP</th>
+                  <th style={thStyle}>Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((l) => (
+                  <tr key={l.id}>
+                    <td style={{ ...tdStyle, fontWeight: 600, color: "var(--gray-900)" }}>{l.user_name}</td>
+                    <td style={{ ...tdStyle, textTransform: "capitalize" }}>{l.action}</td>
+                    <td style={tdStyle}>{l.resource}</td>
+                    <td style={{ ...tdStyle, fontFamily: "monospace", fontSize: 13, color: "var(--text-subtle)" }}>{l.ip_address}</td>
+                    <td style={tdStyle}>{new Date(l.created_at).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
-    </div>
+      </Card>
+    </>
   );
 }
 
+const thStyle = {
+  padding: "11px 16px",
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--text-subtle)",
+  textAlign: "left" as const,
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.04em",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};
+
+const tdStyle = {
+  padding: "13px 16px",
+  fontSize: 14,
+  color: "var(--text-muted)",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};

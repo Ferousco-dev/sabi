@@ -4,10 +4,13 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Clock, FileText, Play, BookOpen } from "lucide-react";
+import { ArrowLeft, FileText, Play, BookOpen } from "lucide-react";
 import { getContentDetail, type StudentContent } from "@/app/lib/api/student";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+
+const backLink = { display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13.5, fontWeight: 600, color: "var(--teal)", textDecoration: "none", marginBottom: 16 } as const;
 
 export default function ContentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,45 +28,45 @@ export default function ContentDetailPage() {
   if (loading) return <LoadingPage />;
 
   if (!content) return (
-    <EmptyState
-      icon={BookOpen}
-      title="Content not found"
-      description="The lesson content you are looking for does not exist or has been removed."
-    />
+    <Card>
+      <EmptyState Icon={BookOpen} title="Content not found" description="The lesson content you are looking for does not exist or has been removed." />
+    </Card>
   );
 
   return (
     <div style={{ maxWidth: 800 }}>
-      <Link href="/student/content" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600, color: "var(--teal)", textDecoration: "none", marginBottom: 16 }}>
-        <ArrowLeft size={16} /> Back to Content
+      <Link href="/student/content" style={backLink}>
+        <ArrowLeft size={16} strokeWidth={2.1} /> Back to content
       </Link>
 
       <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 24 }}>
-        <div style={{ width: 64, height: 64, borderRadius: 12, background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-          {content.multimedia_url ? <Play size={28} color="var(--teal)" /> : <FileText size={28} color="var(--teal)" />}
+        <div aria-hidden="true" style={{ width: 60, height: 60, borderRadius: "var(--radius-md)", background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          {content.multimedia_url ? <Play size={26} color="var(--teal)" /> : <FileText size={26} color="var(--teal)" />}
         </div>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--gray-900)", marginBottom: 4 }}>{content.title}</h1>
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>{content.course_title} · {content.teacher_name}</p>
-          <p style={{ fontSize: 12, color: "var(--gray-400)", marginTop: 4 }}>Updated {new Date(content.updated_at).toLocaleDateString()}</p>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h1 style={{ fontSize: "clamp(21px, 2.4vw, 25px)", fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.02em", marginBottom: 4 }}>{content.title}</h1>
+          <p style={{ fontSize: 14, color: "var(--text-muted)" }}>{content.course_title} · {content.teacher_name}</p>
+          <p style={{ fontSize: 12.5, color: "var(--text-subtle)", marginTop: 4 }}>Updated {new Date(content.updated_at).toLocaleDateString()}</p>
         </div>
       </div>
 
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 24, boxShadow: "var(--shadow-xs)" }}>
+      <Card title="Lesson">
         {content.multimedia_url && (
-          <div style={{ marginBottom: 24, padding: 16, background: "var(--gray-50)", borderRadius: 8 }}>
+          <div style={{ marginBottom: 20, padding: 16, background: "var(--bg-subtle)", borderRadius: "var(--radius-sm)" }}>
             <a href={content.multimedia_url} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 600, color: "var(--teal)", textDecoration: "none" }}>
-              <Play size={16} /> Watch Video
+              <Play size={16} /> Watch video
             </a>
           </div>
         )}
         {content.content && (
-          <div style={{ fontSize: 15, lineHeight: 1.7, color: "var(--gray-700)", whiteSpace: "pre-wrap" }}>
+          <div style={{ fontSize: 15, lineHeight: 1.7, color: "var(--text-muted)", whiteSpace: "pre-wrap" }}>
             {content.content}
           </div>
         )}
-        {!content.content && !content.multimedia_url && <p style={{ color: "var(--gray-400)", textAlign: "center", padding: 32 }}>No content available for this lesson yet.</p>}
-      </div>
+        {!content.content && !content.multimedia_url && (
+          <p style={{ color: "var(--text-subtle)", textAlign: "center", padding: 32 }}>No content available for this lesson yet.</p>
+        )}
+      </Card>
     </div>
   );
 }

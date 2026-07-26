@@ -2,18 +2,26 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { BarChart3, Users, BookOpen, TrendingUp, Clock, FileText, Download } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { getEnrollmentReport, getTeacherWorkloadReport, getUserActivityReport } from "@/app/lib/api/schools";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+
+type Tab = "enrollment" | "workload" | "activity";
+const TABS: { key: Tab; label: string }[] = [
+  { key: "enrollment", label: "Enrollment" },
+  { key: "workload", label: "Workload" },
+  { key: "activity", label: "Activity" },
+];
 
 export default function ReportsPage() {
   const [enrollment, setEnrollment] = useState<any[]>([]);
   const [workload, setWorkload] = useState<any[]>([]);
   const [activity, setActivity] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("enrollment");
+  const [tab, setTab] = useState<Tab>("enrollment");
 
   useEffect(() => {
     Promise.all([getEnrollmentReport(), getTeacherWorkloadReport(), getUserActivityReport()]).then(([e, w, a]) => {
@@ -26,88 +34,133 @@ export default function ReportsPage() {
   if (loading) return <LoadingPage />;
 
   return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)" }}>Reports</h1>
-        <div style={{ display: "flex", gap: 8 }}>
-          {["enrollment", "workload", "activity"].map((t) => (
-            <button key={t} onClick={() => setTab(t)}
-              style={{ height: 34, padding: "0 14px", borderRadius: 6, fontSize: 12, fontWeight: 600, border: `1.5px solid ${tab === t ? "var(--teal)" : "var(--border)"}`, background: tab === t ? "var(--teal-50)" : "#fff", color: tab === t ? "var(--teal)" : "var(--gray-600)", cursor: "pointer", textTransform: "capitalize" }}>
-              {t} Report
+    <>
+      <PageHeader title="Reports" subtitle="Enrollment, teacher workload, and user activity across the school." />
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        {TABS.map((t) => {
+          const active = tab === t.key;
+          return (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              style={{ height: 36, padding: "0 14px", borderRadius: "var(--radius-full)", fontSize: 13.5, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-sans)", border: `1px solid ${active ? "var(--teal)" : "var(--border-strong)"}`, background: active ? "var(--teal)" : "var(--bg)", color: active ? "#fff" : "var(--text-muted)" }}>
+              {t.label}
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
       {tab === "enrollment" && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead><tr style={{ background: "var(--gray-50)" }}>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Class</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Section</th>
-              <th style={{ textAlign: "right", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Students</th>
-              <th style={{ textAlign: "right", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Teachers</th>
-            </tr></thead>
-            <tbody>
-              {enrollment.map((r, i) => (
-                <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
-                  <td style={{ padding: "12px 20px", fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{r.class_name}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{r.section_name ?? "—"}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-900)", textAlign: "right", fontWeight: 600 }}>{r.student_count}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-900)", textAlign: "right", fontWeight: 600 }}>{r.teacher_count}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        enrollment.length === 0 ? (
+          <Card><EmptyState Icon={BarChart3} title="No enrollment data" description="Class enrollment figures will appear here once classes are populated." /></Card>
+        ) : (
+          <Card padded={false}>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 520 }}>
+                <thead>
+                  <tr>
+                    <th style={thStyle}>Class</th>
+                    <th style={thStyle}>Section</th>
+                    <th style={{ ...thStyle, textAlign: "right" }}>Students</th>
+                    <th style={{ ...thStyle, textAlign: "right" }}>Teachers</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {enrollment.map((r, i) => (
+                    <tr key={i}>
+                      <td style={{ ...tdStyle, fontWeight: 600, color: "var(--gray-900)" }}>{r.class_name}</td>
+                      <td style={tdStyle}>{r.section_name ?? "—"}</td>
+                      <td style={{ ...tdStyle, textAlign: "right", fontWeight: 600, color: "var(--gray-900)" }}>{r.student_count}</td>
+                      <td style={{ ...tdStyle, textAlign: "right", fontWeight: 600, color: "var(--gray-900)" }}>{r.teacher_count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )
       )}
 
       {tab === "workload" && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead><tr style={{ background: "var(--gray-50)" }}>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Teacher</th>
-              <th style={{ textAlign: "right", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Subjects</th>
-              <th style={{ textAlign: "right", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Classes</th>
-              <th style={{ textAlign: "right", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Hours</th>
-            </tr></thead>
-            <tbody>
-              {workload.map((r, i) => (
-                <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
-                  <td style={{ padding: "12px 20px", fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{r.teacher_name}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-900)", textAlign: "right" }}>{r.subject_count}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-900)", textAlign: "right" }}>{r.class_count}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-900)", textAlign: "right" }}>{r.total_hours}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        workload.length === 0 ? (
+          <Card><EmptyState Icon={BarChart3} title="No workload data" description="Teacher workload figures will appear here once timetables are assigned." /></Card>
+        ) : (
+          <Card padded={false}>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 520 }}>
+                <thead>
+                  <tr>
+                    <th style={thStyle}>Teacher</th>
+                    <th style={{ ...thStyle, textAlign: "right" }}>Subjects</th>
+                    <th style={{ ...thStyle, textAlign: "right" }}>Classes</th>
+                    <th style={{ ...thStyle, textAlign: "right" }}>Hours</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {workload.map((r, i) => (
+                    <tr key={i}>
+                      <td style={{ ...tdStyle, fontWeight: 600, color: "var(--gray-900)" }}>{r.teacher_name}</td>
+                      <td style={{ ...tdStyle, textAlign: "right" }}>{r.subject_count}</td>
+                      <td style={{ ...tdStyle, textAlign: "right" }}>{r.class_count}</td>
+                      <td style={{ ...tdStyle, textAlign: "right" }}>{r.total_hours}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )
       )}
 
       {tab === "activity" && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead><tr style={{ background: "var(--gray-50)" }}>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>User</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Role</th>
-              <th style={{ textAlign: "right", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Logins</th>
-              <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Last Active</th>
-            </tr></thead>
-            <tbody>
-              {activity.map((r, i) => (
-                <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
-                  <td style={{ padding: "12px 20px", fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{r.user_name}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)", textTransform: "capitalize" }}>{r.role}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-900)", textAlign: "right" }}>{r.login_count}</td>
-                  <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{r.last_active ? new Date(r.last_active).toLocaleDateString() : "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        activity.length === 0 ? (
+          <Card><EmptyState Icon={BarChart3} title="No activity data" description="User login and activity figures will appear here." /></Card>
+        ) : (
+          <Card padded={false}>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 520 }}>
+                <thead>
+                  <tr>
+                    <th style={thStyle}>User</th>
+                    <th style={thStyle}>Role</th>
+                    <th style={{ ...thStyle, textAlign: "right" }}>Logins</th>
+                    <th style={thStyle}>Last Active</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activity.map((r, i) => (
+                    <tr key={i}>
+                      <td style={{ ...tdStyle, fontWeight: 600, color: "var(--gray-900)" }}>{r.user_name}</td>
+                      <td style={{ ...tdStyle, textTransform: "capitalize" }}>{r.role}</td>
+                      <td style={{ ...tdStyle, textAlign: "right" }}>{r.login_count}</td>
+                      <td style={tdStyle}>{r.last_active ? new Date(r.last_active).toLocaleDateString() : "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )
       )}
-    </div>
+    </>
   );
 }
 
+const thStyle = {
+  padding: "11px 16px",
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--text-subtle)",
+  textAlign: "left" as const,
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.04em",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};
+
+const tdStyle = {
+  padding: "13px 16px",
+  fontSize: 14,
+  color: "var(--text-muted)",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};

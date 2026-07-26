@@ -7,9 +7,15 @@ import Link from "next/link";
 import { ArrowLeft, CalendarCheck, XCircle, Clock } from "lucide-react";
 import { getChildAttendance } from "@/app/lib/api/parent";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { StatCard } from "@/app/components/dashboard/StatCard";
+import { Badge, type BadgeTone } from "@/app/components/dashboard/Badge";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
 
-const STATUS_COLORS: Record<string, string> = { present: "#0E8345", absent: "#B42318", late: "var(--gold)", excused: "#4A6FA5" };
+const backLink = { display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13.5, fontWeight: 600, color: "var(--teal)", textDecoration: "none", marginBottom: 16 } as const;
+
+const STATUS_TONE: Record<string, BadgeTone> = { present: "success", absent: "danger", late: "warning", excused: "teal" };
 
 export default function ChildAttendancePage() {
   const { id } = useParams<{ id: string }>();
@@ -29,45 +35,32 @@ export default function ChildAttendancePage() {
   const late = records.filter((r) => r.status === "late").length;
 
   return (
-    <div style={{ maxWidth: 640 }}>
-      <Link href={`/parent/children/${id}`} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600, color: "var(--teal)", textDecoration: "none", marginBottom: 16 }}>
-        <ArrowLeft size={16} /> Back to Profile
+    <div style={{ maxWidth: 720 }}>
+      <Link href={`/parent/children/${id}`} style={backLink}>
+        <ArrowLeft size={16} strokeWidth={2.1} /> Back to profile
       </Link>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Attendance History</h1>
+      <PageHeader title="Attendance history" subtitle="Daily attendance recorded by the school." />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "14px", textAlign: "center", boxShadow: "var(--shadow-xs)" }}>
-          <CalendarCheck size={20} color="#0E8345" style={{ margin: "0 auto 6px" }} />
-          <div style={{ fontSize: 20, fontWeight: 700, color: "var(--gray-900)" }}>{present}</div>
-          <div style={{ fontSize: 11, color: "var(--gray-500)" }}>Present</div>
-        </div>
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "14px", textAlign: "center", boxShadow: "var(--shadow-xs)" }}>
-          <XCircle size={20} color="#B42318" style={{ margin: "0 auto 6px" }} />
-          <div style={{ fontSize: 20, fontWeight: 700, color: "var(--gray-900)" }}>{absent}</div>
-          <div style={{ fontSize: 11, color: "var(--gray-500)" }}>Absent</div>
-        </div>
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "14px", textAlign: "center", boxShadow: "var(--shadow-xs)" }}>
-          <Clock size={20} color="var(--gold)" style={{ margin: "0 auto 6px" }} />
-          <div style={{ fontSize: 20, fontWeight: 700, color: "var(--gray-900)" }}>{late}</div>
-          <div style={{ fontSize: 11, color: "var(--gray-500)" }}>Late</div>
-        </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 20 }}>
+        <StatCard label="Present" value={present} Icon={CalendarCheck} />
+        <StatCard label="Absent" value={absent} Icon={XCircle} />
+        <StatCard label="Late" value={late} Icon={Clock} />
       </div>
 
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-        {records.slice().reverse().map((r, i) => (
-          <div key={i} style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 14, color: "var(--gray-900)" }}>{new Date(r.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</span>
-            <span style={{ fontSize: 12, fontWeight: 600, padding: "2px 10px", borderRadius: 999, textTransform: "capitalize", background: r.status === "present" ? "#ECFDF3" : r.status === "absent" ? "#FEF3F2" : r.status === "late" ? "#FFFAEB" : "#EEF4FF", color: STATUS_COLORS[r.status] ?? "var(--gray-500)" }}>{r.status}</span>
+      <Card padded={false} title="Records">
+        {records.length === 0 ? (
+          <EmptyState Icon={CalendarCheck} title="No attendance records" description="Daily attendance history will be shown here." />
+        ) : (
+          <div>
+            {records.slice().reverse().map((r, i) => (
+              <div key={i} style={{ padding: "13px 20px", borderBottom: i < records.length - 1 ? "1px solid var(--border)" : "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <span style={{ fontSize: 14, color: "var(--gray-900)", fontWeight: 500 }}>{new Date(r.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</span>
+                <Badge tone={STATUS_TONE[r.status] ?? "neutral"} dot style={{ textTransform: "capitalize" }}>{r.status}</Badge>
+              </div>
+            ))}
           </div>
-        ))}
-        {records.length === 0 && (
-          <EmptyState
-            icon={CalendarCheck}
-            title="No attendance records"
-            description="Daily attendance history will be shown here."
-          />
         )}
-      </div>
+      </Card>
     </div>
   );
 }

@@ -6,7 +6,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, UserPlus } from "lucide-react";
 import { registerStudent } from "@/app/lib/api/schools";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+
+const labelStyle = { fontSize: 12.5, fontWeight: 600, color: "var(--gray-900)", display: "block", marginBottom: 6 } as const;
+const fieldStyle = { width: "100%", height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", background: "var(--bg)", color: "var(--text)" } as const;
 
 export default function StudentRegistrationPage() {
   const router = useRouter();
@@ -30,50 +35,51 @@ export default function StudentRegistrationPage() {
   }
 
   return (
-    <div style={{ maxWidth: 640 }}>
-      <Link href="/admin/students" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600, color: "var(--teal)", textDecoration: "none", marginBottom: 20 }}>
-        <ArrowLeft size={16} /> Back to Students
+    <div style={{ maxWidth: 680 }}>
+      <Link href="/admin/students" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600, color: "var(--teal)", textDecoration: "none", marginBottom: 16 }}>
+        <ArrowLeft size={16} aria-hidden="true" /> Back to students
       </Link>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 24 }}>Register New Student</h1>
 
-      {error && <div style={{ padding: "10px 14px", borderRadius: 8, background: "#FEF3F2", border: "1px solid #FECDCA", color: "#B42318", fontSize: 13, marginBottom: 16 }}>{error}</div>}
+      <PageHeader title="Register new student" subtitle="Add a student to your school roster." />
 
-      <form onSubmit={handleSubmit} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 24, boxShadow: "var(--shadow-xs)" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-          {[
-            { label: "Full Name", field: "name", required: true },
-            { label: "Email", field: "email", type: "email", required: true },
-            { label: "Phone", field: "phone" },
-            { label: "Date of Birth", field: "date_of_birth", type: "date" },
-            { label: "Gender", field: "gender", type: "select", options: ["", "male", "female"] },
-          ].map(({ label, field, type, required, options }) => (
-            <div key={field}>
-              <label style={{ fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>{label} {required && <span style={{ color: "#B42318" }}>*</span>}</label>
-              {type === "select" ? (
-                <select value={form[field as keyof typeof form]} onChange={(e) => update(field, e.target.value)}
-                  style={{ width: "100%", height: 42, padding: "0 14px", fontSize: 14, border: "1.5px solid var(--border)", borderRadius: 8, outline: "none", background: "#fff" }}>
-                  {options?.map((o) => <option key={o} value={o}>{o || "Select…"}</option>)}
-                </select>
-              ) : (
-                <input value={form[field as keyof typeof form]} onChange={(e) => update(field, e.target.value)} type={type ?? "text"}
-                  style={{ width: "100%", height: 42, padding: "0 14px", fontSize: 14, border: "1.5px solid var(--border)", borderRadius: 8, outline: "none" }} />
-              )}
-            </div>
-          ))}
-        </div>
+      {error && <div role="alert" style={{ padding: "10px 14px", borderRadius: "var(--radius-sm)", background: "#FEF3F2", border: "1px solid #FECDCA", color: "#B42318", fontSize: 13, marginBottom: 16 }}>{error}</div>}
 
-        <div style={{ marginTop: 18 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Address</label>
-          <textarea value={form.address} onChange={(e) => update("address", e.target.value)} rows={3}
-            style={{ width: "100%", padding: "12px 14px", fontSize: 14, border: "1.5px solid var(--border)", borderRadius: 8, outline: "none", fontFamily: "var(--font-sans)", resize: "vertical" }} />
-        </div>
+      <Card>
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 18 }}>
+            {[
+              { label: "Full name", field: "name", required: true },
+              { label: "Email", field: "email", type: "email", required: true },
+              { label: "Phone", field: "phone" },
+              { label: "Date of birth", field: "date_of_birth", type: "date" },
+              { label: "Gender", field: "gender", type: "select", options: ["", "male", "female"] },
+            ].map(({ label, field, type, required, options }) => (
+              <div key={field}>
+                <label htmlFor={field} style={labelStyle}>{label} {required && <span style={{ color: "#B42318" }}>*</span>}</label>
+                {type === "select" ? (
+                  <select id={field} value={form[field as keyof typeof form]} onChange={(e) => update(field, e.target.value)} style={fieldStyle}>
+                    {options?.map((o) => <option key={o} value={o}>{o ? o[0].toUpperCase() + o.slice(1) : "Select…"}</option>)}
+                  </select>
+                ) : (
+                  <input id={field} value={form[field as keyof typeof form]} onChange={(e) => update(field, e.target.value)} type={type ?? "text"} style={fieldStyle} />
+                )}
+              </div>
+            ))}
+          </div>
 
-        <button type="submit" disabled={loading}
-          style={{ marginTop: 24, height: 48, padding: "0 24px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 15, fontWeight: 600, border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.65 : 1, display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <UserPlus size={18} /> {loading ? <LoadingSpinner size={18} color="#fff" /> : "Register Student"}
-        </button>
-      </form>
+          <div style={{ marginTop: 18 }}>
+            <label htmlFor="address" style={labelStyle}>Address</label>
+            <textarea id="address" value={form.address} onChange={(e) => update("address", e.target.value)} rows={3}
+              style={{ ...fieldStyle, height: "auto", padding: "12px 12px", resize: "vertical" }} />
+          </div>
+
+          <button type="submit" disabled={loading}
+            style={{ marginTop: 24, height: 46, padding: "0 24px", borderRadius: "var(--radius-sm)", background: "var(--teal)", color: "#fff", fontSize: 15, fontWeight: 600, border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.6 : 1, display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "var(--font-sans)" }}>
+            {loading ? <LoadingSpinner size={18} color="#fff" /> : <UserPlus size={18} strokeWidth={2} aria-hidden="true" />}
+            {loading ? "Registering…" : "Register student"}
+          </button>
+        </form>
+      </Card>
     </div>
   );
 }
-

@@ -2,14 +2,21 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { Building, Plus, BookOpen, Users } from "lucide-react";
+import { Building, BookOpen, Users } from "lucide-react";
 import { getDepartments, createDepartment, type Department } from "@/app/lib/api/schools";
-import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { Badge } from "@/app/components/dashboard/Badge";
+
+const labelStyle = { fontSize: 12, fontWeight: 600, color: "var(--text-subtle)", display: "block" as const, marginBottom: 6 };
+const inputStyle = { height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", color: "var(--text)", background: "var(--bg)" };
 
 export default function DepartmentsPage() {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
 
   const load = () => getDepartments().then((res) => {
@@ -21,54 +28,58 @@ export default function DepartmentsPage() {
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
+    setSaving(true);
     await createDepartment({ name: name.trim() });
     setName("");
-    load();
+    await load();
+    setSaving(false);
   }
 
   if (loading) return <LoadingPage />;
 
+  const valid = !!name.trim();
+
   return (
-    <div style={{ maxWidth: 720 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Departments</h1>
+    <>
+      <PageHeader title="Departments" subtitle="Group subjects and teachers into departments." actions={<Badge tone="teal">{departments.length} departments</Badge>} />
 
-      <form onSubmit={handleAdd} style={{ display: "flex", gap: 10, alignItems: "flex-end", marginBottom: 24, padding: 20, background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)" }}>
-        <div style={{ flex: 1 }}>
-          <label style={{ fontSize: 11, fontWeight: 600, color: "var(--gray-500)", display: "block", marginBottom: 4 }}>Department Name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Science Department" style={{ width: "100%", height: 38, padding: "0 12px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 6, outline: "none" }} />
-        </div>
-        <button type="submit" style={{ height: 38, padding: "0 16px", borderRadius: 6, background: "var(--teal)", color: "#fff", fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-          <Plus size={16} /> Add Department
-        </button>
-      </form>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 20, maxWidth: 860 }}>
+        <Card title="Add a department">
+          <form onSubmit={handleAdd} style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div style={{ flex: "1 1 220px" }}>
+              <label style={labelStyle}>Department name</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Science Department" style={{ ...inputStyle, width: "100%" }} />
+            </div>
+            <button type="submit" disabled={!valid || saving} style={{ height: 42, padding: "0 18px", borderRadius: "var(--radius-sm)", background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 700, border: "none", cursor: !valid || saving ? "not-allowed" : "pointer", opacity: !valid || saving ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "var(--font-sans)" }}>
+              {saving ? <LoadingSpinner size={15} color="#fff" /> : "Add department"}
+            </button>
+          </form>
+        </Card>
 
-      <div style={{ display: "grid", gap: 12 }}>
-        {departments.map((d) => (
-          <div key={d.id} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", boxShadow: "var(--shadow-xs)" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 8 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 10, background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Building size={20} color="var(--teal)" />
+        {departments.length === 0 ? (
+          <Card><EmptyState Icon={Building} title="No departments" description="Categorize your subjects and teachers into departments." /></Card>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+            {departments.map((d) => (
+              <div key={d.id} className="stat-card" style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-xs)", padding: "16px 18px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 12 }}>
+                  <div style={{ width: 42, height: 42, borderRadius: "var(--radius-md)", background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Building size={20} color="var(--teal)" />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>{d.name}</div>
+                    {d.head_teacher_name && <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Head: {d.head_teacher_name}</div>}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <Badge tone="neutral"><BookOpen size={13} /> {d.subject_count} subjects</Badge>
+                  <Badge tone="neutral"><Users size={13} /> {d.teacher_count} teachers</Badge>
+                </div>
               </div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>{d.name}</div>
-                {d.head_teacher_name && <div style={{ fontSize: 13, color: "var(--gray-500)" }}>Head: {d.head_teacher_name}</div>}
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 14, fontSize: 12, color: "var(--gray-500)", paddingLeft: 56 }}>
-              <span style={{ display: "flex", alignItems: "center", gap: 3 }}><BookOpen size={13} /> {d.subject_count} subjects</span>
-              <span style={{ display: "flex", alignItems: "center", gap: 3 }}><Users size={13} /> {d.teacher_count} teachers</span>
-            </div>
+            ))}
           </div>
-        ))}
-        {departments.length === 0 && (
-          <EmptyState
-            icon={Building}
-            title="No departments"
-            description="Categorize your subjects and teachers into departments."
-          />
         )}
       </div>
-    </div>
+    </>
   );
 }
-

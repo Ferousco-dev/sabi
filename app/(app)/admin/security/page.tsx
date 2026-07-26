@@ -1,9 +1,12 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
-import { Shield, Save } from "lucide-react";
+import { useState } from "react";
+import { Save, Check } from "lucide-react";
 import { updateSecuritySettings } from "@/app/lib/api/schools";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { Button } from "@/app/components/ui/Button";
 
 export default function SecurityPage() {
   const [twoFactor, setTwoFactor] = useState(false);
@@ -25,49 +28,57 @@ export default function SecurityPage() {
   }
 
   return (
-    <div style={{ maxWidth: 640 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)" }}>Security Settings</h1>
-          <p style={{ fontSize: 14, color: "var(--gray-500)", marginTop: 2 }}>Configure school-wide security policies</p>
-        </div>
-        <button onClick={handleSave} disabled={saving}
-          style={{ height: 42, padding: "0 18px", borderRadius: 8, background: saved ? "#0E8345" : "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-          <Save size={16} /> {saved ? "Saved!" : saving ? "Saving…" : "Save"}
-        </button>
-      </div>
+    <div style={{ maxWidth: 680 }}>
+      <PageHeader
+        title="Security Settings"
+        subtitle="Configure school-wide security policies."
+        actions={
+          <Button
+            variant={saved ? "gold" : "primary"}
+            onClick={handleSave}
+            disabled={saving}
+            icon={saved ? <Check size={16} /> : <Save size={16} />}
+          >
+            {saved ? "Saved!" : saving ? "Saving…" : "Save"}
+          </Button>
+        }
+      />
 
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)" }}>
-        <div style={{ padding: "20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <Card padded={false}>
+        <div style={{ padding: 20, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
           <div>
             <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>Two-Factor Authentication</div>
-            <div style={{ fontSize: 13, color: "var(--gray-500)" }}>Require 2FA for all staff accounts</div>
+            <div style={{ fontSize: 13.5, color: "var(--text-subtle)", marginTop: 2 }}>Require 2FA for all staff accounts</div>
           </div>
-          <button onClick={() => setTwoFactor(!twoFactor)}
-            style={{ width: 48, height: 26, borderRadius: 999, border: "none", cursor: "pointer", background: twoFactor ? "var(--teal)" : "var(--gray-200)", transition: "background 0.2s", position: "relative" }}>
+          <button
+            onClick={() => setTwoFactor(!twoFactor)}
+            role="switch"
+            aria-checked={twoFactor}
+            aria-label="Two-factor authentication"
+            style={{ flexShrink: 0, width: 48, height: 26, borderRadius: "var(--radius-full)", border: "none", cursor: "pointer", background: twoFactor ? "var(--teal)" : "var(--gray-300)", transition: "background 0.2s", position: "relative" }}
+          >
             <span style={{ position: "absolute", top: 3, left: twoFactor ? 24 : 3, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }} />
           </button>
         </div>
 
-        <div style={{ padding: "20px", borderBottom: "1px solid var(--border)" }}>
+        <div style={{ padding: 20, borderBottom: "1px solid var(--border)" }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", marginBottom: 4 }}>Password Policy</div>
-          <div style={{ fontSize: 13, color: "var(--gray-500)", marginBottom: 10 }}>Minimum password strength requirement</div>
+          <div style={{ fontSize: 13.5, color: "var(--text-subtle)", marginBottom: 10 }}>Minimum password strength requirement</div>
           <select value={passPolicy} onChange={(e) => setPassPolicy(e.target.value)}
-            style={{ height: 38, padding: "0 12px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 6, outline: "none", background: "#fff" }}>
+            style={{ height: 40, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", background: "var(--bg)", color: "var(--text)", fontFamily: "var(--font-sans)", cursor: "pointer" }}>
             <option value="standard">Standard (8+ chars)</option>
             <option value="strong">Strong (12+ chars, mixed case, numbers)</option>
             <option value="very_strong">Very Strong (16+ chars, mixed case, numbers, symbols)</option>
           </select>
         </div>
 
-        <div style={{ padding: "20px" }}>
+        <div style={{ padding: 20 }}>
           <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", marginBottom: 4 }}>Session Timeout</div>
-          <div style={{ fontSize: 13, color: "var(--gray-500)", marginBottom: 10 }}>Auto-logout after inactivity (minutes)</div>
+          <div style={{ fontSize: 13.5, color: "var(--text-subtle)", marginBottom: 10 }}>Auto-logout after inactivity (minutes)</div>
           <input type="number" value={sessionTimeout} onChange={(e) => setSessionTimeout(e.target.value)}
-            style={{ height: 38, padding: "0 12px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 6, outline: "none", width: 100 }} />
+            style={{ height: 40, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", width: 120, color: "var(--text)", fontFamily: "var(--font-sans)" }} />
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
-

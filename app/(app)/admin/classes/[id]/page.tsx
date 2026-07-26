@@ -7,6 +7,12 @@ import Link from "next/link";
 import { ArrowLeft, GraduationCap, Users, Columns3 } from "lucide-react";
 import { getSections, getEnrollments, type Section, type Enrollment } from "@/app/lib/api/schools";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { StatCard } from "@/app/components/dashboard/StatCard";
+import { Card } from "@/app/components/dashboard/Card";
+import { Badge } from "@/app/components/dashboard/Badge";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { initials } from "@/app/lib/dashboard";
 
 export default function ClassDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,55 +31,55 @@ export default function ClassDetailPage() {
   if (loading) return <LoadingPage />;
 
   return (
-    <div style={{ maxWidth: 800 }}>
+    <div style={{ maxWidth: 820 }}>
       <Link href="/admin/classes" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600, color: "var(--teal)", textDecoration: "none", marginBottom: 16 }}>
-        <ArrowLeft size={16} /> Back to Classes
+        <ArrowLeft size={16} aria-hidden="true" /> Back to classes
       </Link>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 24 }}>
-        <div style={{ width: 48, height: 48, borderRadius: 12, background: "var(--teal)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <GraduationCap size={24} color="#fff" />
-        </div>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)" }}>Class {id}</h1>
-          <p style={{ fontSize: 14, color: "var(--gray-500)" }}>{enrollments.length} students · {sections.length} sections</p>
-        </div>
+      <PageHeader
+        title={`Class ${id}`}
+        subtitle={`${enrollments.length} students · ${sections.length} sections`}
+        actions={<Badge tone="teal">Class</Badge>}
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>
+        <div className="dash-rise"><StatCard label="Enrolled students" value={enrollments.length} Icon={Users} /></div>
+        <div className="dash-rise" style={{ animationDelay: "70ms" }}><StatCard label="Sections" value={sections.length} Icon={Columns3} /></div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 28 }}>
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "18px 20px", boxShadow: "var(--shadow-xs)" }}>
-          <Users size={20} color="var(--teal)" />
-          <div style={{ fontSize: 28, fontWeight: 700, color: "var(--gray-900)", lineHeight: 1, marginTop: 12 }}>{enrollments.length}</div>
-          <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 4 }}>Enrolled Students</div>
-        </div>
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "18px 20px", boxShadow: "var(--shadow-xs)" }}>
-          <Columns3 size={20} color="var(--gold)" />
-          <div style={{ fontSize: 28, fontWeight: 700, color: "var(--gray-900)", lineHeight: 1, marginTop: 12 }}>{sections.length}</div>
-          <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 4 }}>Sections</div>
-        </div>
-      </div>
+      <Card title="Sections" padded={false} style={{ marginBottom: 20 }}>
+        {sections.length === 0 ? (
+          <EmptyState Icon={Columns3} title="No sections" description="This class has no sections yet." />
+        ) : (
+          sections.map((s) => (
+            <div key={s.id} style={{ padding: "13px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                <span aria-hidden="true" style={{ width: 32, height: 32, borderRadius: "var(--radius-sm)", background: "var(--teal-50)", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                  <Columns3 size={16} style={{ color: "var(--teal)" }} />
+                </span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--gray-900)" }}>Section {s.name}</span>
+              </span>
+              <span style={{ fontSize: 13, color: "var(--text-subtle)" }}>{s.student_count} students</span>
+            </div>
+          ))
+        )}
+      </Card>
 
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden", marginBottom: 24 }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>Sections</div>
-        {sections.length === 0 && <p style={{ padding: "20px", fontSize: 14, color: "var(--gray-400)" }}>No sections.</p>}
-        {sections.map((s) => (
-          <div key={s.id} style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>Section {s.name}</div>
-            <span style={{ fontSize: 13, color: "var(--gray-500)" }}>{s.student_count} students</span>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>Students</div>
-        {enrollments.length === 0 && <p style={{ padding: "20px", fontSize: 14, color: "var(--gray-400)" }}>No students enrolled.</p>}
-        {enrollments.map((e) => (
-          <div key={e.id} style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{e.student_name}</div>
-            <span style={{ fontSize: 13, color: "var(--gray-500)" }}>{e.section_name ?? "—"}</span>
-          </div>
-        ))}
-      </div>
+      <Card title="Students" padded={false}>
+        {enrollments.length === 0 ? (
+          <EmptyState Icon={GraduationCap} title="No students enrolled" description="No students are enrolled in this class yet." />
+        ) : (
+          enrollments.map((e) => (
+            <div key={e.id} style={{ padding: "13px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                <span aria-hidden="true" style={{ width: 32, height: 32, borderRadius: "var(--radius-full)", background: "var(--teal-50)", color: "var(--teal)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>{initials(e.student_name)}</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--gray-900)" }}>{e.student_name}</span>
+              </span>
+              <span style={{ fontSize: 13, color: "var(--text-subtle)" }}>{e.section_name ?? "—"}</span>
+            </div>
+          ))
+        )}
+      </Card>
     </div>
   );
 }

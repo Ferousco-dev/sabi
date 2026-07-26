@@ -7,7 +7,10 @@ import Link from "next/link";
 import { ArrowLeft, Users, Edit, Trash2, DollarSign, BookOpen } from "lucide-react";
 import { getCreatorCourses } from "@/app/lib/api/creator";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { StatCard } from "@/app/components/dashboard/StatCard";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
 
 export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -27,66 +30,95 @@ export default function CourseDetailPage() {
 
   if (loading) return <LoadingPage />;
   if (!course) return (
-    <EmptyState
-      icon={BookOpen}
-      title="Course not found"
-      description="The course you are looking for does not exist or has been removed."
-    />
+    <Card>
+      <EmptyState
+        Icon={BookOpen}
+        title="Course not found"
+        description="The course you are looking for does not exist or has been removed."
+      />
+    </Card>
   );
 
   return (
-    <div style={{ maxWidth: 800 }}>
-      <Link href="/creator/courses" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600, color: "var(--teal)", textDecoration: "none", marginBottom: 16 }}>
-        <ArrowLeft size={16} /> Back to Courses
+    <div style={{ maxWidth: 860 }}>
+      <Link href="/creator/courses" style={backLink}>
+        <ArrowLeft size={16} strokeWidth={2.2} aria-hidden="true" /> Back to courses
       </Link>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)" }}>{course.title}</h1>
-          <p style={{ fontSize: 14, color: "var(--gray-500)", marginTop: 2 }}>₦{course.price?.toLocaleString() ?? "0"} · {course.enrollment_count} enrollments</p>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Link href={`/creator/courses/${id}/edit`} style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 42, padding: "0 18px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
-            <Edit size={16} /> Edit
-          </Link>
-          <button style={{ height: 42, padding: "0 18px", borderRadius: 8, background: "#FEF3F2", color: "#B42318", fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-            <Trash2 size={16} /> Delete
-          </button>
-        </div>
+      <PageHeader
+        title={course.title}
+        subtitle="Course overview and enrolled students."
+        actions={
+          <div style={{ display: "flex", gap: 8 }}>
+            <Link href={`/creator/courses/${id}/edit`} style={editBtn}>
+              <Edit size={16} aria-hidden="true" /> Edit
+            </Link>
+            <button style={deleteBtn}>
+              <Trash2 size={16} aria-hidden="true" /> Delete
+            </button>
+          </div>
+        }
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>
+        <StatCard label="Price" value={course.price ?? 0} Icon={DollarSign} />
+        <StatCard label="Enrollments" value={course.enrollment_count} Icon={Users} />
       </div>
 
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 24, boxShadow: "var(--shadow-xs)", marginBottom: 24 }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", marginBottom: 12 }}>Description</div>
-        <p style={{ fontSize: 15, color: "var(--gray-700)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{course.description ?? "No description provided."}</p>
-      </div>
+      <Card title="Description" style={{ marginBottom: 20 }}>
+        <p style={{ fontSize: 15, color: "var(--gray-700)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+          {course.description ?? "No description provided."}
+        </p>
+      </Card>
 
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)" }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", fontSize: 15, fontWeight: 600, color: "var(--gray-900)", display: "flex", alignItems: "center", gap: 8 }}>
-          <Users size={18} color="var(--teal)" /> Enrolled Students ({course.enrollment_count})
-        </div>
+      <Card title={`Enrolled students (${course.enrollment_count})`} padded={false}>
         {course.enrollment_count === 0 ? (
-          <p style={{ padding: 32, textAlign: "center", color: "var(--gray-400)" }}>No students enrolled yet.</p>
+          <EmptyState Icon={Users} title="No students yet" description="Students who enroll in this course will appear here." />
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead><tr style={{ background: "var(--gray-50)" }}>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Name</th>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Email</th>
-                <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Enrolled</th>
+              <thead><tr>
+                <th style={th}>Name</th>
+                <th style={th}>Email</th>
+                <th style={th}>Enrolled</th>
               </tr></thead>
               <tbody>
                 {Array.from({ length: course.enrollment_count }).map((_, i) => (
                   <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
-                    <td style={{ padding: "12px 20px", fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>Student #{i + 1}</td>
-                    <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>student{i + 1}@school.edu.ng</td>
-                    <td style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-500)" }}>{new Date(course.created_at).toLocaleDateString()}</td>
+                    <td style={{ ...td, fontWeight: 600, color: "var(--gray-900)" }}>Student #{i + 1}</td>
+                    <td style={td}>student{i + 1}@school.edu.ng</td>
+                    <td style={td}>{new Date(course.created_at).toLocaleDateString()}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
+
+const backLink = {
+  display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600,
+  color: "var(--teal)", textDecoration: "none", marginBottom: 16,
+} as const;
+
+const editBtn = {
+  display: "inline-flex", alignItems: "center", gap: 6, height: 40, padding: "0 16px",
+  borderRadius: "var(--radius-sm)", background: "var(--teal)", color: "#fff", fontSize: 14,
+  fontWeight: 600, textDecoration: "none",
+} as const;
+
+const deleteBtn = {
+  display: "inline-flex", alignItems: "center", gap: 6, height: 40, padding: "0 16px",
+  borderRadius: "var(--radius-sm)", background: "#FEF3F2", color: "#B42318", fontSize: 14,
+  fontWeight: 600, border: "1px solid #FECDCA", cursor: "pointer",
+} as const;
+
+const th = {
+  textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600,
+  color: "var(--text-subtle)", textTransform: "uppercase", background: "var(--bg-subtle)",
+} as const;
+
+const td = { padding: "12px 20px", fontSize: 14, color: "var(--text-muted)" } as const;

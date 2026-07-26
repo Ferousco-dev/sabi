@@ -2,15 +2,22 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { Columns3, Plus, Users } from "lucide-react";
+import { Columns3, Users } from "lucide-react";
 import { getClasses, getSections, createSection, type ClassItem, type Section } from "@/app/lib/api/schools";
-import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { Badge } from "@/app/components/dashboard/Badge";
+
+const labelStyle = { fontSize: 12, fontWeight: 600, color: "var(--text-subtle)", display: "block" as const, marginBottom: 6 };
+const inputStyle = { height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", color: "var(--text)", background: "var(--bg)" };
 
 export default function SectionsPage() {
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [classId, setClassId] = useState<number | null>(null);
   const [name, setName] = useState("");
 
@@ -34,59 +41,64 @@ export default function SectionsPage() {
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!classId || !name.trim()) return;
+    setSaving(true);
     await createSection({ class_id: classId, name: name.trim() });
     setName("");
     const res = await getSections(classId);
     if (res.ok && res.data) setSections(res.data.sections);
+    setSaving(false);
   }
 
   if (loading) return <LoadingPage />;
 
+  const valid = !!classId && !!name.trim();
+
   return (
-    <div style={{ maxWidth: 720 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)" }}>Sections</h1>
-        <select value={classId ?? ""} onChange={(e) => setClassId(Number(e.target.value))}
-          style={{ height: 38, padding: "0 12px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 6, outline: "none", background: "#fff" }}>
-          {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-      </div>
+    <>
+      <PageHeader
+        title="Sections"
+        subtitle="Split each class into sections and track their sizes."
+        actions={
+          <select value={classId ?? ""} onChange={(e) => setClassId(Number(e.target.value))} aria-label="Class"
+            style={{ height: 40, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", background: "var(--bg)", color: "var(--text)", fontFamily: "var(--font-sans)", cursor: "pointer" }}>
+            {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        }
+      />
 
-      <form onSubmit={handleAdd} style={{ display: "flex", gap: 10, alignItems: "flex-end", marginBottom: 24, padding: 20, background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)" }}>
-        <div style={{ flex: 1 }}>
-          <label style={{ fontSize: 11, fontWeight: 600, color: "var(--gray-500)", display: "block", marginBottom: 4 }}>Section Name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. A" style={{ width: "100%", height: 38, padding: "0 12px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 6, outline: "none" }} />
-        </div>
-        <button type="submit" style={{ height: 38, padding: "0 16px", borderRadius: 6, background: "var(--teal)", color: "#fff", fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-          <Plus size={16} /> Add Section
-        </button>
-      </form>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 20, maxWidth: 860 }}>
+        <Card title="Add a section">
+          <form onSubmit={handleAdd} style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div style={{ flex: "1 1 220px" }}>
+              <label style={labelStyle}>Section name</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. A" style={{ ...inputStyle, width: "100%" }} />
+            </div>
+            <button type="submit" disabled={!valid || saving} style={{ height: 42, padding: "0 18px", borderRadius: "var(--radius-sm)", background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 700, border: "none", cursor: !valid || saving ? "not-allowed" : "pointer", opacity: !valid || saving ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "var(--font-sans)" }}>
+              {saving ? <LoadingSpinner size={15} color="#fff" /> : "Add section"}
+            </button>
+          </form>
+        </Card>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {sections.map((s) => (
-          <div key={s.id} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", boxShadow: "var(--shadow-xs)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 10, background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Columns3 size={20} color="var(--teal)" />
-              </div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>Section {s.name}</div>
-                <div style={{ fontSize: 13, color: "var(--gray-500)", display: "flex", alignItems: "center", gap: 3 }}>
-                  <Users size={13} /> {s.student_count ?? 0} students
+        {sections.length === 0 ? (
+          <Card><EmptyState Icon={Columns3} title="No sections" description="Create sections (like A, B, or Gold, Silver) for this class." /></Card>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+            {sections.map((s) => (
+              <div key={s.id} className="stat-card" style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-xs)", padding: "16px 18px", display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ width: 42, height: 42, borderRadius: "var(--radius-md)", background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Columns3 size={20} color="var(--teal)" />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>Section {s.name}</div>
+                  <div style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+                    <Users size={13} /> {s.student_count ?? 0} students
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
-        {sections.length === 0 && (
-          <EmptyState
-            icon={Columns3}
-            title="No sections"
-            description="Create sections (like A, B, or Gold, Silver) for this class."
-          />
         )}
       </div>
-    </div>
+    </>
   );
 }
-

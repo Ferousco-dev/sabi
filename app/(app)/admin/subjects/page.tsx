@@ -2,15 +2,22 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { BookText, Plus, Building } from "lucide-react";
+import { BookText, BookOpen } from "lucide-react";
 import { getSubjects, createSubject, getDepartments, type Subject, type Department } from "@/app/lib/api/schools";
-import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { Badge } from "@/app/components/dashboard/Badge";
+
+const labelStyle = { fontSize: 12, fontWeight: 600, color: "var(--text-subtle)", display: "block" as const, marginBottom: 6 };
+const inputStyle = { height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", color: "var(--text)", background: "var(--bg)" };
 
 export default function SubjectsPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [deptId, setDeptId] = useState<number | undefined>(undefined);
@@ -25,62 +32,65 @@ export default function SubjectsPage() {
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim() || !code.trim()) return;
+    setSaving(true);
     await createSubject({ name: name.trim(), code: code.trim(), department_id: deptId });
     setName(""); setCode(""); setDeptId(undefined);
-    load();
+    await load();
+    setSaving(false);
   }
 
   if (loading) return <LoadingPage />;
 
+  const valid = name.trim() && code.trim();
+
   return (
-    <div style={{ maxWidth: 720 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Subjects</h1>
+    <>
+      <PageHeader title="Subjects" subtitle="Subjects taught at your school, organized by department." actions={<Badge tone="teal">{subjects.length} subjects</Badge>} />
 
-      <form onSubmit={handleAdd} style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 24, padding: 20, background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)" }}>
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 600, color: "var(--gray-500)", display: "block", marginBottom: 4 }}>Subject Name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mathematics" style={{ height: 38, padding: "0 12px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 6, outline: "none", width: 180 }} />
-        </div>
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 600, color: "var(--gray-500)", display: "block", marginBottom: 4 }}>Code</label>
-          <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="MTH" style={{ height: 38, padding: "0 12px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 6, outline: "none", width: 100 }} />
-        </div>
-        <div>
-          <label style={{ fontSize: 11, fontWeight: 600, color: "var(--gray-500)", display: "block", marginBottom: 4 }}>Department</label>
-          <select value={deptId ?? ""} onChange={(e) => setDeptId(e.target.value ? Number(e.target.value) : undefined)}
-            style={{ height: 38, padding: "0 12px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 6, outline: "none", background: "#fff", width: 160 }}>
-            <option value="">None</option>
-            {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-          </select>
-        </div>
-        <button type="submit" style={{ height: 38, padding: "0 16px", borderRadius: 6, background: "var(--teal)", color: "#fff", fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-          <Plus size={16} /> Add Subject
-        </button>
-      </form>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {subjects.map((s) => (
-          <div key={s.id} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", boxShadow: "var(--shadow-xs)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 10, background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <BookText size={20} color="var(--teal)" />
-              </div>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>{s.name} <span style={{ fontSize: 12, color: "var(--gray-400)", fontWeight: 400 }}>({s.code})</span></div>
-                <div style={{ fontSize: 13, color: "var(--gray-500)" }}>{s.department_name ?? "No department"} · {s.class_count} classes</div>
-              </div>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 20, maxWidth: 860 }}>
+        <Card title="Add a subject">
+          <form onSubmit={handleAdd} style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
+            <div style={{ flex: "1 1 180px" }}>
+              <label style={labelStyle}>Subject name</label>
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Mathematics" style={{ ...inputStyle, width: "100%" }} />
             </div>
+            <div style={{ flex: "0 1 120px" }}>
+              <label style={labelStyle}>Code</label>
+              <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="MTH" style={{ ...inputStyle, width: "100%" }} />
+            </div>
+            <div style={{ flex: "1 1 160px" }}>
+              <label style={labelStyle}>Department</label>
+              <select value={deptId ?? ""} onChange={(e) => setDeptId(e.target.value ? Number(e.target.value) : undefined)} style={{ ...inputStyle, width: "100%", cursor: "pointer" }}>
+                <option value="">None</option>
+                {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </select>
+            </div>
+            <button type="submit" disabled={!valid || saving} style={{ height: 42, padding: "0 18px", borderRadius: "var(--radius-sm)", background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 700, border: "none", cursor: !valid || saving ? "not-allowed" : "pointer", opacity: !valid || saving ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "var(--font-sans)" }}>
+              {saving ? <LoadingSpinner size={15} color="#fff" /> : "Add subject"}
+            </button>
+          </form>
+        </Card>
+
+        {subjects.length === 0 ? (
+          <Card><EmptyState Icon={BookText} title="No subjects" description="Add the subjects taught at your school to organize curriculum." /></Card>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+            {subjects.map((s) => (
+              <div key={s.id} className="stat-card" style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", boxShadow: "var(--shadow-xs)", padding: "16px 18px", display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ width: 42, height: 42, borderRadius: "var(--radius-md)", background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <BookText size={20} color="var(--teal)" />
+                </div>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>{s.name} <span style={{ fontSize: 12, color: "var(--text-subtle)", fontWeight: 400 }}>({s.code})</span></div>
+                  <div style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 5, marginTop: 2 }}>
+                    <BookOpen size={13} /> {s.department_name ?? "No department"} · {s.class_count} classes
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-        {subjects.length === 0 && (
-          <EmptyState
-            icon={BookText}
-            title="No subjects"
-            description="Add the subjects taught at your school to organize curriculum."
-          />
         )}
       </div>
-    </div>
+    </>
   );
 }
-
