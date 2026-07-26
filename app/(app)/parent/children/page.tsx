@@ -3,10 +3,12 @@
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, UserPlus, Users } from "lucide-react";
+import { UserPlus, Users, ArrowRight } from "lucide-react";
 import { getChildren, linkChild, type Child } from "@/app/lib/api/parent";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
 
 export default function ChildrenPage() {
   const [children, setChildren] = useState<Child[]>([]);
@@ -35,46 +37,54 @@ export default function ChildrenPage() {
   if (loading) return <LoadingPage />;
 
   return (
-    <div style={{ maxWidth: 640 }}>
-      <Link href="/parent" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600, color: "var(--teal)", textDecoration: "none", marginBottom: 20 }}>
-        <ArrowLeft size={16} /> Back to dashboard
-      </Link>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>My Children</h1>
+    <>
+      <PageHeader title="My children" subtitle="Link and follow each child's school account." />
 
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 20, boxShadow: "var(--shadow-xs)", marginBottom: 24 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", marginBottom: 12 }}>Link a Child</h2>
-        {linkError && <div style={{ padding: "8px 12px", borderRadius: 6, background: "#FEF3F2", border: "1px solid #FECDCA", color: "#B42318", fontSize: 13, marginBottom: 12 }}>{linkError}</div>}
-        <form onSubmit={handleLink} style={{ display: "flex", gap: 10 }}>
-          <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="student@school.edu.ng"
-            style={{ flex: 1, height: 42, padding: "0 14px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 8, outline: "none" }} />
+      <Card title="Link a child" style={{ marginBottom: 20 }}>
+        {linkError && (
+          <div role="alert" style={{ padding: "9px 12px", borderRadius: "var(--radius-sm)", background: "#FEF3F2", border: "1px solid #FECDCA", color: "#B42318", fontSize: 13, marginBottom: 12 }}>{linkError}</div>
+        )}
+        <form onSubmit={handleLink} style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" placeholder="student@school.edu.ng" aria-label="Child's school email"
+            style={{ flex: "1 1 240px", height: 42, padding: "0 14px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)" }} />
           <button type="submit" disabled={linking || !email.trim()}
-            style={{ height: 42, padding: "0 18px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: "pointer", whiteSpace: "nowrap", opacity: linking ? 0.65 : 1 }}>
-          {linking ? <LoadingSpinner size={16} color="#fff" /> : "Link Child"}
+            style={{ height: 42, padding: "0 18px", borderRadius: "var(--radius-sm)", background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: linking || !email.trim() ? "not-allowed" : "pointer", whiteSpace: "nowrap", opacity: linking || !email.trim() ? 0.6 : 1, display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-sans)" }}>
+            {linking ? <LoadingSpinner size={15} color="#fff" /> : <UserPlus size={16} strokeWidth={2.1} aria-hidden="true" />} Link child
           </button>
         </form>
-      </div>
+      </Card>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {children.length === 0 && (
-          <EmptyState
-            icon={Users}
-            title="No children linked"
-            description="Link your child's school account using their school email."
-          />
-        )}
-        {children.map((c) => (
-          <div key={c.id} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", boxShadow: "var(--shadow-xs)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ width: 38, height: 38, borderRadius: "50%", background: "var(--teal)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700 }}>{c.name[0]}</span>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>{c.name}</div>
-                <div style={{ fontSize: 13, color: "var(--gray-400)" }}>{c.email}</div>
+      {children.length === 0 ? (
+        <Card><EmptyState Icon={Users} title="No children linked" description="Link your child's school account using their school email above." /></Card>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+          {children.map((c) => (
+            <Card key={c.id}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                <span aria-hidden="true" style={{ width: 46, height: 46, borderRadius: "var(--radius-full)", background: "var(--teal)", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 17, fontWeight: 700, flexShrink: 0 }}>{c.name[0]?.toUpperCase()}</span>
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</p>
+                  <p style={{ fontSize: 13, color: "var(--text-subtle)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.email}</p>
+                </div>
               </div>
-            </div>
-            <Link href={`/student/progress?student_id=${c.id}`} style={{ fontSize: 13, fontWeight: 600, color: "var(--teal)", textDecoration: "none" }}>View Progress</Link>
-          </div>
-        ))}
-      </div>
-    </div>
+              <div style={{ display: "flex", gap: 16 }}>
+                <Link href={`/student/progress?student_id=${c.id}`} style={linkStyle}>Progress <ArrowRight size={14} strokeWidth={2.2} aria-hidden="true" /></Link>
+                <Link href={`/parent/results/${c.id}`} style={linkStyle}>Results <ArrowRight size={14} strokeWidth={2.2} aria-hidden="true" /></Link>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
+
+const linkStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 4,
+  fontSize: 13.5,
+  fontWeight: 600,
+  color: "var(--teal)",
+  textDecoration: "none",
+};
