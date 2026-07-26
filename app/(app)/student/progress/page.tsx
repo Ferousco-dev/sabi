@@ -2,11 +2,14 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { Trophy, Zap, BookOpen, Badge } from "lucide-react";
+import { Trophy, Zap, BookOpen, Award } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { getProgress, type ProgressData } from "@/app/lib/api/student";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { StatCard } from "@/app/components/dashboard/StatCard";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
 
 export default function ProgressPage() {
   const searchParams = useSearchParams();
@@ -23,47 +26,35 @@ export default function ProgressPage() {
   if (loading) return <LoadingPage />;
 
   if (!progress) return (
-    <EmptyState
-      icon={Trophy}
-      title="No progress data"
-      description="Start completing lessons to track your learning journey."
-    />
+    <>
+      <PageHeader title="Learning progress" subtitle="Track your learning journey." />
+      <Card><EmptyState Icon={Trophy} title="No progress data" description="Start completing lessons to track your learning journey." /></Card>
+    </>
   );
 
   return (
-    <div>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Learning Progress</h1>
+    <>
+      <PageHeader title="Learning progress" subtitle="Your XP, streak, and badges at a glance." />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14, marginBottom: 28 }}>
-        {[
-          { icon: Trophy, label: "Total XP", value: progress.xp, color: "var(--gold)" },
-          { icon: BookOpen, label: "Completed Lessons", value: progress.completed_lessons, color: "var(--teal)" },
-          { icon: Zap, label: "Streak", value: "—", color: "var(--teal-700)" },
-        ].map(({ icon: Icon, label, value, color }) => (
-          <div key={label} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: "18px 20px", boxShadow: "var(--shadow-xs)" }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-              <Icon size={20} color={color} />
-            </div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: "var(--gray-900)", lineHeight: 1 }}>{value}</div>
-            <div style={{ fontSize: 13, color: "var(--gray-500)", marginTop: 4 }}>{label}</div>
-          </div>
-        ))}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 20 }}>
+        <div className="dash-rise"><StatCard label="Total XP" value={progress.xp} Icon={Trophy} /></div>
+        <div className="dash-rise" style={{ animationDelay: "70ms" }}><StatCard label="Completed lessons" value={progress.completed_lessons} Icon={BookOpen} /></div>
+        <div className="dash-rise" style={{ animationDelay: "140ms" }}><StatCard label="Day streak" value={progress.streak ?? 0} Icon={Zap} /></div>
       </div>
 
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, padding: 20, boxShadow: "var(--shadow-xs)" }}>
-        <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", marginBottom: 16 }}>Badges</h2>
+      <Card title="Badges">
         {progress.badges.length === 0 ? (
-          <p style={{ fontSize: 14, color: "var(--gray-400)" }}>No badges earned yet. Complete lessons to earn badges!</p>
+          <p style={{ fontSize: 14, color: "var(--text-subtle)" }}>No badges earned yet. Complete lessons to earn badges!</p>
         ) : (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
             {progress.badges.map((b, i) => (
-              <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 999, background: "var(--gold)", color: "#fff", fontSize: 12, fontWeight: 600 }}>
-                <Badge size={14} /> {b}
+              <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: "var(--radius-full)", background: "var(--teal-50)", color: "var(--teal)", fontSize: 13, fontWeight: 600, border: "1px solid var(--teal-100, var(--border))" }}>
+                <Award size={15} strokeWidth={2} aria-hidden="true" /> {b}
               </span>
             ))}
           </div>
         )}
-      </div>
-    </div>
+      </Card>
+    </>
   );
 }
