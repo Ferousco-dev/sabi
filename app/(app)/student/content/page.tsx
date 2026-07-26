@@ -3,10 +3,12 @@
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BookOpen } from "lucide-react";
+import { BookOpen, ArrowRight } from "lucide-react";
 import { getContent, type StudentContent } from "@/app/lib/api/student";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
 
 export default function ContentPage() {
   const [content, setContent] = useState<StudentContent[]>([]);
@@ -21,29 +23,25 @@ export default function ContentPage() {
   if (loading) return <LoadingPage />;
 
   return (
-    <div>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Course Content</h1>
+    <>
+      <PageHeader title="Course content" subtitle="Lessons and learning materials from your teachers." />
 
-      {content.length === 0 && (
-        <EmptyState
-          icon={BookOpen}
-          title="No content available"
-          description="Check back later for lessons and learning materials."
-        />
+      {content.length === 0 ? (
+        <Card><EmptyState Icon={BookOpen} title="No content available" description="Check back later for lessons and learning materials." /></Card>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+          {content.map((c) => (
+            <Link key={c.id} href={`/student/content/${c.id}`} className="stat-card" style={{ textDecoration: "none", display: "block", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: 20, boxShadow: "var(--shadow-xs)" }}>
+              <span aria-hidden="true" style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: "var(--teal-50)", display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
+                <BookOpen size={19} style={{ color: "var(--teal)" }} />
+              </span>
+              <h3 style={{ fontSize: 15.5, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.01em", marginBottom: 4 }}>{c.title}</h3>
+              <p style={{ fontSize: 13, color: "var(--text-subtle)", marginBottom: 14 }}>{c.course_title}{c.teacher_name ? ` · ${c.teacher_name}` : ""}</p>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, fontWeight: 600, color: "var(--teal)" }}>Open <ArrowRight size={14} strokeWidth={2.2} aria-hidden="true" /></span>
+            </Link>
+          ))}
+        </div>
       )}
-
-      <div style={{ display: "grid", gap: 12 }}>
-        {content.map((c) => (
-          <Link key={c.id} href={`/student/content/${c.id}`} style={{ textDecoration: "none" }}>
-            <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", boxShadow: "var(--shadow-xs)", transition: "box-shadow 0.15s" }}
-              onMouseEnter={(e) => e.currentTarget.style.boxShadow = "var(--shadow-md)"}
-              onMouseLeave={(e) => e.currentTarget.style.boxShadow = "var(--shadow-xs)"}>
-              <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", marginBottom: 4 }}>{c.title}</h3>
-              <p style={{ fontSize: 13, color: "var(--gray-500)" }}>{c.course_title} · {c.teacher_name}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
+    </>
   );
 }
