@@ -2,16 +2,20 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { CalendarCheck, XCircle, Clock } from "lucide-react";
+import { CalendarCheck, XCircle, Clock, Percent } from "lucide-react";
 import { getStudentAttendance, requestAttendanceCorrection } from "@/app/lib/api/student";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { StatCard } from "@/app/components/dashboard/StatCard";
+import { Card } from "@/app/components/dashboard/Card";
+import { Badge } from "@/app/components/dashboard/Badge";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
 
-const STATUS_COLORS: Record<string, string> = { present: "#0E8345", absent: "#B42318", late: "var(--gold)", excused: "#4A6FA5" };
-const STATUS_ICONS: Record<string, any> = { present: CalendarCheck, absent: XCircle, late: Clock };
+type Record_ = { date: string; status: string; notes?: string };
+const TONE: Record<string, "success" | "danger" | "warning" | "teal" | "neutral"> = { present: "success", absent: "danger", late: "warning", excused: "teal" };
 
 export default function StudentAttendancePage() {
-  const [records, setRecords] = useState<any[]>([]);
+  const [records, setRecords] = useState<Record_[]>([]);
   const [loading, setLoading] = useState(true);
   const [requesting, setRequesting] = useState<string | null>(null);
 
@@ -22,7 +26,7 @@ export default function StudentAttendancePage() {
   }, []);
 
   async function handleRequest(date: string) {
-    const reason = prompt("Please explain the reason for correction request:");
+    const reason = prompt("Please explain the reason for your correction request:");
     if (!reason) return;
     setRequesting(date);
     await requestAttendanceCorrection({ date, reason });
@@ -35,56 +39,40 @@ export default function StudentAttendancePage() {
   const present = records.filter((r) => r.status === "present").length;
   const absent = records.filter((r) => r.status === "absent").length;
   const late = records.filter((r) => r.status === "late").length;
+  const rate = records.length ? Math.round((present / records.length) * 100) : 0;
 
   return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)" }}>My Attendance</h1>
+    <>
+      <PageHeader title="My attendance" subtitle="Your daily attendance history." />
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 20 }}>
+        <div className="dash-rise"><StatCard label="Present" value={present} Icon={CalendarCheck} /></div>
+        <div className="dash-rise" style={{ animationDelay: "70ms" }}><StatCard label="Absent" value={absent} Icon={XCircle} /></div>
+        <div className="dash-rise" style={{ animationDelay: "140ms" }}><StatCard label="Late" value={late} Icon={Clock} /></div>
+        <div className="dash-rise" style={{ animationDelay: "210ms" }}><StatCard label="Attendance rate" value={rate} suffix="%" Icon={Percent} /></div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "14px", textAlign: "center", boxShadow: "var(--shadow-xs)" }}>
-          <CalendarCheck size={20} color="#0E8345" style={{ margin: "0 auto 6px" }} />
-          <div style={{ fontSize: 20, fontWeight: 700, color: "var(--gray-900)" }}>{present}</div>
-          <div style={{ fontSize: 11, color: "var(--gray-500)" }}>Present</div>
-        </div>
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "14px", textAlign: "center", boxShadow: "var(--shadow-xs)" }}>
-          <XCircle size={20} color="#B42318" style={{ margin: "0 auto 6px" }} />
-          <div style={{ fontSize: 20, fontWeight: 700, color: "var(--gray-900)" }}>{absent}</div>
-          <div style={{ fontSize: 11, color: "var(--gray-500)" }}>Absent</div>
-        </div>
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "14px", textAlign: "center", boxShadow: "var(--shadow-xs)" }}>
-          <Clock size={20} color="var(--gold)" style={{ margin: "0 auto 6px" }} />
-          <div style={{ fontSize: 20, fontWeight: 700, color: "var(--gray-900)" }}>{late}</div>
-          <div style={{ fontSize: 11, color: "var(--gray-500)" }}>Late</div>
-        </div>
-      </div>
-
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-        {records.slice().reverse().map((r) => {
-          const Icon = STATUS_ICONS[r.status] || CalendarCheck;
-          return (
-            <div key={r.date} style={{ padding: "12px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 14, color: "var(--gray-900)" }}>{new Date(r.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</span>
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <Icon size={16} style={{ color: STATUS_COLORS[r.status] }} />
-                <span style={{ fontSize: 12, fontWeight: 600, padding: "2px 10px", borderRadius: 999, textTransform: "capitalize", background: r.status === "present" ? "#ECFDF3" : r.status === "absent" ? "#FEF3F2" : r.status === "late" ? "#FFFAEB" : "#EEF4FF", color: STATUS_COLORS[r.status] ?? "var(--gray-500)" }}>{r.status}</span>
-                {r.notes && <span style={{ fontSize: 11, color: "var(--gray-400)" }}>{r.notes}</span>}
-                <button onClick={() => handleRequest(r.date)} disabled={requesting === r.date} style={{ height: 28, padding: "0 10px", borderRadius: 4, fontSize: 11, fontWeight: 600, border: "1px solid var(--border)", background: "var(--gray-50)", color: "var(--gray-600)", cursor: "pointer" }}>
-                  Request Correction
+      <Card padded={false}>
+        {records.length === 0 ? (
+          <EmptyState Icon={CalendarCheck} title="No attendance records" description="Your daily attendance history appears here." />
+        ) : (
+          records.slice().reverse().map((r) => (
+            <div key={r.date} style={{ padding: "13px 16px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: "var(--gray-900)" }}>
+                {new Date(r.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                <Badge tone={TONE[r.status] ?? "neutral"} dot>{r.status[0].toUpperCase() + r.status.slice(1)}</Badge>
+                {r.notes && <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>{r.notes}</span>}
+                <button onClick={() => handleRequest(r.date)} disabled={requesting === r.date}
+                  style={{ height: 30, padding: "0 12px", borderRadius: "var(--radius-sm)", fontSize: 12.5, fontWeight: 600, border: "1px solid var(--border-strong)", background: "var(--bg-subtle)", color: "var(--text-muted)", cursor: requesting === r.date ? "default" : "pointer", fontFamily: "var(--font-sans)", opacity: requesting === r.date ? 0.6 : 1 }}>
+                  Request correction
                 </button>
               </div>
             </div>
-          );
-        })}
-        {records.length === 0 && (
-          <EmptyState
-            icon={CalendarCheck}
-            title="No attendance records"
-            description="Your daily attendance history will be shown here."
-          />
+          ))
         )}
-      </div>
-    </div>
+      </Card>
+    </>
   );
 }
