@@ -2,11 +2,17 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { ClipboardCheck } from "lucide-react";
-import { getTeacherAttendance, recordTeacherAttendance } from "@/app/lib/api/teacher";
-import { getClassRoster, type ClassRosterStudent } from "@/app/lib/api/teacher";
-import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { ClipboardCheck, Check } from "lucide-react";
+import { getTeacherAttendance, recordTeacherAttendance, getClassRoster, type ClassRosterStudent } from "@/app/lib/api/teacher";
+import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { Badge } from "@/app/components/dashboard/Badge";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { initials } from "@/app/lib/dashboard";
+
+const STATUSES = ["present", "absent", "late", "excused"] as const;
+const TONE: Record<string, "success" | "danger" | "warning" | "teal"> = { present: "success", absent: "danger", late: "warning", excused: "teal" };
 
 export default function TeacherAttendancePage() {
   const [students, setStudents] = useState<ClassRosterStudent[]>([]);
@@ -14,16 +20,15 @@ export default function TeacherAttendancePage() {
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     Promise.all([getClassRoster(), getTeacherAttendance(date)]).then(([r, a]) => {
       if (r.ok && r.data) {
         setStudents(r.data.students);
         const init: Record<number, string> = {};
-        r.data.students.forEach((s) => init[s.id] = "present");
-        if (a.ok && a.data) {
-          a.data.records.forEach((rec) => init[rec.student_id] = rec.status);
-        }
+        r.data.students.forEach((s) => (init[s.id] = "present"));
+        if (a.ok && a.data) a.data.records.forEach((rec) => (init[rec.student_id] = rec.status));
         setRecords(init);
       }
     }).finally(() => setLoading(false));
@@ -31,49 +36,108 @@ export default function TeacherAttendancePage() {
 
   async function handleSave() {
     setSaving(true);
+    setSaved(false);
     const data = Object.entries(records).map(([student_id, status]) => ({ student_id: Number(student_id), status }));
     await recordTeacherAttendance({ date, records: data });
     setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
   }
 
   if (loading) return <LoadingPage />;
 
-  return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)" }}>Attendance</h1>
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={{ height: 38, padding: "0 12px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 6, outline: "none" }} />
-          <button onClick={handleSave} disabled={saving} style={{ height: 38, padding: "0 16px", borderRadius: 6, background: "var(--teal)", color: "#fff", fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer" }}>
-            {saving ? "Saving…" : "Save Attendance"}
-          </button>
-        </div>
-      </div>
+  const presentCount = Object.values(records).filter((s) => s === "present").length;
 
-      <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead><tr style={{ background: "var(--gray-50)" }}>
-            <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Student</th>
-            <th style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>Status</th>
-          </tr></thead>
-          <tbody>
-            {students.map((s) => (
-              <tr key={s.id} style={{ borderTop: "1px solid var(--border)" }}>
-                <td style={{ padding: "12px 20px", fontSize: 14, fontWeight: 500, color: "var(--gray-900)" }}>{s.name}</td>
-                <td style={{ padding: "12px 20px" }}>
-                  <select value={records[s.id] ?? "present"} onChange={(e) => setRecords((r) => ({ ...r, [s.id]: e.target.value }))}
-                    style={{ height: 34, padding: "0 10px", fontSize: 13, border: "1px solid var(--border)", borderRadius: 6, outline: "none", background: "#fff" }}>
-                    <option value="present">Present</option>
-                    <option value="absent">Absent</option>
-                    <option value="late">Late</option>
-                    <option value="excused">Excused</option>
-                  </select>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+  return (
+    <>
+      <PageHeader
+        title="Attendance"
+        subtitle="Mark today's roll for your class."
+        actions={
+          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label="Attendance date"
+              style={{ height: 40, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", color: "var(--text)" }} />
+            <button onClick={handleSave} disabled={saving || students.length === 0}
+              style={{ height: 40, padding: "0 16px", borderRadius: "var(--radius-sm)", background: saved ? "#067647" : "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: saving || students.length === 0 ? "not-allowed" : "pointer", opacity: saving || students.length === 0 ? 0.6 : 1, display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-sans)" }}>
+              {saving ? <LoadingSpinner size={15} color="#fff" /> : saved ? <Check size={16} strokeWidth={2.4} aria-hidden="true" /> : null}
+              {saving ? "Saving…" : saved ? "Saved" : "Save attendance"}
+            </button>
+          </div>
+        }
+      />
+
+      <Card padded={false}>
+        {students.length === 0 ? (
+          <EmptyState Icon={ClipboardCheck} title="No students to mark" description="Your class roster appears here once students are enrolled." />
+        ) : (
+          <>
+            <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border)", display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <Badge tone="success" dot>{presentCount} present</Badge>
+              <Badge tone="neutral">{students.length - presentCount} not present</Badge>
+            </div>
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
+                <thead>
+                  <tr>{["Student", "Status"].map((h) => <th key={h} style={thStyle}>{h}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {students.map((s) => {
+                    const cur = records[s.id] ?? "present";
+                    return (
+                      <tr key={s.id}>
+                        <td style={tdStyle}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                            <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: "var(--radius-full)", background: "var(--teal-50)", color: "var(--teal)", fontSize: 12, fontWeight: 700 }}>{initials(s.name)}</span>
+                            <span style={{ fontWeight: 600, color: "var(--gray-900)" }}>{s.name}</span>
+                          </span>
+                        </td>
+                        <td style={tdStyle}>
+                          <div role="group" aria-label={`Status for ${s.name}`} style={{ display: "inline-flex", gap: 6, flexWrap: "wrap" }}>
+                            {STATUSES.map((st) => {
+                              const active = cur === st;
+                              const t = TONE[st];
+                              return (
+                                <button key={st} onClick={() => setRecords((r) => ({ ...r, [s.id]: st }))}
+                                  style={{ height: 30, padding: "0 11px", borderRadius: "var(--radius-full)", fontSize: 12.5, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-sans)", textTransform: "capitalize", border: `1px solid ${active ? "transparent" : "var(--border-strong)"}`, background: active ? `var(--${t === "teal" ? "teal-50" : "bg-subtle"})` : "var(--bg)", color: active ? tone(t) : "var(--text-subtle)", boxShadow: active ? "inset 0 0 0 1px currentColor" : "none" }}>
+                                  {st}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </Card>
+    </>
   );
 }
+
+function tone(t: "success" | "danger" | "warning" | "teal"): string {
+  return t === "success" ? "#067647" : t === "danger" ? "#B42318" : t === "warning" ? "#B54708" : "var(--teal)";
+}
+
+const thStyle = {
+  padding: "11px 16px",
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--text-subtle)",
+  textAlign: "left" as const,
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.04em",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};
+
+const tdStyle = {
+  padding: "13px 16px",
+  fontSize: 14,
+  color: "var(--text-muted)",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};
