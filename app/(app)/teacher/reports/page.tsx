@@ -2,14 +2,23 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { BarChart3, TrendingUp, CheckCircle2 } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { getTeacherPerformanceReport, getTeacherAttendanceTrends, getCompletionRates } from "@/app/lib/api/teacher";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+
+type Tab = "performance" | "trends" | "completion";
+const TABS: { key: Tab; label: string }[] = [
+  { key: "performance", label: "Performance" },
+  { key: "trends", label: "Attendance trends" },
+  { key: "completion", label: "Completion" },
+];
 
 export default function TeacherReportsPage() {
-  const [tab, setTab] = useState("performance");
-  const [report, setReport] = useState<any[]>([]);
+  const [tab, setTab] = useState<Tab>("performance");
+  const [report, setReport] = useState<Record<string, unknown>[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -18,47 +27,65 @@ export default function TeacherReportsPage() {
     p.then((res: any) => { if (res.ok && res.data) setReport(res.data.report ?? res.data.trends ?? res.data.rates ?? []); }).finally(() => setLoading(false));
   }, [tab]);
 
-  if (loading) return <LoadingPage />;
-
   return (
-    <div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-        {["performance", "trends", "completion"].map((t) => (
-          <button key={t} onClick={() => setTab(t)}
-            style={{ height: 34, padding: "0 14px", borderRadius: 6, fontSize: 12, fontWeight: 600, border: `1.5px solid ${tab === t ? "var(--teal)" : "var(--border)"}`, background: tab === t ? "var(--teal-50)" : "#fff", color: tab === t ? "var(--teal)" : "var(--gray-600)", cursor: "pointer", textTransform: "capitalize" }}>
-            {t} Report
-          </button>
-        ))}
+    <>
+      <PageHeader title="Reports" subtitle="Performance, attendance, and completion insights for your classes." />
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+        {TABS.map((t) => {
+          const active = tab === t.key;
+          return (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              style={{ height: 36, padding: "0 14px", borderRadius: "var(--radius-full)", fontSize: 13.5, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-sans)", border: `1px solid ${active ? "var(--teal)" : "var(--border-strong)"}`, background: active ? "var(--teal)" : "var(--bg)", color: active ? "#fff" : "var(--text-muted)" }}>
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
-      {report.length === 0 && (
-        <EmptyState
-          icon={BarChart3}
-          title="No data available"
-          description="Reports will be generated once students start participating in lessons and assessments."
-        />
+      {loading ? (
+        <LoadingPage />
+      ) : report.length === 0 ? (
+        <Card><EmptyState Icon={BarChart3} title="No data available" description="Reports generate once students start participating in lessons and assessments." /></Card>
+      ) : (
+        <Card padded={false}>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 520 }}>
+              <thead>
+                <tr>{Object.keys(report[0]).map((key) => <th key={key} style={thStyle}>{key.replace(/_/g, " ")}</th>)}</tr>
+              </thead>
+              <tbody>
+                {report.map((r, i) => (
+                  <tr key={i}>
+                    {Object.values(r).map((v, j) => (
+                      <td key={j} style={{ ...tdStyle, fontWeight: j === 0 ? 600 : 400, color: j === 0 ? "var(--gray-900)" : "var(--text-muted)" }}>{v == null ? "—" : String(v)}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
-
-      {report.length > 0 && (
-        <div style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)", overflow: "hidden" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead><tr style={{ background: "var(--gray-50)" }}>
-              {Object.keys(report[0]).map((key) => (
-                <th key={key} style={{ textAlign: "left", padding: "10px 20px", fontSize: 12, fontWeight: 600, color: "var(--gray-500)", textTransform: "uppercase" }}>{key.replace("_", " ")}</th>
-              ))}
-            </tr></thead>
-            <tbody>
-              {report.map((r, i) => (
-                <tr key={i} style={{ borderTop: "1px solid var(--border)" }}>
-                  {Object.values(r).map((v: any, j) => (
-                    <td key={j} style={{ padding: "12px 20px", fontSize: 14, color: "var(--gray-900)" }}>{v ?? "—"}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+    </>
   );
 }
+
+const thStyle = {
+  padding: "11px 16px",
+  fontSize: 12,
+  fontWeight: 600,
+  color: "var(--text-subtle)",
+  textAlign: "left" as const,
+  textTransform: "capitalize" as const,
+  letterSpacing: "0.02em",
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};
+
+const tdStyle = {
+  padding: "13px 16px",
+  fontSize: 14,
+  borderBottom: "1px solid var(--border)",
+  whiteSpace: "nowrap" as const,
+};

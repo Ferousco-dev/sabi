@@ -2,10 +2,15 @@
 
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
-import { BookOpen, Plus, Link, FileText } from "lucide-react";
+import { Plus, Link2, FileText, Video, File, ExternalLink } from "lucide-react";
 import { getResources, createResource, type Resource } from "@/app/lib/api/teacher";
-import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { Badge } from "@/app/components/dashboard/Badge";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+
+const TYPE_ICON: Record<string, typeof Link2> = { link: Link2, video: Video, document: FileText, file: File };
 
 export default function ResourcesPage() {
   const [resources, setResources] = useState<Resource[]>([]);
@@ -14,6 +19,7 @@ export default function ResourcesPage() {
   const [url, setUrl] = useState("");
   const [type, setType] = useState("link");
   const [topic, setTopic] = useState("");
+  const [adding, setAdding] = useState(false);
 
   const load = () => getResources().then((res) => {
     if (res.ok && res.data) setResources(res.data.resources);
@@ -24,54 +30,84 @@ export default function ResourcesPage() {
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !url.trim()) return;
+    setAdding(true);
     await createResource({ title: title.trim(), url: url.trim(), type, topic: topic.trim() || undefined });
     setTitle(""); setUrl(""); setTopic("");
-    load();
+    await load();
+    setAdding(false);
   }
 
   if (loading) return <LoadingPage />;
 
   return (
-    <div style={{ maxWidth: 720 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)", marginBottom: 20 }}>Learning Resources</h1>
+    <>
+      <PageHeader title="Learning resources" subtitle="Share links, videos, and documents with your students." />
 
-      <form onSubmit={handleAdd} style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 24, padding: 20, background: "#fff", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "var(--shadow-xs)" }}>
-        <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--gray-500)", display: "block", marginBottom: 4 }}>Title</label>
-          <input value={title} onChange={(e) => setTitle(e.target.value)} style={{ height: 38, padding: "0 12px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 6, outline: "none", width: 180 }} /></div>
-        <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--gray-500)", display: "block", marginBottom: 4 }}>URL</label>
-          <input value={url} onChange={(e) => setUrl(e.target.value)} style={{ height: 38, padding: "0 12px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 6, outline: "none", width: 200 }} /></div>
-        <div><label style={{ fontSize: 11, fontWeight: 600, color: "var(--gray-500)", display: "block", marginBottom: 4 }}>Type</label>
-          <select value={type} onChange={(e) => setType(e.target.value)} style={{ height: 38, padding: "0 12px", fontSize: 14, border: "1px solid var(--border)", borderRadius: 6, outline: "none", background: "#fff" }}>
-            <option value="link">Link</option><option value="file">File</option><option value="video">Video</option><option value="document">Document</option>
-          </select></div>
-        <button type="submit" style={{ height: 38, padding: "0 16px", borderRadius: 6, background: "var(--teal)", color: "#fff", fontSize: 13, fontWeight: 600, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-          <Plus size={16} /> Add Resource
-        </button>
-      </form>
+      <Card title="Add a resource" style={{ marginBottom: 20 }}>
+        <form onSubmit={handleAdd} style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
+          <Field label="Title" grow><input value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} placeholder="e.g. Photosynthesis notes" /></Field>
+          <Field label="URL" grow><input value={url} onChange={(e) => setUrl(e.target.value)} style={inputStyle} placeholder="https://…" type="url" /></Field>
+          <Field label="Topic"><input value={topic} onChange={(e) => setTopic(e.target.value)} style={{ ...inputStyle, width: 140 }} placeholder="Optional" /></Field>
+          <Field label="Type">
+            <select value={type} onChange={(e) => setType(e.target.value)} style={{ ...inputStyle, width: 130, background: "var(--bg)" }}>
+              <option value="link">Link</option><option value="file">File</option><option value="video">Video</option><option value="document">Document</option>
+            </select>
+          </Field>
+          <button type="submit" disabled={adding || !title.trim() || !url.trim()}
+            style={{ height: 42, padding: "0 18px", borderRadius: "var(--radius-sm)", background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: adding || !title.trim() || !url.trim() ? "not-allowed" : "pointer", opacity: adding || !title.trim() || !url.trim() ? 0.6 : 1, display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-sans)" }}>
+            {adding ? <LoadingSpinner size={15} color="#fff" /> : <Plus size={16} strokeWidth={2.2} aria-hidden="true" />} Add resource
+          </button>
+        </form>
+      </Card>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {resources.map((r) => (
-          <div key={r.id} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "14px 18px", boxShadow: "var(--shadow-xs)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 8, background: "var(--teal-50)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {r.type === "link" ? <Link size={18} color="var(--teal)" /> : <FileText size={18} color="var(--teal)" />}
-              </div>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--gray-900)" }}>{r.title}</div>
-                {r.topic && <div style={{ fontSize: 12, color: "var(--gray-400)" }}>{r.topic}</div>}
-              </div>
-            </div>
-            <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, fontWeight: 600, color: "var(--teal)", textDecoration: "none" }}>Open</a>
-          </div>
-        ))}
-        {resources.length === 0 && (
-          <EmptyState
-            icon={Link}
-            title="No resources yet"
-            description="Add helpful links, videos, or documents for your students."
-          />
-        )}
-      </div>
+      {resources.length === 0 ? (
+        <Card><EmptyState Icon={Link2} title="No resources yet" description="Add helpful links, videos, or documents for your students." /></Card>
+      ) : (
+        <Card padded={false}>
+          <ul style={{ listStyle: "none" }}>
+            {resources.map((r) => {
+              const Icon = TYPE_ICON[r.type] ?? Link2;
+              return (
+                <li key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "14px 16px", borderBottom: "1px solid var(--border)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+                    <span aria-hidden="true" style={{ width: 38, height: 38, borderRadius: "var(--radius-md)", background: "var(--teal-50)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Icon size={18} style={{ color: "var(--teal)" }} />
+                    </span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--gray-900)" }}>{r.title}</div>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 2 }}>
+                        <Badge tone="neutral">{r.type}</Badge>
+                        {r.topic && <span style={{ fontSize: 12.5, color: "var(--text-subtle)" }}>{r.topic}</span>}
+                      </div>
+                    </div>
+                  </div>
+                  <a href={r.url} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, fontWeight: 600, color: "var(--teal)", textDecoration: "none", flexShrink: 0 }}>Open <ExternalLink size={13} strokeWidth={2.2} aria-hidden="true" /></a>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
+      )}
+    </>
+  );
+}
+
+function Field({ label, children, grow }: { label: string; children: React.ReactNode; grow?: boolean }) {
+  return (
+    <div style={{ flex: grow ? "1 1 160px" : "0 0 auto", minWidth: 0 }}>
+      <label style={{ fontSize: 12.5, fontWeight: 600, color: "var(--gray-900)", display: "block", marginBottom: 6 }}>{label}</label>
+      {children}
     </div>
   );
 }
+
+const inputStyle = {
+  height: 42,
+  padding: "0 12px",
+  fontSize: 14,
+  border: "1px solid var(--border-strong)",
+  borderRadius: "var(--radius-sm)",
+  outline: "none",
+  fontFamily: "var(--font-sans)",
+  width: "100%",
+} as const;
