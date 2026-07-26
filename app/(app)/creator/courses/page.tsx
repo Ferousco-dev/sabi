@@ -1,10 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, BookOpen } from "lucide-react";
+import { Plus, BookOpen, Users, ArrowRight } from "lucide-react";
 import { getCreatorCourses, type Course } from "@/app/lib/api/creator";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
-import { EmptyState } from "@/app/components/ui/EmptyState";
+import { PageHeader } from "@/app/components/dashboard/PageHeader";
+import { Card } from "@/app/components/dashboard/Card";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { Button } from "@/app/components/ui/Button";
 
 export const dynamic = "force-dynamic";
 
@@ -21,44 +24,37 @@ export default function CreatorCoursesPage() {
   if (loading) return <LoadingPage />;
 
   return (
-    <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-        <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--gray-900)" }}>My Courses</h1>
-          <p style={{ fontSize: 14, color: "var(--gray-500)", marginTop: 2 }}>{courses.length} courses</p>
-        </div>
-        <Link href="/creator/courses/new" style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 42, padding: "0 18px", borderRadius: 8, background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
-          <Plus size={17} /> New Course
-        </Link>
-      </div>
+    <>
+      <PageHeader
+        title="My courses"
+        subtitle={`${courses.length} course${courses.length === 1 ? "" : "s"} published`}
+        actions={<Button href="/creator/courses/new" icon={<Plus size={16} strokeWidth={2.2} aria-hidden="true" />}>New course</Button>}
+      />
 
-      {courses.length === 0 && (
-        <EmptyState
-          icon={BookOpen}
-          title="No courses yet"
-          description="Create your first course to start reaching schools and students."
-          action={{
-            label: "Create Course",
-            onClick: () => window.location.href = "/creator/courses/new",
-          }}
-        />
-      )}
-
-      {courses.length > 0 && (
-        <div style={{ display: "grid", gap: 12 }}>
+      {courses.length === 0 ? (
+        <Card>
+          <EmptyState Icon={BookOpen} title="No courses yet" description="Create your first course to start reaching schools and students." action={<Button href="/creator/courses/new">Create course</Button>} />
+        </Card>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 16 }}>
           {courses.map((c) => (
-            <div key={c.id} style={{ background: "#fff", border: "1px solid var(--border)", borderRadius: 10, padding: "16px 20px", boxShadow: "var(--shadow-xs)" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div>
-                  <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", marginBottom: 4 }}>{c.title}</h3>
-                  <p style={{ fontSize: 13, color: "var(--gray-500)" }}>{c.description ?? "No description"} · {c.enrollment_count} enrollments</p>
-                </div>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--gold)" }}>₦{c.price?.toLocaleString() ?? "0"}</span>
+            <Link key={c.id} href={`/creator/courses/${c.id}`} className="stat-card" style={{ textDecoration: "none", display: "flex", flexDirection: "column", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--radius-lg)", padding: 20, boxShadow: "var(--shadow-xs)" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
+                <span aria-hidden="true" style={{ width: 42, height: 42, borderRadius: "var(--radius-md)", background: "var(--teal-50)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <BookOpen size={20} style={{ color: "var(--teal)" }} />
+                </span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: "var(--gray-900)" }}>₦{c.price?.toLocaleString() ?? "0"}</span>
               </div>
-            </div>
+              <h3 style={{ fontSize: 15.5, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.01em", marginBottom: 4 }}>{c.title}</h3>
+              <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 14, lineHeight: 1.5, flex: 1 }}>{c.description ?? "No description"}</p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12.5, color: "var(--text-subtle)" }}><Users size={14} aria-hidden="true" /> {c.enrollment_count} enrolled</span>
+                <ArrowRight size={16} strokeWidth={2} style={{ color: "var(--gray-300)" }} aria-hidden="true" />
+              </div>
+            </Link>
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }
