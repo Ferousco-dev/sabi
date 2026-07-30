@@ -35,17 +35,12 @@ export function PremiumTopbar({ onMenuClick }: { onMenuClick: () => void }) {
 
       <div style={{ flex: 1 }} />
 
-      <button type="button" aria-label="Notifications" style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--bg)", cursor: "pointer", flexShrink: 0 }}>
-        <Bell size={19} strokeWidth={1.9} style={{ color: "var(--text-muted)" }} aria-hidden="true" />
-        <span aria-hidden="true" style={{ position: "absolute", top: 9, right: 9, width: 8, height: 8 }}>
-          <span className="live-pulse" style={{ position: "absolute", inset: 0, borderRadius: "var(--radius-full)", background: "var(--gold)" }} />
-          <span style={{ position: "absolute", inset: 0, borderRadius: "var(--radius-full)", background: "var(--gold)", border: "1.5px solid var(--bg)" }} />
-        </span>
-      </button>
-
       <div ref={menuRef} style={{ position: "relative", flexShrink: 0 }}>
         <button type="button" onClick={() => setMenuOpen((v) => !v)} aria-haspopup="menu" aria-expanded={menuOpen} style={{ display: "flex", alignItems: "center", gap: 9, height: 44, padding: "0 8px 0 6px", borderRadius: "var(--radius-sm)", border: "1px solid transparent", background: menuOpen ? "var(--gray-50)" : "transparent", cursor: "pointer" }}>
-          <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: "var(--radius-full)", background: "var(--teal)", color: "#fff", fontSize: 13, fontWeight: 700 }}>{name ? initials(name) : ""}</span>
+          <span aria-hidden="true" style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: "var(--radius-full)", background: "var(--teal)", color: "#fff", fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
+            {name ? initials(name) : ""}
+            <span style={{ position: "absolute", top: -1, right: -1, width: 9, height: 9, borderRadius: "var(--radius-full)", background: "var(--gold)", border: "1.5px solid var(--bg)" }} />
+          </span>
           <span className="hidden sm:block" style={{ textAlign: "left", lineHeight: 1.2 }}>
             <span style={{ display: "block", fontSize: 13.5, fontWeight: 600, color: "var(--gray-900)" }}>{name}</span>
             <span style={{ display: "block", fontSize: 12, color: "var(--text-subtle)" }}>{roleLabel}</span>
@@ -59,6 +54,11 @@ export function PremiumTopbar({ onMenuClick }: { onMenuClick: () => void }) {
               <div style={{ fontSize: 13.5, fontWeight: 600, color: "var(--gray-900)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name}</div>
               <div style={{ fontSize: 12, color: "var(--text-subtle)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user?.email}</div>
             </div>
+            <Link href={`${base}/notifications`} role="menuitem" className="nav-item" style={menuItemStyle} onClick={() => setMenuOpen(false)}>
+              <Bell size={17} strokeWidth={1.9} style={{ color: "var(--text-subtle)" }} aria-hidden="true" />
+              <span style={{ flex: 1 }}>Notifications</span>
+              <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "var(--radius-full)", background: "var(--gold)", flexShrink: 0 }} />
+            </Link>
             <Link href={base} role="menuitem" className="nav-item" style={menuItemStyle} onClick={() => setMenuOpen(false)}>
               <UserRound size={17} strokeWidth={1.9} style={{ color: "var(--text-subtle)" }} aria-hidden="true" /> Dashboard
             </Link>
