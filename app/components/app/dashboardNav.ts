@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Users, BookOpen, ClipboardList, BarChart3,
   MessageSquare, Store, Settings, GraduationCap, UserPlus, ArrowRight,
   Columns3, BookText, Building, Clock, ClipboardCheck, FileText, Megaphone,
-  Bell, Upload, Building2, CalendarDays, ListOrdered, Sun, ScrollText,
+  Bell, Building2, CalendarDays, ListOrdered, Sun, ScrollText,
   History, Shield, Calendar, CalendarCheck, UserCheck,
 } from "lucide-react";
 import type { Role } from "@/app/lib/auth";
@@ -32,12 +32,11 @@ export const NAV_BY_ROLE: Record<Role, NavSection[]> = {
       title: "People",
       items: [
         { label: "Students", href: "/admin/students", icon: Users },
-        { label: "Register", href: "/admin/student-registration", icon: UserPlus },
+        { label: "Add students", href: "/admin/student-registration", icon: UserPlus },
         { label: "Transfers", href: "/admin/transfers", icon: ArrowRight },
         { label: "Teachers", href: "/admin/teachers", icon: GraduationCap },
         { label: "Enrollments", href: "/admin/enrollments", icon: UserCheck },
         { label: "Users & Invites", href: "/admin/invitations", icon: Users },
-        { label: "Bulk Import", href: "/admin/bulk-import", icon: Upload },
       ],
     },
     {
