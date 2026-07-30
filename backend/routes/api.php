@@ -27,6 +27,13 @@ use App\Http\Controllers\Api\TeacherController;
 use App\Http\Controllers\Api\TermController;
 use App\Http\Controllers\Api\TimetableController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\TeacherReportController;
+use App\Http\Controllers\Api\LoginHistoryController;
+use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\SecurityController;
+use App\Http\Controllers\Api\ScoreHistoryController;
+use App\Http\Controllers\Api\StudentSettingController;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Support\Facades\Route;
 
@@ -59,6 +66,11 @@ Route::middleware(['auth:sanctum', ResolveTenant::class])->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index']);
     Route::get('/messages', [MessageController::class, 'index']);
 
+    // Per-user self-service (auth+tenant only).
+    Route::get('/score-history', [ScoreHistoryController::class, 'index']);
+    Route::get('/settings', [StudentSettingController::class, 'show']);
+    Route::put('/settings', [StudentSettingController::class, 'update']);
+
     // Parent portal (controllers verify the parent→child link).
     Route::get('/children', [ChildrenController::class, 'index']);
     Route::get('/child-results', [ChildResultsController::class, 'index']);
@@ -90,6 +102,8 @@ Route::middleware(['auth:sanctum', ResolveTenant::class])->group(function () {
     // ── Role-gated writes ──
     Route::middleware('role:school_admin,teacher')->group(function () {
         Route::post('/attendance', [AttendanceController::class, 'store']);
+        Route::get('/teacher-reports/performance', [TeacherReportController::class, 'performance']);
+        Route::get('/teacher-reports/completion', [TeacherReportController::class, 'completion']);
     });
 
     Route::middleware('role:creator')->group(function () {
@@ -111,5 +125,17 @@ Route::middleware(['auth:sanctum', ResolveTenant::class])->group(function () {
         Route::post('/holidays', [HolidayController::class, 'store']);
         Route::post('/announcements', [AnnouncementController::class, 'store']);
         Route::post('/parent-links', [GuardianController::class, 'store']);
+
+        // Reports & analytics.
+        Route::get('/reports/performance', [ReportController::class, 'performance']);
+        Route::get('/reports/attendance', [ReportController::class, 'attendance']);
+        Route::get('/reports/enrollment', [ReportController::class, 'enrollment']);
+        Route::get('/reports/activity', [ReportController::class, 'activity']);
+
+        // Security & audit.
+        Route::get('/security/login-history', [LoginHistoryController::class, 'index']);
+        Route::get('/security/audit-logs', [AuditLogController::class, 'index']);
+        Route::get('/security/sessions', [SecurityController::class, 'sessions']);
+        Route::post('/security/sessions/{tokenId}/revoke', [SecurityController::class, 'revoke']);
     });
 });

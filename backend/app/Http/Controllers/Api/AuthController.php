@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\LoginHistory;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -26,6 +27,21 @@ class AuthController extends Controller
 
         if ($user->status !== 'active') {
             return response()->json(['message' => 'This account is not active.'], 403);
+        }
+
+        // Record the successful login. Wrapped so an audit failure never blocks
+        // sign-in. school_id is passed explicitly: no tenant is resolved yet on
+        // this public route, so the BelongsToSchool auto-stamp has nothing to read.
+        try {
+            LoginHistory::create([
+                'school_id' => $user->school_id,
+                'user_id' => $user->id,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'logged_in_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
         }
 
         return [
