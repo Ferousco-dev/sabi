@@ -78,6 +78,13 @@ jobs:
         run: npm i -g vercel@latest
       - name: Pull Vercel project settings (production env)
         run: vercel pull --yes --environment=production --token="${{ secrets.VERCEL_TOKEN }}"
+      - name: Point the build at the Laravel API
+        run: |
+          # Override NEXT_PUBLIC_API_URL for the production build so the frontend
+          # talks to the Laravel API (currently served at api.sabihub.ng/lv).
+          sed -i '/^NEXT_PUBLIC_API_URL=/d' .vercel/.env.production.local 2>/dev/null || true
+          echo 'NEXT_PUBLIC_API_URL="https://api.sabihub.ng/lv/api"' >> .vercel/.env.production.local
+          echo "NEXT_PUBLIC_API_URL set for build:"; grep NEXT_PUBLIC_API_URL .vercel/.env.production.local
       - name: Build with Vercel
         run: vercel build --prod --token="${{ secrets.VERCEL_TOKEN }}"
       - name: Deploy prebuilt output to production
