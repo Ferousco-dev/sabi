@@ -65,8 +65,8 @@ export async function fetchJson<T>(
 ): Promise<FetchResult<T>> {
   const headers = new Headers(init.headers);
 
-  // Use text/plain to bypass strict ModSecurity rules against application/json
-  headers.set("Content-Type", "text/plain");
+  // Laravel parses the JSON body only for an application/json content type.
+  headers.set("Content-Type", "application/json");
   headers.set("Accept", "application/json");
 
   const token = readToken();

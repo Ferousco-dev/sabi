@@ -38,6 +38,7 @@ use App\Http\Middleware\ResolveTenant;
 use Illuminate\Support\Facades\Route;
 
 // ── Public ────────────────────────────────────────────────────────────────
+Route::post('/signup', [AuthController::class, 'signup']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/invitations/accept', [InvitationController::class, 'accept']);
 

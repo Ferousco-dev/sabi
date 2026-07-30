@@ -98,49 +98,60 @@ export function clearToken(): void {
 
 // ── Endpoint calls ───────────────────────────────────────────────────────
 
-/** POST /auth/signup.php → 201 { success, token, user }. */
-export function signup(input: {
+// ── Laravel response adapters ──────────────────────────────────────────────
+// The Laravel API returns { token, user } on success and { message } / { errors }
+// on failure. The UI still expects the old { success, token, user } / { success:
+// false, error } shapes, so we translate at this boundary — pages don't change.
+
+type LaravelAuth = { token?: string; user?: User; message?: string; error?: string };
+
+function toAuth(res: FetchResult<LaravelAuth>): FetchResult<AuthResponse> {
+  if (res.ok && res.data?.token && res.data.user) {
+    return { ok: true, status: res.status, data: { success: true, token: res.data.token, user: res.data.user } };
+  }
+  return { ok: false, status: res.status, data: { success: false, error: res.data?.message ?? res.data?.error ?? "Something went wrong." } };
+}
+
+/** POST /signup → 201 { token, user }. Creates a school + admin (or a creator). */
+export async function signup(input: {
   name: string;
   email: string;
   password: string;
-  /** Optional at signup — collected in onboarding after the account exists. */
   role?: Role;
+  school_name?: string;
 }): Promise<FetchResult<AuthResponse>> {
-  return fetchJson<AuthResponse>("/auth/signup.php", {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
+  return toAuth(await fetchJson<LaravelAuth>("/signup", { method: "POST", body: JSON.stringify(input) }));
 }
 
-/** POST /auth/role.php (Bearer token) — set the account role during onboarding. */
-export function updateRole(role: Role): Promise<FetchResult<MeResponse>> {
-  return fetchJson<MeResponse>("/auth/role.php", {
-    method: "POST",
-    body: JSON.stringify({ role }),
-  });
+/**
+ * Role is set at signup (owner) or by invitation in the Laravel model, so there
+ * is no self-serve role change. This is a no-op that returns the current user,
+ * kept so the onboarding page continues to work.
+ */
+export async function updateRole(_role: Role): Promise<FetchResult<MeResponse>> {
+  return getMe();
 }
 
-/** POST /auth/login.php → 200 { success, token, user }. */
-export function login(input: {
+/** POST /login → 200 { token, user }. */
+export async function login(input: {
   email: string;
   password: string;
 }): Promise<FetchResult<AuthResponse>> {
-  return fetchJson<AuthResponse>("/auth/login.php", {
-    method: "POST",
-    body: JSON.stringify(input),
-  });
+  return toAuth(await fetchJson<LaravelAuth>("/login", { method: "POST", body: JSON.stringify(input) }));
 }
 
-/** POST /auth/logout.php (Bearer token) → 200 { success }. Also clears local token. */
+/** POST /logout (Bearer token). Also clears the local token. */
 export async function logout(): Promise<FetchResult<LogoutResponse>> {
-  const res = await fetchJson<LogoutResponse>("/auth/logout.php", {
-    method: "POST",
-  });
+  const res = await fetchJson<{ message?: string }>("/logout", { method: "POST" });
   clearToken();
-  return res;
+  return { ok: res.ok, status: res.status, data: { success: true } };
 }
 
-/** GET /auth/me.php (Bearer token) → 200 { success, user }. */
-export function getMe(): Promise<FetchResult<MeResponse>> {
-  return fetchJson<MeResponse>("/auth/me.php", { method: "GET" });
+/** GET /me (Bearer token) → a bare user object; wrapped for the UI. */
+export async function getMe(): Promise<FetchResult<MeResponse>> {
+  const res = await fetchJson<User>("/me", { method: "GET" });
+  if (res.ok && res.data) {
+    return { ok: true, status: res.status, data: { success: true, user: res.data } };
+  }
+  return { ok: false, status: res.status, data: { success: false, error: "Not authenticated." } };
 }

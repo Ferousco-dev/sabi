@@ -4,12 +4,52 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\LoginHistory;
+use App\Models\School;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
+    /**
+     * Public sign-up. A school_admin registers their school (creating the School
+     * + the owner account); a creator self-registers with no school. Other roles
+     * (teacher/student/parent) join via invitations, not signup.
+     */
+    public function signup(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8'],
+            'role' => ['nullable', Rule::in(['school_admin', 'creator'])],
+            'school_name' => ['nullable', 'string', 'max:160'],
+        ]);
+
+        $role = $data['role'] ?? 'school_admin';
+        $schoolId = null;
+
+        if ($role === 'school_admin') {
+            $school = School::create(['name' => $data['school_name'] ?: ($data['name'] . "'s School")]);
+            $schoolId = $school->id;
+        }
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'role' => $role,
+            'status' => 'active',
+            'school_id' => $schoolId,
+        ]);
+
+        return response()->json([
+            'token' => $user->createToken('api')->plainTextToken,
+            'user' => $user->only('id', 'name', 'email', 'role', 'school_id'),
+        ], 201);
+    }
+
     /** Exchange email + password for a Sanctum API token. */
     public function login(Request $request)
     {
