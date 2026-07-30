@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { ClipboardCheck, Check } from "lucide-react";
 import { getTeacherAttendance, recordTeacherAttendance, getClassRoster, type ClassRosterStudent } from "@/app/lib/api/teacher";
+import { getClasses, type ClassItem } from "@/app/lib/api/schools";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -16,11 +17,17 @@ const TONE: Record<string, "success" | "danger" | "warning" | "teal"> = { presen
 
 export default function TeacherAttendancePage() {
   const [students, setStudents] = useState<ClassRosterStudent[]>([]);
+  const [classes, setClasses] = useState<ClassItem[]>([]);
+  const [classId, setClassId] = useState("");
   const [records, setRecords] = useState<Record<number, string>>({});
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    getClasses().then((c) => { if (c.ok && c.data) setClasses(c.data.classes); });
+  }, []);
 
   useEffect(() => {
     Promise.all([getClassRoster(), getTeacherAttendance(date)]).then(([r, a]) => {
@@ -35,10 +42,11 @@ export default function TeacherAttendancePage() {
   }, [date]);
 
   async function handleSave() {
+    if (!classId) return;
     setSaving(true);
     setSaved(false);
     const data = Object.entries(records).map(([student_id, status]) => ({ student_id: Number(student_id), status }));
-    await recordTeacherAttendance({ date, records: data });
+    await recordTeacherAttendance({ class_id: Number(classId), date, records: data });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
@@ -55,10 +63,15 @@ export default function TeacherAttendancePage() {
         subtitle="Mark today's roll for your class."
         actions={
           <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+            <select value={classId} onChange={(e) => setClassId(e.target.value)} aria-label="Class"
+              style={{ height: 40, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", color: "var(--text)", background: "var(--bg)" }}>
+              <option value="">Select class…</option>
+              {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label="Attendance date"
               style={{ height: 40, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", color: "var(--text)" }} />
-            <button onClick={handleSave} disabled={saving || students.length === 0}
-              style={{ height: 40, padding: "0 16px", borderRadius: "var(--radius-sm)", background: saved ? "#067647" : "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: saving || students.length === 0 ? "not-allowed" : "pointer", opacity: saving || students.length === 0 ? 0.6 : 1, display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-sans)" }}>
+            <button onClick={handleSave} disabled={saving || students.length === 0 || !classId}
+              style={{ height: 40, padding: "0 16px", borderRadius: "var(--radius-sm)", background: saved ? "#067647" : "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: saving || students.length === 0 || !classId ? "not-allowed" : "pointer", opacity: saving || students.length === 0 || !classId ? 0.6 : 1, display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-sans)" }}>
               {saving ? <LoadingSpinner size={15} color="#fff" /> : saved ? <Check size={16} strokeWidth={2.4} aria-hidden="true" /> : null}
               {saving ? "Saving…" : saved ? "Saved" : "Save attendance"}
             </button>

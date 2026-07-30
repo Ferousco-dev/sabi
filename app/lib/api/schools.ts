@@ -58,10 +58,16 @@ export type SchoolProfile = {
   created_at: string; updated_at: string;
 };
 export async function getSchoolProfile(): Promise<FetchResult<{ success: true; school: SchoolProfile }>> {
-  return unavailable(); // no Laravel route
+  // GET /profile → the school object
+  const res = await fetchJson<SchoolProfile>("/profile", { method: "GET" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true, school: res.data as SchoolProfile } };
+  return fail(res.status, errMsg(res));
 }
-export async function updateSchoolProfile(_data: Partial<SchoolProfile>): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no Laravel route
+export async function updateSchoolProfile(data: Partial<SchoolProfile>): Promise<FetchResult<{ success: boolean }>> {
+  // PUT /profile → updated model
+  const res = await fetchJson<SchoolProfile>("/profile", { method: "PUT", body: JSON.stringify(data) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res));
 }
 
 // ── Campuses ────────────────────────────────────────────────────────────
@@ -69,13 +75,22 @@ export async function updateSchoolProfile(_data: Partial<SchoolProfile>): Promis
 
 export type Campus = { id: number; name: string; address: string; city: string; state: string; phone: string; is_main: boolean };
 export async function getCampuses(): Promise<FetchResult<{ success: true; campuses: Campus[] }>> {
-  return unavailable(); // no Laravel route
+  // GET /campuses → bare array
+  const res = await fetchJson<Campus[]>("/campuses", { method: "GET" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true, campuses: toArray(res.data) } };
+  return fail(res.status, errMsg(res));
 }
-export async function createCampus(_data: { name: string; address?: string; is_main?: boolean }): Promise<FetchResult<{ success: boolean; campus_id?: number }>> {
-  return unavailable(); // no Laravel route
+export async function createCampus(data: { name: string; address?: string; is_main?: boolean }): Promise<FetchResult<{ success: boolean; campus_id?: number }>> {
+  // POST /campuses → created model
+  const res = await fetchJson<Created>("/campuses", { method: "POST", body: JSON.stringify(data) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true, campus_id: res.data?.id } };
+  return fail(res.status, errMsg(res));
 }
-export async function deleteCampus(_id: number): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no Laravel route
+export async function deleteCampus(id: number): Promise<FetchResult<{ success: boolean }>> {
+  // DELETE /campuses/{id}
+  const res = await fetchJson<unknown>(`/campuses/${id}`, { method: "DELETE" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
 }
 
 // ── Academic Sessions ───────────────────────────────────────────────────
@@ -154,11 +169,18 @@ export async function createClass(data: { name: string }): Promise<FetchResult<{
 // No Laravel route — STUBBED.
 
 export type Section = { id: number; class_id: number; name: string; student_count: number };
-export async function getSections(_classId?: number): Promise<FetchResult<{ success: true; sections: Section[] }>> {
-  return unavailable(); // no Laravel route
+export async function getSections(classId?: number): Promise<FetchResult<{ success: true; sections: Section[] }>> {
+  // GET /sections?class_id= → bare array
+  const params = classId ? `?class_id=${classId}` : "";
+  const res = await fetchJson<Section[]>(`/sections${params}`, { method: "GET" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true, sections: toArray(res.data) } };
+  return fail(res.status, errMsg(res));
 }
-export async function createSection(_data: { class_id: number; name: string }): Promise<FetchResult<{ success: boolean; section_id?: number }>> {
-  return unavailable(); // no Laravel route
+export async function createSection(data: { class_id: number; name: string }): Promise<FetchResult<{ success: boolean; section_id?: number }>> {
+  // POST /sections → created model
+  const res = await fetchJson<Created>("/sections", { method: "POST", body: JSON.stringify(data) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true, section_id: res.data?.id } };
+  return fail(res.status, errMsg(res));
 }
 
 // ── Departments ─────────────────────────────────────────────────────────
@@ -166,10 +188,16 @@ export async function createSection(_data: { class_id: number; name: string }): 
 
 export type Department = { id: number; name: string; head_teacher_name?: string; subject_count: number; teacher_count: number };
 export async function getDepartments(): Promise<FetchResult<{ success: true; departments: Department[] }>> {
-  return unavailable(); // no Laravel route
+  // GET /departments → bare array
+  const res = await fetchJson<Department[]>("/departments", { method: "GET" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true, departments: toArray(res.data) } };
+  return fail(res.status, errMsg(res));
 }
-export async function createDepartment(_data: { name: string; head_teacher_id?: number }): Promise<FetchResult<{ success: boolean; department_id?: number }>> {
-  return unavailable(); // no Laravel route
+export async function createDepartment(data: { name: string; head_teacher_id?: number }): Promise<FetchResult<{ success: boolean; department_id?: number }>> {
+  // POST /departments → created model
+  const res = await fetchJson<Created>("/departments", { method: "POST", body: JSON.stringify(data) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true, department_id: res.data?.id } };
+  return fail(res.status, errMsg(res));
 }
 
 // ── Subjects ────────────────────────────────────────────────────────────
@@ -233,12 +261,19 @@ export async function registerStudent(data: { name: string; email: string; phone
   return fail(res.status, errMsg(res));
 }
 
-export async function updateStudentStatus(_studentId: number, _status: string): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no Laravel route
+export async function updateStudentStatus(studentId: number, status: string): Promise<FetchResult<{ success: boolean }>> {
+  // POST /users/{studentId}/status
+  const res = await fetchJson<unknown>(`/users/${studentId}/status`, { method: "POST", body: JSON.stringify({ status }) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
 }
 
-export async function transferStudent(_studentId: number, _newClassId: number, _newSectionId?: number): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no Laravel route (no /transfers endpoint)
+export async function transferStudent(studentId: number, newClassId: number, _newSectionId?: number): Promise<FetchResult<{ success: boolean }>> {
+  // POST /transfers → promote/transfer a student to a new class
+  const body = { student_id: studentId, new_class_id: newClassId, action: "promote" };
+  const res = await fetchJson<unknown>("/transfers", { method: "POST", body: JSON.stringify(body) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
 }
 
 // ── Guardians ───────────────────────────────────────────────────────────
@@ -299,25 +334,41 @@ export async function inviteUser(data: { name: string; email: string; role: stri
   if (res.ok) return { ok: true, status: res.status, data: { success: true } };
   return fail(res.status, errMsg(res));
 }
-export async function toggleUserStatus(_userId: number, _activate: boolean): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no Laravel route
+export async function toggleUserStatus(userId: number, activate: boolean): Promise<FetchResult<{ success: boolean }>> {
+  // POST /users/{userId}/status
+  const res = await fetchJson<unknown>(`/users/${userId}/status`, { method: "POST", body: JSON.stringify({ status: activate ? "active" : "inactive" }) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
 }
 export type UserStatus = "active" | "inactive" | "graduated" | "expelled" | "transferred";
-export async function setUserStatus(_userId: number, _status: UserStatus): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no Laravel route
+export async function setUserStatus(userId: number, status: UserStatus): Promise<FetchResult<{ success: boolean }>> {
+  // POST /users/{userId}/status
+  const res = await fetchJson<unknown>(`/users/${userId}/status`, { method: "POST", body: JSON.stringify({ status }) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
 }
-export async function updateUserRole(_userId: number, _role: string): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no Laravel route
+export async function updateUserRole(userId: number, role: string): Promise<FetchResult<{ success: boolean }>> {
+  // POST /users/{userId}/role
+  const res = await fetchJson<unknown>(`/users/${userId}/role`, { method: "POST", body: JSON.stringify({ role }) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
 }
 
 // ── Bulk Import ─────────────────────────────────────────────────────────
 // No Laravel route — STUBBED.
 
-export async function bulkImportStudents(_data: { csv_data: string; class_id?: number }): Promise<FetchResult<{ success: boolean; imported: number; duplicates: number; errors: string[] }>> {
-  return unavailable(); // no Laravel route
+type ImportResult = { imported?: number; duplicates?: number; errors?: string[] };
+export async function bulkImportStudents(data: { csv_data: string; class_id?: number }): Promise<FetchResult<{ success: boolean; imported: number; duplicates: number; errors: string[] }>> {
+  // POST /import/students → { imported, duplicates, errors }
+  const res = await fetchJson<ImportResult>("/import/students", { method: "POST", body: JSON.stringify({ csv_data: data.csv_data }) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true, imported: res.data?.imported ?? 0, duplicates: res.data?.duplicates ?? 0, errors: res.data?.errors ?? [] } };
+  return fail(res.status, errMsg(res));
 }
-export async function bulkImportTeachers(_data: { csv_data: string }): Promise<FetchResult<{ success: boolean; imported: number; duplicates: number; errors: string[] }>> {
-  return unavailable(); // no Laravel route
+export async function bulkImportTeachers(data: { csv_data: string }): Promise<FetchResult<{ success: boolean; imported: number; duplicates: number; errors: string[] }>> {
+  // POST /import/teachers → { imported, duplicates, errors }
+  const res = await fetchJson<ImportResult>("/import/teachers", { method: "POST", body: JSON.stringify({ csv_data: data.csv_data }) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true, imported: res.data?.imported ?? 0, duplicates: res.data?.duplicates ?? 0, errors: res.data?.errors ?? [] } };
+  return fail(res.status, errMsg(res));
 }
 
 // ── Attendance (existing + extended) ────────────────────────────────────
@@ -372,16 +423,19 @@ export async function getTimetable(classId?: number): Promise<FetchResult<Timeta
   return fail(res.status, errMsg(res));
 }
 
-export async function createTimetableEntry(data: { subject: string; day: string; start_time: string; end_time: string; teacher_id?: number; class_id?: number; room?: string }): Promise<FetchResult<{ success: boolean; entry_id?: number }>> {
-  // POST /timetable → created model (Laravel expects school_class_id + subject_id)
-  const body = { school_class_id: data.class_id, teacher_id: data.teacher_id, day: data.day, start_time: data.start_time, end_time: data.end_time, room: data.room };
+export async function createTimetableEntry(data: { class_id: number; subject_id?: number; day: string; start_time: string; end_time: string; teacher_id?: number; room?: string }): Promise<FetchResult<{ success: boolean; entry_id?: number }>> {
+  // POST /timetable → created model (Laravel requires school_class_id, optional subject_id)
+  const body = { school_class_id: data.class_id, subject_id: data.subject_id, teacher_id: data.teacher_id, day: data.day, start_time: data.start_time, end_time: data.end_time, room: data.room };
   const res = await fetchJson<Created>("/timetable", { method: "POST", body: JSON.stringify(body) });
   if (res.ok) return { ok: true, status: res.status, data: { success: true, entry_id: res.data?.id } };
   return fail(res.status, errMsg(res));
 }
 
-export async function deleteTimetableEntry(_id: number): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no Laravel route (no DELETE /timetable)
+export async function deleteTimetableEntry(id: number): Promise<FetchResult<{ success: boolean }>> {
+  // DELETE /timetable/{id}
+  const res = await fetchJson<unknown>(`/timetable/${id}`, { method: "DELETE" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
 }
 
 // ── Assessments / Grading Config ────────────────────────────────────────
@@ -414,16 +468,17 @@ export async function getResults(status?: string): Promise<FetchResult<{ success
   return fail(res.status, errMsg(res));
 }
 export async function reviewResult(id: number, action: "approve" | "reject", _comment?: string): Promise<FetchResult<{ success: boolean }>> {
-  // POST /results/{id}/approve — Laravel has no "reject" route yet.
-  if (action !== "approve") return unavailable();
-  const res = await fetchJson<Created>(`/results/${id}/approve`, { method: "POST" });
+  // POST /results/{id}/approve or POST /results/{id}/reject
+  const path = action === "approve" ? `/results/${id}/approve` : `/results/${id}/reject`;
+  const res = await fetchJson<Created>(path, { method: "POST" });
   if (res.ok) return { ok: true, status: res.status, data: { success: true } };
   return fail(res.status, errMsg(res));
 }
 export async function publishResults(): Promise<FetchResult<{ success: boolean; published_count?: number }>> {
-  // Laravel only publishes ONE result at a time (POST /results/{id}/publish);
-  // there is no bulk publish-all endpoint. STUBBED.
-  return unavailable(); // no bulk-publish Laravel route
+  // POST /results/publish-all → { published: n }
+  const res = await fetchJson<{ published?: number }>("/results/publish-all", { method: "POST" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true, published_count: res.data?.published ?? 0 } };
+  return fail(res.status, errMsg(res));
 }
 
 // ── Announcements ───────────────────────────────────────────────────────

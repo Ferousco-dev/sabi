@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { CalendarClock, Plus } from "lucide-react";
-import { getTimetable, createTimetableEntry, type TimetableEntry } from "@/app/lib/api/schools";
+import { getTimetable, createTimetableEntry, getClasses, getSubjects, type TimetableEntry, type ClassItem, type Subject } from "@/app/lib/api/schools";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -14,26 +14,35 @@ const fieldStyle = { height: 42, padding: "0 12px", fontSize: 14, border: "1px s
 
 export default function TimetablePage() {
   const [entries, setEntries] = useState<TimetableEntry[]>([]);
+  const [classes, setClasses] = useState<ClassItem[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
-  const [subject, setSubject] = useState("");
+  const [classId, setClassId] = useState("");
+  const [subjectId, setSubjectId] = useState("");
   const [day, setDay] = useState("Monday");
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("09:00");
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
-    getTimetable().then((res) => {
-      if (res.ok && res.data) setEntries(res.data.timetable);
+    Promise.all([getTimetable(), getClasses(), getSubjects()]).then(([t, c, s]) => {
+      if (t.ok && t.data) setEntries(t.data.timetable);
+      if (c.ok && c.data) setClasses(c.data.classes);
+      if (s.ok && s.data) setSubjects(s.data.subjects);
     }).finally(() => setLoading(false));
   }, []);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
-    if (!subject.trim()) return;
+    if (!classId) return;
     setAdding(true);
-    const res = await createTimetableEntry({ subject: subject.trim(), day, start_time: startTime, end_time: endTime });
+    const res = await createTimetableEntry({
+      class_id: Number(classId),
+      subject_id: subjectId ? Number(subjectId) : undefined,
+      day, start_time: startTime, end_time: endTime,
+    });
     if (res.ok) {
-      setSubject("");
+      setSubjectId("");
       const r = await getTimetable();
       if (r.ok && r.data) setEntries(r.data.timetable);
     }
@@ -51,8 +60,18 @@ export default function TimetablePage() {
       <Card title="Add an entry" style={{ marginBottom: 24 }}>
         <form onSubmit={handleAdd} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 16, alignItems: "flex-end" }}>
           <div>
+            <label htmlFor="t-class" style={labelStyle}>Class *</label>
+            <select id="t-class" value={classId} onChange={(e) => setClassId(e.target.value)} style={fieldStyle}>
+              <option value="">Select class…</option>
+              {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <div>
             <label htmlFor="t-subject" style={labelStyle}>Subject</label>
-            <input id="t-subject" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. Mathematics" style={fieldStyle} />
+            <select id="t-subject" value={subjectId} onChange={(e) => setSubjectId(e.target.value)} style={fieldStyle}>
+              <option value="">—</option>
+              {subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
           </div>
           <div>
             <label htmlFor="t-day" style={labelStyle}>Day</label>
@@ -69,8 +88,8 @@ export default function TimetablePage() {
             <input id="t-end" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} style={fieldStyle} />
           </div>
           <div>
-            <button type="submit" disabled={adding || !subject.trim()}
-              style={{ height: 42, padding: "0 18px", borderRadius: "var(--radius-sm)", background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: adding || !subject.trim() ? "not-allowed" : "pointer", opacity: adding || !subject.trim() ? 0.6 : 1, display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-sans)", width: "100%", justifyContent: "center" }}>
+            <button type="submit" disabled={adding || !classId}
+              style={{ height: 42, padding: "0 18px", borderRadius: "var(--radius-sm)", background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: adding || !classId ? "not-allowed" : "pointer", opacity: adding || !classId ? 0.6 : 1, display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "var(--font-sans)", width: "100%", justifyContent: "center" }}>
               {adding ? <LoadingSpinner size={15} color="#fff" /> : <Plus size={16} strokeWidth={2.2} aria-hidden="true" />} Add
             </button>
           </div>

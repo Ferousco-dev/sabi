@@ -128,10 +128,11 @@ export async function getClassRoster(_classId?: number): Promise<FetchResult<{ s
 // `class_id`, which is not in this function's signature; the request is sent
 // without it (last param preserved as-is), so the call needs the caller to add
 // class scoping before it will pass server validation. See report.
-export async function recordTeacherAttendance(data: { date: string; records: { student_id: number; status: string; notes?: string }[] }): Promise<FetchResult<{ success: boolean; processed: number }>> {
+export async function recordTeacherAttendance(data: { class_id: number; date: string; records: { student_id: number; status: string; notes?: string }[] }): Promise<FetchResult<{ success: boolean; processed: number }>> {
   const res = await fetchJson<unknown>("/attendance", {
     method: "POST",
     body: JSON.stringify({
+      class_id: data.class_id,
       date: data.date,
       records: data.records.map((r) => ({ student_id: r.student_id, status: r.status })),
     }),
