@@ -55,6 +55,7 @@ function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div style={{ display: "flex", minHeight: "100dvh", background: "var(--bg-subtle)" }}>
+      <a href="#main" className="skip-link">Skip to content</a>
       {/* Desktop sidebar, sticky to the viewport, collapsible to an icon rail. */}
       <aside className="sidebar-root hidden lg:block" style={{ width: collapsed ? 76 : 264, flexShrink: 0, position: "sticky", top: 0, height: "100dvh", alignSelf: "flex-start" }}>
         <PremiumSidebar collapsed={collapsed} onToggle={toggleCollapsed} />

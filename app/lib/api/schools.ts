@@ -143,7 +143,7 @@ export function updateStudentStatus(studentId: number, status: string): Promise<
 }
 
 export function transferStudent(studentId: number, newClassId: number, newSectionId?: number): Promise<FetchResult<{ success: boolean }>> {
-  return fetchJson("/schools/students.php", { method: "POST", body: JSON.stringify({ action: "transfer", student_id: studentId, new_class_id: newClassId, new_section_id: newSectionId }) });
+  return fetchJson("/schools/transfers.php", { method: "POST", body: JSON.stringify({ action: "transfer", student_id: studentId, new_class_id: newClassId, new_section_id: newSectionId }) });
 }
 
 // ── Guardians ───────────────────────────────────────────────────────────

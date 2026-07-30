@@ -88,6 +88,23 @@ main { overflow-x: clip; }
 }
 :focus:not(:focus-visible) { outline: none; }
 
+/* Skip-to-content: offscreen until keyboard focus, then slides into view. */
+.skip-link {
+  position: fixed;
+  left: 12px;
+  top: -60px;
+  z-index: 100;
+  padding: 9px 16px;
+  background: var(--teal);
+  color: #fff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg, 0 8px 24px rgba(16,24,40,0.16));
+  transition: top 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.skip-link:focus { top: 12px; }
+
 ::selection { background: var(--teal-50); color: var(--teal); }
 
 /* Layout container, one consistent max width. */
