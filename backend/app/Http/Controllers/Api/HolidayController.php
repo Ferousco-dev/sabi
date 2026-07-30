@@ -24,4 +24,28 @@ class HolidayController extends Controller
 
         return response()->json(Holiday::create($data), 201);
     }
+
+    public function update(Request $request, int $id)
+    {
+        // findOrFail is tenant-scoped by the global scope.
+        $holiday = Holiday::findOrFail($id);
+
+        $data = $request->validate([
+            'title' => ['required', 'string', 'max:120'],
+            'date' => ['required', 'date'],
+            'description' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $holiday->update($data);
+
+        return $holiday;
+    }
+
+    public function destroy(int $id)
+    {
+        $holiday = Holiday::findOrFail($id);
+        $holiday->delete();
+
+        return response()->json(null, 204);
+    }
 }

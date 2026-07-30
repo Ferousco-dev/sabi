@@ -35,4 +35,31 @@ class SectionController extends Controller
         // school_id stamped automatically by the trait's creating hook.
         return response()->json(Section::create($data), 201);
     }
+
+    public function update(Request $request, int $id)
+    {
+        // findOrFail is tenant-scoped by the global scope.
+        $section = Section::findOrFail($id);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            // The class must belong to this tenant.
+            'school_class_id' => [
+                'required',
+                Rule::exists('school_classes', 'id')->where('school_id', Tenant::id()),
+            ],
+        ]);
+
+        $section->update($data);
+
+        return $section;
+    }
+
+    public function destroy(int $id)
+    {
+        $section = Section::findOrFail($id);
+        $section->delete();
+
+        return response()->json(null, 204);
+    }
 }

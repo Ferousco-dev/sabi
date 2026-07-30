@@ -38,4 +38,31 @@ class DepartmentController extends Controller
         // school_id stamped automatically by the trait's creating hook.
         return response()->json(Department::create($data), 201);
     }
+
+    public function update(Request $request, int $id)
+    {
+        // findOrFail is tenant-scoped by the global scope.
+        $department = Department::findOrFail($id);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            // The head teacher must belong to this tenant.
+            'head_teacher_id' => [
+                'nullable', 'integer',
+                Rule::exists('users', 'id')->where('school_id', Tenant::id()),
+            ],
+        ]);
+
+        $department->update($data);
+
+        return $department;
+    }
+
+    public function destroy(int $id)
+    {
+        $department = Department::findOrFail($id);
+        $department->delete();
+
+        return response()->json(null, 204);
+    }
 }

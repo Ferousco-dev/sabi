@@ -152,9 +152,26 @@ Route::middleware(['auth:sanctum', ResolveTenant::class])->group(function () {
         Route::put('/profile', [ProfileController::class, 'update']);
         Route::post('/profile', [ProfileController::class, 'update']);
         Route::post('/campuses', [CampusController::class, 'store']);
+        Route::put('/campuses/{id}', [CampusController::class, 'update']);
         Route::delete('/campuses/{id}', [CampusController::class, 'destroy']);
         Route::post('/departments', [DepartmentController::class, 'store']);
         Route::post('/sections', [SectionController::class, 'store']);
+
+        // Edit/delete for config entities (all tenant-scoped via findOrFail).
+        Route::put('/classes/{id}', [ClassController::class, 'update']);
+        Route::delete('/classes/{id}', [ClassController::class, 'destroy']);
+        Route::put('/sections/{id}', [SectionController::class, 'update']);
+        Route::delete('/sections/{id}', [SectionController::class, 'destroy']);
+        Route::put('/subjects/{id}', [SubjectController::class, 'update']);
+        Route::delete('/subjects/{id}', [SubjectController::class, 'destroy']);
+        Route::put('/departments/{id}', [DepartmentController::class, 'update']);
+        Route::delete('/departments/{id}', [DepartmentController::class, 'destroy']);
+        Route::put('/sessions/{id}', [SessionController::class, 'update']);
+        Route::delete('/sessions/{id}', [SessionController::class, 'destroy']);
+        Route::put('/terms/{id}', [TermController::class, 'update']);
+        Route::delete('/terms/{id}', [TermController::class, 'destroy']);
+        Route::put('/holidays/{id}', [HolidayController::class, 'update']);
+        Route::delete('/holidays/{id}', [HolidayController::class, 'destroy']);
 
         // Promotions/transfers, imports, user lifecycle, bulk publish, timetable delete.
         Route::get('/transfers', [TransferController::class, 'index']);

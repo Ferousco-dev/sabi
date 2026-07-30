@@ -48,6 +48,43 @@ class TermController extends Controller
         return response()->json($term, 201);
     }
 
+    public function update(Request $request, int $id)
+    {
+        // findOrFail is tenant-scoped by the global scope.
+        $term = Term::findOrFail($id);
+
+        $data = $request->validate([
+            'academic_session_id' => ['required', 'integer'],
+            'name' => ['required', 'string', 'max:120'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'is_current' => ['sometimes', 'boolean'],
+        ]);
+
+        // Confirm the parent session belongs to this tenant (global scope enforced).
+        AcademicSession::findOrFail($data['academic_session_id']);
+
+        $term = DB::transaction(function () use ($term, $data) {
+            $term->update($data);
+
+            if ($term->is_current) {
+                $this->makeCurrent($term);
+            }
+
+            return $term;
+        });
+
+        return $term;
+    }
+
+    public function destroy(int $id)
+    {
+        $term = Term::findOrFail($id);
+        $term->delete();
+
+        return response()->json(null, 204);
+    }
+
     public function setCurrent(int $id)
     {
         // Global scope keeps this lookup inside the current tenant.

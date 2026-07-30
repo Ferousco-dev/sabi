@@ -27,4 +27,28 @@ class ClassController extends Controller
         // school_id stamped automatically by the trait's creating hook.
         return response()->json(SchoolClass::create($data), 201);
     }
+
+    public function update(Request $request, int $id)
+    {
+        // findOrFail is tenant-scoped by the global scope.
+        $class = SchoolClass::findOrFail($id);
+        $this->authorize('update', $class);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+        ]);
+
+        $class->update($data);
+
+        return $class;
+    }
+
+    public function destroy(int $id)
+    {
+        $class = SchoolClass::findOrFail($id);
+        $this->authorize('delete', $class);
+        $class->delete();
+
+        return response()->json(null, 204);
+    }
 }

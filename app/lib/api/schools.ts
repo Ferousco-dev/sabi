@@ -86,6 +86,12 @@ export async function createCampus(data: { name: string; address?: string; is_ma
   if (res.ok) return { ok: true, status: res.status, data: { success: true, campus_id: res.data?.id } };
   return fail(res.status, errMsg(res));
 }
+export async function updateCampus(id: number, data: { name: string; address?: string; city?: string; state?: string; phone?: string; is_main?: boolean }): Promise<FetchResult<{ success: boolean }>> {
+  // PUT /campuses/{id}
+  const res = await fetchJson<Created>(`/campuses/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res));
+}
 export async function deleteCampus(id: number): Promise<FetchResult<{ success: boolean }>> {
   // DELETE /campuses/{id}
   const res = await fetchJson<unknown>(`/campuses/${id}`, { method: "DELETE" });
@@ -114,6 +120,16 @@ export async function setCurrentSession(id: number): Promise<FetchResult<{ succe
   if (res.ok) return { ok: true, status: res.status, data: { success: true } };
   return fail(res.status, errMsg(res));
 }
+export async function updateAcademicSession(id: number, data: { name: string; start_date: string; end_date: string }): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<Created>(`/sessions/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res));
+}
+export async function deleteAcademicSession(id: number): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<unknown>(`/sessions/${id}`, { method: "DELETE" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
+}
 
 // ── Terms ───────────────────────────────────────────────────────────────
 
@@ -132,6 +148,22 @@ export async function createTerm(data: { session_id: number; name: string; start
   if (res.ok) return { ok: true, status: res.status, data: { success: true, term_id: res.data?.id } };
   return fail(res.status, errMsg(res));
 }
+export async function updateTerm(id: number, data: { session_id: number; name: string; start_date: string; end_date: string }): Promise<FetchResult<{ success: boolean }>> {
+  const body = { academic_session_id: data.session_id, name: data.name, start_date: data.start_date, end_date: data.end_date };
+  const res = await fetchJson<Created>(`/terms/${id}`, { method: "PUT", body: JSON.stringify(body) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res));
+}
+export async function setCurrentTerm(id: number): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<Created>(`/terms/${id}/set-current`, { method: "POST" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res));
+}
+export async function deleteTerm(id: number): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<unknown>(`/terms/${id}`, { method: "DELETE" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
+}
 
 // ── Holidays ────────────────────────────────────────────────────────────
 
@@ -148,6 +180,16 @@ export async function createHoliday(data: { title: string; date: string; descrip
   if (res.ok) return { ok: true, status: res.status, data: { success: true, holiday_id: res.data?.id } };
   return fail(res.status, errMsg(res));
 }
+export async function updateHoliday(id: number, data: { title: string; date: string; description?: string }): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<Created>(`/holidays/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res));
+}
+export async function deleteHoliday(id: number): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<unknown>(`/holidays/${id}`, { method: "DELETE" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
+}
 
 // ── Classes ─────────────────────────────────────────────────────────────
 
@@ -163,6 +205,16 @@ export async function createClass(data: { name: string }): Promise<FetchResult<{
   const res = await fetchJson<Created>("/classes", { method: "POST", body: JSON.stringify(data) });
   if (res.ok) return { ok: true, status: res.status, data: { success: true, class_id: res.data?.id } };
   return fail(res.status, errMsg(res));
+}
+export async function updateClass(id: number, data: { name: string }): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<Created>(`/classes/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res));
+}
+export async function deleteClass(id: number): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<unknown>(`/classes/${id}`, { method: "DELETE" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
 }
 
 // ── Sections ────────────────────────────────────────────────────────────
@@ -182,6 +234,17 @@ export async function createSection(data: { class_id: number; name: string }): P
   if (res.ok) return { ok: true, status: res.status, data: { success: true, section_id: res.data?.id } };
   return fail(res.status, errMsg(res));
 }
+export async function updateSection(id: number, data: { class_id: number; name: string }): Promise<FetchResult<{ success: boolean }>> {
+  const body = { school_class_id: data.class_id, name: data.name };
+  const res = await fetchJson<Created>(`/sections/${id}`, { method: "PUT", body: JSON.stringify(body) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res));
+}
+export async function deleteSection(id: number): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<unknown>(`/sections/${id}`, { method: "DELETE" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
+}
 
 // ── Departments ─────────────────────────────────────────────────────────
 // No Laravel route — STUBBED.
@@ -199,6 +262,16 @@ export async function createDepartment(data: { name: string; head_teacher_id?: n
   if (res.ok) return { ok: true, status: res.status, data: { success: true, department_id: res.data?.id } };
   return fail(res.status, errMsg(res));
 }
+export async function updateDepartment(id: number, data: { name: string; head_teacher_id?: number | null }): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<Created>(`/departments/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res));
+}
+export async function deleteDepartment(id: number): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<unknown>(`/departments/${id}`, { method: "DELETE" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
+}
 
 // ── Subjects ────────────────────────────────────────────────────────────
 
@@ -214,6 +287,16 @@ export async function createSubject(data: { name: string; code: string; departme
   const res = await fetchJson<Created>("/subjects", { method: "POST", body: JSON.stringify(data) });
   if (res.ok) return { ok: true, status: res.status, data: { success: true, subject_id: res.data?.id } };
   return fail(res.status, errMsg(res));
+}
+export async function updateSubject(id: number, data: { name: string; code: string; department_id?: number }): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<Created>(`/subjects/${id}`, { method: "PUT", body: JSON.stringify(data) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res));
+}
+export async function deleteSubject(id: number): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<unknown>(`/subjects/${id}`, { method: "DELETE" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
 }
 
 // ── Enrollments ─────────────────────────────────────────────────────────

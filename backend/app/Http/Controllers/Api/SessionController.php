@@ -42,6 +42,44 @@ class SessionController extends Controller
         return response()->json($session, 201);
     }
 
+    public function update(Request $request, int $id)
+    {
+        // findOrFail is tenant-scoped by the global scope.
+        $session = AcademicSession::findOrFail($id);
+
+        $data = $request->validate([
+            'name' => [
+                'required', 'string', 'max:120',
+                Rule::unique('academic_sessions', 'name')
+                    ->where('school_id', $request->user()->school_id)
+                    ->ignore($id),
+            ],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'is_current' => ['sometimes', 'boolean'],
+        ]);
+
+        $session = DB::transaction(function () use ($session, $data) {
+            $session->update($data);
+
+            if ($session->is_current) {
+                $this->makeCurrent($session);
+            }
+
+            return $session;
+        });
+
+        return $session;
+    }
+
+    public function destroy(int $id)
+    {
+        $session = AcademicSession::findOrFail($id);
+        $session->delete();
+
+        return response()->json(null, 204);
+    }
+
     public function setCurrent(int $id)
     {
         // Global scope keeps this lookup inside the current tenant.

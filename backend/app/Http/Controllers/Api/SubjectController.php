@@ -28,4 +28,33 @@ class SubjectController extends Controller
 
         return response()->json(Subject::create($data), 201);
     }
+
+    public function update(Request $request, int $id)
+    {
+        // findOrFail is tenant-scoped by the global scope.
+        $subject = Subject::findOrFail($id);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            // Uniqueness is scoped to this school and ignores the current row.
+            'code' => [
+                'required', 'string', 'max:20',
+                Rule::unique('subjects', 'code')
+                    ->where('school_id', $request->user()->school_id)
+                    ->ignore($id),
+            ],
+        ]);
+
+        $subject->update($data);
+
+        return $subject;
+    }
+
+    public function destroy(int $id)
+    {
+        $subject = Subject::findOrFail($id);
+        $subject->delete();
+
+        return response()->json(null, 204);
+    }
 }
