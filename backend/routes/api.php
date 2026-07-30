@@ -34,6 +34,12 @@ use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\SecurityController;
 use App\Http\Controllers\Api\ScoreHistoryController;
 use App\Http\Controllers\Api\StudentSettingController;
+use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\CampusController;
+use App\Http\Controllers\Api\DepartmentController;
+use App\Http\Controllers\Api\SectionController;
+use App\Http\Controllers\Api\TransferController;
+use App\Http\Controllers\Api\ImportController;
 use App\Http\Middleware\ResolveTenant;
 use Illuminate\Support\Facades\Route;
 
@@ -72,6 +78,12 @@ Route::middleware(['auth:sanctum', ResolveTenant::class])->group(function () {
     Route::get('/settings', [StudentSettingController::class, 'show']);
     Route::put('/settings', [StudentSettingController::class, 'update']);
 
+    // School config reads (any authenticated tenant user).
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::get('/campuses', [CampusController::class, 'index']);
+    Route::get('/departments', [DepartmentController::class, 'index']);
+    Route::get('/sections', [SectionController::class, 'index']);
+
     // Parent portal (controllers verify the parent→child link).
     Route::get('/children', [ChildrenController::class, 'index']);
     Route::get('/child-results', [ChildResultsController::class, 'index']);
@@ -88,6 +100,7 @@ Route::middleware(['auth:sanctum', ResolveTenant::class])->group(function () {
     Route::post('/results', [ResultController::class, 'store']);            // ResultPolicy@create
     Route::post('/results/{id}/approve', [ResultController::class, 'approve']);
     Route::post('/results/{id}/publish', [ResultController::class, 'publish']);
+    Route::post('/results/{id}/reject', [ResultController::class, 'reject']);
     Route::post('/lessons', [LessonController::class, 'store']);            // LessonPolicy
     Route::post('/assignments', [AssignmentController::class, 'store']);    // AssignmentPolicy
     Route::post('/submissions', [SubmissionController::class, 'store']);    // SubmissionPolicy@create (student)
@@ -126,6 +139,24 @@ Route::middleware(['auth:sanctum', ResolveTenant::class])->group(function () {
         Route::post('/holidays', [HolidayController::class, 'store']);
         Route::post('/announcements', [AnnouncementController::class, 'store']);
         Route::post('/parent-links', [GuardianController::class, 'store']);
+
+        // School config writes.
+        Route::put('/profile', [ProfileController::class, 'update']);
+        Route::post('/profile', [ProfileController::class, 'update']);
+        Route::post('/campuses', [CampusController::class, 'store']);
+        Route::delete('/campuses/{id}', [CampusController::class, 'destroy']);
+        Route::post('/departments', [DepartmentController::class, 'store']);
+        Route::post('/sections', [SectionController::class, 'store']);
+
+        // Promotions/transfers, imports, user lifecycle, bulk publish, timetable delete.
+        Route::get('/transfers', [TransferController::class, 'index']);
+        Route::post('/transfers', [TransferController::class, 'store']);
+        Route::post('/import/students', [ImportController::class, 'students']);
+        Route::post('/import/teachers', [ImportController::class, 'teachers']);
+        Route::post('/users/{id}/status', [UserController::class, 'setStatus']);
+        Route::post('/users/{id}/role', [UserController::class, 'updateRole']);
+        Route::post('/results/publish-all', [ResultController::class, 'publishAll']);
+        Route::delete('/timetable/{id}', [TimetableController::class, 'destroy']);
 
         // Reports & analytics.
         Route::get('/reports/performance', [ReportController::class, 'performance']);

@@ -80,4 +80,37 @@ class ResultController extends Controller
 
         return $result;
     }
+
+    /**
+     * Admin rejects a result (sends it back, not published).
+     */
+    public function reject(Request $request, string $id)
+    {
+        $result = Result::findOrFail($id);
+        $this->authorize('reject', $result);
+
+        $result->update([
+            'status' => 'rejected',
+            'reviewed_by' => $request->user()->id,
+        ]);
+
+        return $result;
+    }
+
+    /**
+     * Admin bulk-publishes every 'approved' result in the tenant. The update is
+     * auto-scoped to the current school by the BelongsToSchool global scope.
+     */
+    public function publishAll(Request $request)
+    {
+        $this->authorize('publishAll', Result::class);
+
+        $published = Result::where('status', 'approved')
+            ->update([
+                'status' => 'published',
+                'reviewed_by' => $request->user()->id,
+            ]);
+
+        return response()->json(['published' => $published]);
+    }
 }

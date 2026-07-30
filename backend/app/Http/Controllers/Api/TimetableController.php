@@ -31,4 +31,18 @@ class TimetableController extends Controller
 
         return response()->json(TimetableEntry::create($data), 201);
     }
+
+    /**
+     * Delete a timetable entry. Admin only (route middleware). The findOrFail
+     * lookup is auto-scoped to the current school by the BelongsToSchool global
+     * scope, so another tenant's row 404s.
+     */
+    public function destroy(string $id)
+    {
+        $entry = TimetableEntry::findOrFail($id);
+
+        $entry->delete();
+
+        return response()->json(null, 204);
+    }
 }

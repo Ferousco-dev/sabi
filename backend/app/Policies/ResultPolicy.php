@@ -31,4 +31,18 @@ class ResultPolicy
     {
         return $user->hasRole('school_admin');
     }
+
+    public function reject(User $user, Result $result): bool
+    {
+        return $user->hasRole('school_admin');
+    }
+
+    /**
+     * Bulk publish is a class-level ability (no single model), so it takes only
+     * the actor. Admin only.
+     */
+    public function publishAll(User $user): bool
+    {
+        return $user->hasRole('school_admin');
+    }
 }
