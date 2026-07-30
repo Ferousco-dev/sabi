@@ -1,9 +1,10 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Users, BookOpen, CalendarCheck, UserCheck } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
+import { useResource } from "@/app/lib/useResource";
 import { getStudents, getAttendance, getTimetable, type Student, type AttendanceRecord, type TimetableEntry } from "@/app/lib/api/schools";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
@@ -43,18 +44,17 @@ const ATT = [
 
 export default function AdminDashboard() {
   const { user } = useAuth();
-  const [students, setStudents] = useState<Student[]>([]);
-  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
-  const [timetable, setTimetable] = useState<TimetableEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    Promise.all([getStudents(), getAttendance(), getTimetable()]).then(([s, a, t]) => {
-      if (s.ok && s.data) setStudents(s.data.students);
-      if (a.ok && a.data) setAttendance(a.data.attendance);
-      if (t.ok && t.data) setTimetable(t.data.timetable);
-    }).finally(() => setLoading(false));
-  }, []);
+  const { data, loading } = useResource("admin:overview", async () => {
+    const [s, a, t] = await Promise.all([getStudents(), getAttendance(), getTimetable()]);
+    return {
+      students: s.ok && s.data ? s.data.students : ([] as Student[]),
+      attendance: a.ok && a.data ? a.data.attendance : ([] as AttendanceRecord[]),
+      timetable: t.ok && t.data ? t.data.timetable : ([] as TimetableEntry[]),
+    };
+  });
+  const students = data?.students ?? [];
+  const attendance = data?.attendance ?? [];
+  const timetable = data?.timetable ?? [];
 
   const trend = useMemo(() => enrolmentTrend(students), [students]);
   const present = attendance.filter((a) => a.status === "present").length;

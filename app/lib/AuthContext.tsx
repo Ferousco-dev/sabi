@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import type { User, Role } from "./auth";
 import { getMe, getToken, setToken, clearToken, logout as apiLogout } from "./auth";
+import { clearResourceCache } from "./useResource";
 
 type AuthState = {
   user: User | null;
@@ -40,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     await apiLogout();
+    clearResourceCache(); // never leak one user's cached data into the next session
     setUser(null);
   };
 

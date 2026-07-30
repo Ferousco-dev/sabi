@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\AssessmentConfigController;
 use App\Http\Controllers\Api\AssignmentController;
 use App\Http\Controllers\Api\AttendanceController;
+use App\Http\Controllers\Api\AttendanceCorrectionController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChildAttendanceController;
 use App\Http\Controllers\Api\ChildResultsController;
@@ -112,10 +113,17 @@ Route::middleware(['auth:sanctum', ResolveTenant::class])->group(function () {
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
     Route::post('/messages', [MessageController::class, 'store']);
     Route::post('/emergency-contacts', [EmergencyContactController::class, 'store']);
+    // A student flags one of their own attendance days (student_id is forced to
+    // the authenticated user in the controller).
+    Route::post('/attendance-corrections', [AttendanceCorrectionController::class, 'store']);
 
     // ── Role-gated writes ──
     Route::middleware('role:school_admin,teacher')->group(function () {
         Route::post('/attendance', [AttendanceController::class, 'store']);
+        // Attendance correction review queue (admin + teacher).
+        Route::get('/attendance-corrections', [AttendanceCorrectionController::class, 'index']);
+        Route::post('/attendance-corrections/{id}/approve', [AttendanceCorrectionController::class, 'approve']);
+        Route::post('/attendance-corrections/{id}/reject', [AttendanceCorrectionController::class, 'reject']);
         Route::get('/teacher-reports/performance', [TeacherReportController::class, 'performance']);
         Route::get('/teacher-reports/completion', [TeacherReportController::class, 'completion']);
     });

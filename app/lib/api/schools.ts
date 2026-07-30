@@ -373,41 +373,46 @@ export async function bulkImportTeachers(data: { csv_data: string }): Promise<Fe
 
 // ── Attendance (existing + extended) ────────────────────────────────────
 
-export type AttendanceRecord = { id?: number; name: string; email: string; status: string; date: string; marked_by?: string; notes?: string };
+export type AttendanceRecord = { id?: number; student_id?: number; class_id?: number; name: string; email: string; status: string; date: string; marked_by?: string; notes?: string };
 export type AttendanceResponse = { success: true; date: string; attendance: AttendanceRecord[] };
 
-export async function getAttendance(date?: string): Promise<FetchResult<AttendanceResponse>> {
-  // GET /attendance?date= → bare array
-  const params = date ? `?date=${date}` : "";
+export async function getAttendance(date?: string, classId?: number): Promise<FetchResult<AttendanceResponse>> {
+  // GET /attendance?date=&class_id= → bare array (each row carries student_id).
+  const qs = new URLSearchParams();
+  if (date) qs.set("date", date);
+  if (classId) qs.set("class_id", String(classId));
+  const params = qs.toString() ? `?${qs}` : "";
   const res = await fetchJson<AttendanceRecord[]>(`/attendance${params}`, { method: "GET" });
   if (res.ok) return { ok: true, status: res.status, data: { success: true, date: date ?? "", attendance: toArray(res.data) } };
   return fail(res.status, errMsg(res));
 }
 
-export async function recordAttendance(_studentId: number, _status: string, _date?: string, _notes?: string): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no compatible route: POST /attendance is class-batch (requires class_id), not single-record
-}
-
-export async function bulkRecordAttendance(data: { date: string; records: { student_id: number; status: string }[] }): Promise<FetchResult<{ success: boolean; processed: number }>> {
-  // POST /attendance → class-batch upsert. NOTE: Laravel also requires class_id,
-  // which the old signature does not supply (see report).
+export async function bulkRecordAttendance(data: { class_id: number; date: string; records: { student_id: number; status: string }[] }): Promise<FetchResult<{ success: boolean; processed: number }>> {
+  // POST /attendance → class-batch upsert keyed on (student_id, date).
   const res = await fetchJson<unknown[]>("/attendance", { method: "POST", body: JSON.stringify(data) });
   if (res.ok) return { ok: true, status: res.status, data: { success: true, processed: Array.isArray(res.data) ? res.data.length : 0 } };
   return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
 }
 
-export type AttendanceCorrection = { id: number; student_name: string; original_status: string; new_status: string; reason: string; status: string; submitted_at: string };
+export type AttendanceCorrection = { id: number; student_name: string; date: string; original_status: string; new_status: string; reason: string; status: string; submitted_at: string };
 
-export async function submitAttendanceCorrection(_attendanceId: number, _newStatus: string, _reason: string): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no Laravel route
+export async function submitAttendanceCorrection(data: { date: string; requested_status: string; reason: string; attendance_record_id?: number }): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<{ success: boolean }>("/attendance-corrections", { method: "POST", body: JSON.stringify(data) });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
 }
 
-export async function getAttendanceCorrections(): Promise<FetchResult<{ success: true; corrections: AttendanceCorrection[] }>> {
-  return unavailable(); // no Laravel route
+export async function getAttendanceCorrections(status?: "pending" | "approved" | "rejected"): Promise<FetchResult<{ success: true; corrections: AttendanceCorrection[] }>> {
+  const params = status ? `?status=${status}` : "";
+  const res = await fetchJson<AttendanceCorrection[]>(`/attendance-corrections${params}`, { method: "GET" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true, corrections: toArray(res.data) } };
+  return fail(res.status, errMsg(res));
 }
 
-export async function approveAttendanceCorrection(_id: number, _approve: boolean): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no Laravel route
+export async function approveAttendanceCorrection(id: number, approve: boolean): Promise<FetchResult<{ success: boolean }>> {
+  const res = await fetchJson<{ success: boolean }>(`/attendance-corrections/${id}/${approve ? "approve" : "reject"}`, { method: "POST", body: "{}" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res as FetchResult<{ message?: string }>));
 }
 
 // ── Timetable (extended) ────────────────────────────────────────────────

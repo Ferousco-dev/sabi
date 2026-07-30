@@ -4,10 +4,16 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToSchool;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AttendanceRecord extends Model
 {
     use BelongsToSchool;
+
+    public function student(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'student_id');
+    }
 
     protected $fillable = [
         'school_id',

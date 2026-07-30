@@ -1,9 +1,13 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
-import { CalendarCheck, UserCheck, UserX, ClipboardList, CheckCircle2, XCircle } from "lucide-react";
-import { getAttendance, recordAttendance, getAttendanceCorrections, approveAttendanceCorrection, type AttendanceRecord } from "@/app/lib/api/schools";
+import { useEffect, useMemo, useState } from "react";
+import { CalendarCheck, UserCheck, ClipboardList, CheckCircle2, XCircle, Save } from "lucide-react";
+import {
+  getClasses, getEnrollments, getAttendance, bulkRecordAttendance,
+  getAttendanceCorrections, approveAttendanceCorrection,
+  type ClassItem, type AttendanceCorrection,
+} from "@/app/lib/api/schools";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { StatCard } from "@/app/components/dashboard/StatCard";
@@ -14,27 +18,62 @@ import { initials } from "@/app/lib/dashboard";
 import { useConfirm } from "@/app/components/ui/confirm";
 
 type Tab = "daily" | "corrections";
+type Status = "present" | "absent" | "late" | "excused";
+type RosterEntry = { student_id: number; name: string };
+
+const STATUSES: { key: Status; label: string; on: string; onBg: string }[] = [
+  { key: "present", label: "Present", on: "#067647", onBg: "#ECFDF3" },
+  { key: "late", label: "Late", on: "#B54708", onBg: "#FFFAEB" },
+  { key: "absent", label: "Absent", on: "#B42318", onBg: "#FEF3F2" },
+  { key: "excused", label: "Excused", on: "var(--teal)", onBg: "var(--teal-50)" },
+];
 
 export default function AttendancePage() {
   const [tab, setTab] = useState<Tab>("daily");
-
-  // Daily tab
-  const [records, setRecords] = useState<AttendanceRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [saving, setSaving] = useState<number | null>(null);
-
-  // Corrections tab
-  const [corrections, setCorrections] = useState<any[]>([]);
-  const [correctionsLoaded, setCorrectionsLoaded] = useState(false);
-  const [processing, setProcessing] = useState<number | null>(null);
   const confirm = useConfirm();
 
-  const load = () => getAttendance(date).then((res) => {
-    if (res.ok && res.data) setRecords(res.data.attendance);
-  }).finally(() => setLoading(false));
+  // ── Daily mark sheet ──────────────────────────────────────────────────────
+  const [classes, setClasses] = useState<ClassItem[]>([]);
+  const [classId, setClassId] = useState<number | null>(null);
+  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [roster, setRoster] = useState<RosterEntry[]>([]);
+  const [draft, setDraft] = useState<Record<number, Status>>({});
+  const [loading, setLoading] = useState(true);
+  const [loadingSheet, setLoadingSheet] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
-  useEffect(() => { load(); }, [date]); // eslint-disable-line react-hooks/exhaustive-deps
+  // ── Corrections ───────────────────────────────────────────────────────────
+  const [corrections, setCorrections] = useState<AttendanceCorrection[]>([]);
+  const [correctionsLoaded, setCorrectionsLoaded] = useState(false);
+  const [processing, setProcessing] = useState<number | null>(null);
+
+  useEffect(() => {
+    getClasses().then((res) => {
+      if (res.ok && res.data) {
+        setClasses(res.data.classes);
+        if (res.data.classes.length) setClassId(res.data.classes[0].id);
+      }
+    }).finally(() => setLoading(false));
+  }, []);
+
+  // Load the roster + any already-recorded statuses whenever class or date changes.
+  useEffect(() => {
+    if (!classId) { setRoster([]); setDraft({}); return; }
+    setLoadingSheet(true);
+    setSaved(false);
+    Promise.all([getEnrollments(classId), getAttendance(date, classId)]).then(([enr, att]) => {
+      const students: RosterEntry[] = enr.ok && enr.data
+        ? enr.data.enrollments.map((e) => ({ student_id: e.student_id, name: e.student_name }))
+        : [];
+      const existing: Record<number, Status> = {};
+      if (att.ok && att.data) {
+        for (const r of att.data.attendance) if (r.student_id) existing[r.student_id] = r.status as Status;
+      }
+      setRoster(students);
+      setDraft(Object.fromEntries(students.map((s) => [s.student_id, existing[s.student_id] ?? "present"])));
+    }).finally(() => setLoadingSheet(false));
+  }, [classId, date]);
 
   const loadCorrections = () => getAttendanceCorrections().then((res) => {
     if (res.ok && res.data) setCorrections(res.data.corrections);
@@ -44,12 +83,18 @@ export default function AttendancePage() {
     if (tab === "corrections" && !correctionsLoaded) loadCorrections();
   }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function toggleStatus(studentEmail: string, currentStatus: string, i: number) {
-    const newStatus = currentStatus === "present" ? "absent" : "present";
-    setSaving(i);
-    await recordAttendance(0, newStatus, date); // student_id looked up by email on backend
-    await load();
-    setSaving(null);
+  const setStatus = (studentId: number, status: Status) => {
+    setDraft((d) => ({ ...d, [studentId]: status }));
+    setSaved(false);
+  };
+
+  async function handleSave() {
+    if (!classId || roster.length === 0) return;
+    setSaving(true);
+    const records = roster.map((s) => ({ student_id: s.student_id, status: draft[s.student_id] ?? "present" }));
+    const res = await bulkRecordAttendance({ class_id: classId, date, records });
+    setSaving(false);
+    if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 2500); }
   }
 
   async function handleAction(id: number, approve: boolean) {
@@ -64,39 +109,45 @@ export default function AttendancePage() {
     }
     setProcessing(id);
     await approveAttendanceCorrection(id, approve);
-    loadCorrections();
+    await loadCorrections();
     setProcessing(null);
   }
 
+  const counts = useMemo(() => {
+    const c = { present: 0, late: 0, absent: 0, excused: 0 };
+    for (const s of roster) c[draft[s.student_id] ?? "present"]++;
+    return c;
+  }, [roster, draft]);
+  const total = roster.length;
+  const rate = total > 0 ? Math.round(((counts.present + counts.late) / total) * 100) : 0;
+  const pendingCount = corrections.filter((c) => c.status === "pending").length;
+
   if (loading) return <LoadingPage />;
 
-  const present = records.filter((r) => r.status === "present").length;
-  const total = records.length;
-  const rate = total > 0 ? Math.round((present / total) * 100) : 0;
-
-  const tabs: { key: Tab; label: string }[] = [
-    { key: "daily", label: "Daily" },
-    { key: "corrections", label: "Corrections" },
+  const tabs: { key: Tab; label: string; badge?: number }[] = [
+    { key: "daily", label: "Daily register" },
+    { key: "corrections", label: "Corrections", badge: pendingCount || undefined },
   ];
 
   return (
     <>
       <PageHeader
         title="Attendance"
-        subtitle="Review and correct attendance by date."
+        subtitle="Take the daily register per class, and review correction requests."
         actions={tab === "daily" ? (
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)} aria-label="Attendance date"
-            style={{ height: 40, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", color: "var(--text)" }} />
+            style={{ height: 40, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", background: "var(--bg)", color: "var(--text)" }} />
         ) : undefined}
       />
 
       <div role="tablist" aria-label="Attendance view" style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-        {tabs.map(({ key, label }) => {
+        {tabs.map(({ key, label, badge }) => {
           const active = tab === key;
           return (
             <button key={key} role="tab" aria-selected={active} onClick={() => setTab(key)}
-              style={{ height: 38, padding: "0 16px", borderRadius: "var(--radius-full)", fontSize: 13.5, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-sans)", display: "inline-flex", alignItems: "center", gap: 6, border: `1px solid ${active ? "var(--teal)" : "var(--border-strong)"}`, background: active ? "var(--teal)" : "var(--bg)", color: active ? "#fff" : "var(--text-muted)" }}>
+              style={{ height: 38, padding: "0 16px", borderRadius: "var(--radius-full)", fontSize: 13.5, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-sans)", display: "inline-flex", alignItems: "center", gap: 7, border: `1px solid ${active ? "var(--teal)" : "var(--border-strong)"}`, background: active ? "var(--teal)" : "var(--bg)", color: active ? "#fff" : "var(--text-muted)" }}>
               {label}
+              {badge ? <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: 18, height: 18, padding: "0 5px", borderRadius: "var(--radius-full)", background: active ? "rgba(255,255,255,0.25)" : "var(--gold)", color: active ? "#fff" : "#3d2c00", fontSize: 11, fontWeight: 700 }}>{badge}</span> : null}
             </button>
           );
         })}
@@ -104,65 +155,88 @@ export default function AttendancePage() {
 
       {tab === "daily" ? (
         <>
-          {/* no class field on record */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>
-            <div className="dash-rise"><StatCard label="Present" value={present} Icon={UserCheck} /></div>
-            <div className="dash-rise" style={{ animationDelay: "70ms" }}><StatCard label="Total students" value={total} Icon={CalendarCheck} /></div>
-            <div className="dash-rise" style={{ animationDelay: "140ms" }}><StatCard label="Attendance rate" value={rate} suffix="%" Icon={UserCheck} /></div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 12, alignItems: "center", marginBottom: 20 }}>
+            <label htmlFor="att-class" style={{ fontSize: 13, fontWeight: 600, color: "var(--gray-900)" }}>Class</label>
+            <select id="att-class" value={classId ?? ""} onChange={(e) => setClassId(Number(e.target.value) || null)}
+              style={{ height: 40, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", background: "var(--bg)", fontFamily: "var(--font-sans)", color: "var(--text)", minWidth: 200 }}>
+              {classes.length === 0 && <option value="">No classes yet</option>}
+              {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
           </div>
 
-          <Card padded={false}>
-            {records.length === 0 ? (
-              <EmptyState Icon={CalendarCheck} title="No records for this date" description="Pick another date, or attendance has not been taken yet." />
-            ) : (
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 520 }}>
-                  <thead>
-                    <tr>{["Student", "Status", ""].map((h, i) => <th key={i} style={{ ...thStyle, textAlign: i === 2 ? "right" : "left" }}>{h}</th>)}</tr>
-                  </thead>
-                  <tbody>
-                    {records.map((r, i) => {
-                      const isPresent = r.status === "present";
-                      return (
-                        <tr key={r.email}>
-                          <td style={tdStyle}>
-                            <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-                              <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: "var(--radius-full)", background: "var(--teal-50)", color: "var(--teal)", fontSize: 12, fontWeight: 700 }}>{initials(r.name)}</span>
-                              <span style={{ fontWeight: 600, color: "var(--gray-900)" }}>{r.name}</span>
-                            </span>
-                          </td>
-                          <td style={tdStyle}>
-                            <Badge tone={isPresent ? "success" : r.status === "late" ? "warning" : "danger"} dot>
-                              {r.status[0].toUpperCase() + r.status.slice(1)}
-                            </Badge>
-                          </td>
-                          <td style={{ ...tdStyle, textAlign: "right" }}>
-                            <button onClick={() => toggleStatus(r.email, r.status, i)} disabled={saving === i}
-                              style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 34, padding: "0 12px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 600, border: `1px solid ${isPresent ? "#FECDCA" : "var(--teal)"}`, background: isPresent ? "#FEF3F2" : "var(--teal-50)", color: isPresent ? "#B42318" : "var(--teal)", cursor: saving === i ? "default" : "pointer", fontFamily: "var(--font-sans)", opacity: saving === i ? 0.6 : 1 }}>
-                              {saving === i ? <LoadingSpinner size={13} /> : isPresent ? <UserX size={14} strokeWidth={2} aria-hidden="true" /> : <UserCheck size={14} strokeWidth={2} aria-hidden="true" />}
-                              Mark {isPresent ? "absent" : "present"}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+          {classes.length === 0 ? (
+            <Card><EmptyState Icon={CalendarCheck} title="No classes yet" description="Create a class first, then you can take attendance for it." /></Card>
+          ) : (
+            <>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16, marginBottom: 20 }}>
+                <div className="dash-rise"><StatCard label="On roll" value={total} Icon={CalendarCheck} /></div>
+                <div className="dash-rise" style={{ animationDelay: "70ms" }}><StatCard label="Present + late" value={counts.present + counts.late} Icon={UserCheck} /></div>
+                <div className="dash-rise" style={{ animationDelay: "140ms" }}><StatCard label="Attendance rate" value={rate} suffix="%" Icon={UserCheck} /></div>
               </div>
-            )}
-          </Card>
+
+              <Card padded={false}>
+                {loadingSheet ? (
+                  <div style={{ padding: 48, display: "flex", justifyContent: "center" }}><LoadingSpinner size={22} /></div>
+                ) : roster.length === 0 ? (
+                  <EmptyState Icon={CalendarCheck} title="No students enrolled" description="Enroll students into this class to take its attendance." />
+                ) : (
+                  <>
+                    <div style={{ overflowX: "auto" }}>
+                      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
+                        <thead>
+                          <tr><th style={thStyle}>Student</th><th style={{ ...thStyle, textAlign: "right" }}>Status</th></tr>
+                        </thead>
+                        <tbody>
+                          {roster.map((s) => {
+                            const cur = draft[s.student_id] ?? "present";
+                            return (
+                              <tr key={s.student_id}>
+                                <td style={tdStyle}>
+                                  <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                                    <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: "var(--radius-full)", background: "var(--teal-50)", color: "var(--teal)", fontSize: 12, fontWeight: 700 }}>{initials(s.name)}</span>
+                                    <span style={{ fontWeight: 600, color: "var(--gray-900)" }}>{s.name}</span>
+                                  </span>
+                                </td>
+                                <td style={{ ...tdStyle, textAlign: "right" }}>
+                                  <div role="group" aria-label={`Status for ${s.name}`} style={{ display: "inline-flex", gap: 4, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                                    {STATUSES.map((st) => {
+                                      const active = cur === st.key;
+                                      return (
+                                        <button key={st.key} type="button" aria-pressed={active} onClick={() => setStatus(s.student_id, st.key)}
+                                          style={{ height: 30, padding: "0 10px", borderRadius: "var(--radius-sm)", fontSize: 12.5, fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-sans)", border: `1px solid ${active ? "transparent" : "var(--border-strong)"}`, background: active ? st.onBg : "var(--bg)", color: active ? st.on : "var(--text-subtle)" }}>
+                                          {st.label}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 12, padding: "14px 16px", borderTop: "1px solid var(--border)" }}>
+                      {saved && <span style={{ fontSize: 13, color: "#067647", fontWeight: 600, display: "inline-flex", alignItems: "center", gap: 6 }}><CheckCircle2 size={15} aria-hidden="true" /> Register saved</span>}
+                      <button onClick={handleSave} disabled={saving}
+                        style={{ height: 42, padding: "0 20px", borderRadius: "var(--radius-sm)", background: "var(--teal)", color: "#fff", fontSize: 14, fontWeight: 600, border: "none", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1, display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "var(--font-sans)" }}>
+                        {saving ? <LoadingSpinner size={16} color="#fff" /> : <Save size={16} strokeWidth={2} aria-hidden="true" />}
+                        {saving ? "Saving…" : "Save register"}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </Card>
+            </>
+          )}
         </>
       ) : (
         <div style={{ maxWidth: 760 }}>
           {!correctionsLoaded ? (
-            <LoadingPage />
+            <div style={{ padding: 48, display: "flex", justifyContent: "center" }}><LoadingSpinner size={22} /></div>
           ) : corrections.length === 0 ? (
             <Card>
-              <EmptyState
-                Icon={ClipboardList}
-                title="No pending corrections"
-                description="Requests for attendance corrections from students or teachers will appear here."
-              />
+              <EmptyState Icon={ClipboardList} title="No correction requests" description="When students flag an attendance day as wrong, their requests appear here for review." />
             </Card>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -171,7 +245,10 @@ export default function AttendancePage() {
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10 }}>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
                       <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 32, height: 32, borderRadius: "var(--radius-full)", background: "var(--teal-50)", color: "var(--teal)", fontSize: 12, fontWeight: 700 }}>{initials(c.student_name)}</span>
-                      <span style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>{c.student_name}</span>
+                      <span>
+                        <span style={{ display: "block", fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>{c.student_name}</span>
+                        <span style={{ display: "block", fontSize: 12.5, color: "var(--text-subtle)" }}>{new Date(c.date).toLocaleDateString()}</span>
+                      </span>
                     </span>
                     <Badge tone={c.status === "pending" ? "warning" : c.status === "approved" ? "success" : "danger"} dot>
                       {c.status[0].toUpperCase() + c.status.slice(1)}
@@ -214,6 +291,7 @@ const thStyle = {
   letterSpacing: "0.04em",
   borderBottom: "1px solid var(--border)",
   whiteSpace: "nowrap" as const,
+  textAlign: "left" as const,
 };
 
 const tdStyle = {

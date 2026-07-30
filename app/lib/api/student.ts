@@ -156,9 +156,17 @@ export function getStudentAttendance(): Promise<FetchResult<{ success: true; rec
   );
 }
 
-// STUB: Laravel has no attendance-correction request endpoint.
-export function requestAttendanceCorrection(_data: { date: string; reason: string }): Promise<FetchResult<{ success: boolean }>> {
-  return stub();
+// POST /attendance-corrections — the student flags one of their own days.
+// requested_status is what they believe it should be (defaults to "present",
+// the common dispute: "I was marked absent but I was here").
+export function requestAttendanceCorrection(data: { date: string; reason: string; requested_status?: string }): Promise<FetchResult<{ success: boolean }>> {
+  return adapt<{ success: boolean }, { success: boolean }>(
+    fetchJson<{ success: boolean }>("/attendance-corrections", {
+      method: "POST",
+      body: JSON.stringify({ date: data.date, reason: data.reason, requested_status: data.requested_status ?? "present" }),
+    }),
+    () => ({ success: true }),
+  );
 }
 
 // ── Assessments/Exams → GET /assessment-configs ──────────────────────────────

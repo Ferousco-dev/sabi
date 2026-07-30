@@ -21,11 +21,24 @@ class AttendanceController extends Controller
             'date' => ['sometimes', 'date'],
         ]);
 
-        return AttendanceRecord::query()
+        $rows = AttendanceRecord::query()
+            ->with('student:id,name,email')
             ->when($filters['class_id'] ?? null, fn ($q, $id) => $q->where('school_class_id', $id))
             ->when($filters['date'] ?? null, fn ($q, $date) => $q->whereDate('date', $date))
             ->orderBy('student_id')
             ->get();
+
+        // Shape for the dashboard: keep student_id (needed to pre-fill the mark
+        // sheet) alongside the display name/email.
+        return $rows->map(fn (AttendanceRecord $r) => [
+            'id' => $r->id,
+            'student_id' => $r->student_id,
+            'class_id' => $r->school_class_id,
+            'name' => $r->student?->name ?? 'Unknown',
+            'email' => $r->student?->email ?? '',
+            'status' => $r->status,
+            'date' => $r->date,
+        ]);
     }
 
     /**
