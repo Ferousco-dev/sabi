@@ -1,34 +1,37 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ClassController;
+use App\Http\Controllers\Api\InvitationController;
+use App\Http\Controllers\Api\SubjectController;
+use App\Http\Controllers\Api\TimetableController;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Middleware\ResolveTenant;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 
-// Public: exchange email + password for a Sanctum token.
-Route::post('/login', function (Request $request) {
-    $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
+// ── Public ────────────────────────────────────────────────────────────────
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/invitations/accept', [InvitationController::class, 'accept']);
 
-    $user = User::where('email', $request->email)->first();
-
-    if (! $user || ! Hash::check($request->password, $user->password)) {
-        return response()->json(['message' => 'Invalid credentials.'], 401);
-    }
-
-    return ['token' => $user->createToken('api')->plainTextToken];
-});
-
-// Everything here requires a valid token (auth:sanctum) AND is pinned to the
-// caller's school (ResolveTenant). Order matters: authenticate first, then
-// resolve the tenant from the authenticated user.
+// ── Authenticated + tenant-scoped ───────────────────────────────────────────
+// auth:sanctum proves who you are; ResolveTenant pins you to your school.
 Route::middleware(['auth:sanctum', ResolveTenant::class])->group(function () {
-    Route::get('/user', fn (Request $request) => $request->user());
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
+    // Reads: any authenticated user in the tenant.
     Route::get('/classes', [ClassController::class, 'index']);
+    Route::get('/subjects', [SubjectController::class, 'index']);
+    Route::get('/timetable', [TimetableController::class, 'index']);
+
+    // Classes: writes gated by SchoolClassPolicy (inside the controller).
     Route::post('/classes', [ClassController::class, 'store']);
+
+    // Admin-only writes: coarse `role` middleware.
+    Route::middleware('role:school_admin')->group(function () {
+        Route::get('/users', [UserController::class, 'index']);
+        Route::post('/subjects', [SubjectController::class, 'store']);
+        Route::post('/timetable', [TimetableController::class, 'store']);
+        Route::post('/invitations', [InvitationController::class, 'store']);
+    });
 });

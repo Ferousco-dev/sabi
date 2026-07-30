@@ -20,6 +20,8 @@ class ClassTenancyTest extends TestCase
             'name' => "Admin $school",
             'email' => strtolower(str_replace(' ', '', $school)) . '@test.test',
             'password' => bcrypt('password'),
+            'role' => 'school_admin',
+            'status' => 'active',
             'school_id' => $s->id,
         ]);
         SchoolClass::create(['school_id' => $s->id, 'name' => $class]);
