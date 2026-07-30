@@ -1,14 +1,24 @@
 "use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { LogOut, PanelLeftClose, PanelLeftOpen, ChevronDown } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
-import { NAV_BY_ROLE, ROLE_LABEL, type NavItem } from "./dashboardNav";
+import { NAV_BY_ROLE, ROLE_LABEL, isGroup, type NavLink, type NavSection } from "./dashboardNav";
 import { initials } from "@/app/lib/dashboard";
 
-function isActive(pathname: string, item: NavItem, basePath: string): boolean {
-  if (item.href === basePath) return pathname === basePath;
-  return pathname === item.href || pathname.startsWith(item.href + "/");
+function linkActive(pathname: string, href: string, basePath: string): boolean {
+  if (href === basePath) return pathname === basePath;
+  return pathname === href || pathname.startsWith(href + "/");
+}
+
+/** Which group labels contain the current route (so we can auto-open them). */
+function activeGroups(sections: NavSection[], pathname: string, basePath: string): string[] {
+  const open: string[] = [];
+  for (const s of sections) for (const e of s.items) {
+    if (isGroup(e) && e.children.some((c) => linkActive(pathname, c.href, basePath))) open.push(e.label);
+  }
+  return open;
 }
 
 export function PremiumSidebar({
@@ -26,7 +36,19 @@ export function PremiumSidebar({
   const { user, logout } = useAuth();
   const role = user?.role ?? "student";
   const sections = NAV_BY_ROLE[role] ?? NAV_BY_ROLE.student;
-  const basePath = sections[0]?.items[0]?.href ?? "/";
+  const basePath = (sections[0]?.items[0] as NavLink | undefined)?.href ?? "/";
+
+  const [open, setOpen] = useState<Set<string>>(() => new Set(activeGroups(sections, pathname, basePath)));
+
+  // Keep the group that owns the current route open as the user navigates.
+  useEffect(() => {
+    const active = activeGroups(sections, pathname, basePath);
+    if (active.length) setOpen((prev) => { const next = new Set(prev); active.forEach((g) => next.add(g)); return next; });
+  }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function toggleGroup(label: string) {
+    setOpen((prev) => { const next = new Set(prev); next.has(label) ? next.delete(label) : next.add(label); return next; });
+  }
 
   async function signOut() {
     await logout();
@@ -34,6 +56,37 @@ export function PremiumSidebar({
   }
 
   const padX = collapsed ? 0 : 12;
+
+  /** A single leaf link (used at top level and inside groups). */
+  function LeafLink({ item, nested }: { item: NavLink; nested?: boolean }) {
+    const active = linkActive(pathname, item.href, basePath);
+    const Icon = item.icon;
+    return (
+      <Link
+        href={item.href}
+        onClick={onNavigate}
+        aria-current={active ? "page" : undefined}
+        aria-label={collapsed ? item.label : undefined}
+        data-active={active}
+        data-tip={item.label}
+        className={`nav-item${collapsed ? " rail-tip" : ""}`}
+        style={{
+          position: "relative", display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "flex-start",
+          gap: 11, minHeight: collapsed ? 44 : (nested ? 38 : 42), width: collapsed ? 44 : "100%",
+          padding: collapsed ? 0 : `0 ${padX}px`, borderRadius: "var(--radius-sm)", textDecoration: "none",
+          fontSize: nested ? 13.5 : 14, fontWeight: active ? 600 : 500,
+          color: active ? "var(--teal)" : "var(--text-muted)", background: active ? "var(--teal-50)" : "transparent",
+        }}
+      >
+        {active && !collapsed && <span aria-hidden="true" style={{ position: "absolute", left: 0, top: 8, bottom: 8, width: 3, borderRadius: "0 3px 3px 0", background: "var(--teal)" }} />}
+        <Icon className="sidebar-icon" size={nested ? 17 : 19} strokeWidth={active ? 2.1 : 1.9} style={{ color: active ? "var(--teal)" : "var(--gray-400)", flexShrink: 0 }} aria-hidden="true" />
+        {!collapsed && <span className="sidebar-label" style={{ flex: 1 }}>{item.label}</span>}
+        {!collapsed && item.badge != null && (
+          <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--text-subtle)", background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "var(--radius-full)", padding: "1px 7px" }}>{item.badge}</span>
+        )}
+      </Link>
+    );
+  }
 
   return (
     <nav
@@ -67,36 +120,54 @@ export function PremiumSidebar({
         {sections.map((section, si) => (
           <div key={si} style={{ marginTop: si === 0 ? 0 : (collapsed ? 10 : 18) }}>
             {section.title && !collapsed && (
-              <p className="sidebar-label" style={{ padding: "0 12px 6px", fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--gray-400)" }}>
-                {section.title}
-              </p>
+              <p className="sidebar-label" style={{ padding: "0 12px 6px", fontSize: 11, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--gray-400)" }}>{section.title}</p>
             )}
             {section.title && collapsed && si > 0 && <div style={{ height: 1, background: "var(--border)", margin: "8px 10px" }} />}
             <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 3, alignItems: collapsed ? "center" : "stretch" }}>
-              {section.items.map((item) => {
-                const active = isActive(pathname, item, basePath);
-                const Icon = item.icon;
+              {section.items.map((entry) => {
+                if (!isGroup(entry)) {
+                  return <li key={entry.href} style={{ width: collapsed ? "auto" : "100%" }}><LeafLink item={entry} /></li>;
+                }
+                // ── Collapsible group ──
+                const Icon = entry.icon;
+                const childActive = entry.children.some((c) => linkActive(pathname, c.href, basePath));
+                const isOpen = open.has(entry.label);
+
+                if (collapsed) {
+                  // Rail: a single icon; clicking expands the sidebar and opens this group.
+                  return (
+                    <li key={entry.label} style={{ width: "auto" }}>
+                      <button type="button" aria-label={entry.label} data-tip={entry.label} data-active={childActive}
+                        onClick={() => { setOpen((p) => new Set(p).add(entry.label)); onToggle?.(); }}
+                        className="nav-item rail-tip"
+                        style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 44, height: 44, borderRadius: "var(--radius-sm)", border: "none", background: childActive ? "var(--teal-50)" : "transparent", cursor: "pointer" }}>
+                        <Icon className="sidebar-icon" size={19} strokeWidth={childActive ? 2.1 : 1.9} style={{ color: childActive ? "var(--teal)" : "var(--gray-400)" }} aria-hidden="true" />
+                      </button>
+                    </li>
+                  );
+                }
+
                 return (
-                  <li key={item.href} style={{ width: collapsed ? "auto" : "100%" }}>
-                    <Link
-                      href={item.href}
-                      onClick={onNavigate}
-                      aria-current={active ? "page" : undefined}
-                      aria-label={collapsed ? item.label : undefined}
-                      data-active={active}
-                      data-tip={item.label}
-                      className={`nav-item${collapsed ? " rail-tip" : ""}`}
+                  <li key={entry.label} style={{ width: "100%" }}>
+                    <button type="button" onClick={() => toggleGroup(entry.label)} aria-expanded={isOpen}
+                      className="nav-item" data-active={childActive && !isOpen}
                       style={{
-                        position: "relative", display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "flex-start",
-                        gap: 11, minHeight: 44, width: collapsed ? 44 : "100%", padding: collapsed ? 0 : `0 ${padX}px`,
-                        borderRadius: "var(--radius-sm)", textDecoration: "none", fontSize: 14, fontWeight: active ? 600 : 500,
-                        color: active ? "var(--teal)" : "var(--text-muted)", background: active ? "var(--teal-50)" : "transparent",
-                      }}
-                    >
-                      {active && !collapsed && <span aria-hidden="true" style={{ position: "absolute", left: 0, top: 9, bottom: 9, width: 3, borderRadius: "0 3px 3px 0", background: "var(--teal)" }} />}
-                      <Icon className="sidebar-icon" size={19} strokeWidth={active ? 2.1 : 1.9} style={{ color: active ? "var(--teal)" : "var(--gray-400)", flexShrink: 0 }} aria-hidden="true" />
-                      {!collapsed && <span className="sidebar-label" style={{ flex: 1 }}>{item.label}</span>}
-                    </Link>
+                        display: "flex", alignItems: "center", gap: 11, minHeight: 42, width: "100%", padding: `0 ${padX}px`,
+                        borderRadius: "var(--radius-sm)", border: "none", cursor: "pointer", fontFamily: "var(--font-sans)", textAlign: "left",
+                        fontSize: 14, fontWeight: childActive ? 600 : 500,
+                        color: childActive ? "var(--teal)" : "var(--text-muted)", background: childActive && !isOpen ? "var(--teal-50)" : "transparent",
+                      }}>
+                      <Icon className="sidebar-icon" size={19} strokeWidth={childActive ? 2.1 : 1.9} style={{ color: childActive ? "var(--teal)" : "var(--gray-400)", flexShrink: 0 }} aria-hidden="true" />
+                      <span className="sidebar-label" style={{ flex: 1 }}>{entry.label}</span>
+                      <ChevronDown size={16} strokeWidth={2} aria-hidden="true" style={{ color: "var(--gray-400)", flexShrink: 0, transition: "transform 0.18s ease", transform: isOpen ? "rotate(180deg)" : "none" }} />
+                    </button>
+                    {isOpen && (
+                      <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 2, margin: "3px 0 4px", padding: 4, border: "1px solid var(--border)", borderRadius: "var(--radius-md)" }}>
+                        {entry.children.map((child) => (
+                          <li key={child.href}><LeafLink item={child} nested /></li>
+                        ))}
+                      </ul>
+                    )}
                   </li>
                 );
               })}
