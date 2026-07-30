@@ -2,83 +2,118 @@
 
 export const dynamic = "force-dynamic";
 import { useState } from "react";
-import { Save, Check } from "lucide-react";
-import { updateSecuritySettings } from "@/app/lib/api/schools";
+import { ShieldCheck, Monitor, LogOut, History, ScrollText } from "lucide-react";
+import Link from "next/link";
+import { getSecuritySessions, revokeSecuritySession, type DeviceSession } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
+import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
-import { Button } from "@/app/components/ui/Button";
+import { EmptyState } from "@/app/components/dashboard/EmptyState";
+import { initials } from "@/app/lib/dashboard";
+import { useConfirm } from "@/app/components/ui/confirm";
+
+function relative(iso: string | null): string {
+  if (!iso) return "Never used";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const mins = Math.round((Date.now() - d.getTime()) / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins} min ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs} hr ago`;
+  return d.toLocaleDateString();
+}
 
 export default function SecurityPage() {
-  const [twoFactor, setTwoFactor] = useState(false);
-  const [passPolicy, setPassPolicy] = useState("standard");
-  const [sessionTimeout, setSessionTimeout] = useState("60");
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const { data, loading, refresh } = useResource("admin:security-sessions", async () => {
+    const res = await getSecuritySessions();
+    return { sessions: res.ok && res.data ? res.data.sessions : ([] as DeviceSession[]) };
+  });
+  const sessions = data?.sessions ?? [];
+  const [revoking, setRevoking] = useState<number | null>(null);
+  const confirm = useConfirm();
 
-  async function handleSave() {
-    setSaving(true);
-    await updateSecuritySettings({
-      two_factor_enabled: twoFactor,
-      password_policy: passPolicy,
-      session_timeout: Number(sessionTimeout),
+  async function handleRevoke(s: DeviceSession) {
+    const ok = await confirm({
+      title: "Sign out this session?",
+      message: `This device will be signed out immediately${s.user_name ? ` for ${s.user_name}` : ""} and will need to sign in again.`,
+      confirmLabel: "Sign out session",
+      tone: "danger",
     });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    if (!ok) return;
+    setRevoking(s.id);
+    const res = await revokeSecuritySession(s.id);
+    if (res.ok) await refresh();
+    setRevoking(null);
   }
 
+  if (loading) return <LoadingPage />;
+
   return (
-    <div style={{ maxWidth: 680 }}>
+    <div style={{ maxWidth: 820 }}>
       <PageHeader
-        title="Security Settings"
-        subtitle="Configure school-wide security policies."
-        actions={
-          <Button
-            variant={saved ? "gold" : "primary"}
-            onClick={handleSave}
-            disabled={saving}
-            icon={saved ? <Check size={16} /> : <Save size={16} />}
-          >
-            {saved ? "Saved!" : saving ? "Saving…" : "Save"}
-          </Button>
-        }
+        title="Security"
+        subtitle="Active sign-in sessions across your school, and where to review security activity."
       />
 
-      <Card padded={false}>
-        <div style={{ padding: 20, borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+      <Card padded={false} style={{ marginBottom: 20 }}>
+        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 10 }}>
+          <ShieldCheck size={18} style={{ color: "var(--teal)" }} aria-hidden="true" />
           <div>
-            <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)" }}>Two-Factor Authentication</div>
-            <div style={{ fontSize: 13.5, color: "var(--text-subtle)", marginTop: 2 }}>Require 2FA for all staff accounts</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--gray-900)" }}>Active sessions</div>
+            <div style={{ fontSize: 13, color: "var(--text-subtle)" }}>Each is a device currently signed in. Revoke any you don&apos;t recognise.</div>
           </div>
-          <button
-            onClick={() => setTwoFactor(!twoFactor)}
-            role="switch"
-            aria-checked={twoFactor}
-            aria-label="Two-factor authentication"
-            style={{ flexShrink: 0, width: 48, height: 26, borderRadius: "var(--radius-full)", border: "none", cursor: "pointer", background: twoFactor ? "var(--teal)" : "var(--gray-300)", transition: "background 0.2s", position: "relative" }}
-          >
-            <span style={{ position: "absolute", top: 3, left: twoFactor ? 24 : 3, width: 20, height: 20, borderRadius: "50%", background: "#fff", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.15)" }} />
-          </button>
         </div>
 
-        <div style={{ padding: 20, borderBottom: "1px solid var(--border)" }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", marginBottom: 4 }}>Password Policy</div>
-          <div style={{ fontSize: 13.5, color: "var(--text-subtle)", marginBottom: 10 }}>Minimum password strength requirement</div>
-          <select value={passPolicy} onChange={(e) => setPassPolicy(e.target.value)}
-            style={{ height: 40, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", background: "var(--bg)", color: "var(--text)", fontFamily: "var(--font-sans)", cursor: "pointer" }}>
-            <option value="standard">Standard (8+ chars)</option>
-            <option value="strong">Strong (12+ chars, mixed case, numbers)</option>
-            <option value="very_strong">Very Strong (16+ chars, mixed case, numbers, symbols)</option>
-          </select>
-        </div>
-
-        <div style={{ padding: 20 }}>
-          <div style={{ fontSize: 15, fontWeight: 600, color: "var(--gray-900)", marginBottom: 4 }}>Session Timeout</div>
-          <div style={{ fontSize: 13.5, color: "var(--text-subtle)", marginBottom: 10 }}>Auto-logout after inactivity (minutes)</div>
-          <input type="number" value={sessionTimeout} onChange={(e) => setSessionTimeout(e.target.value)}
-            style={{ height: 40, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", width: 120, color: "var(--text)", fontFamily: "var(--font-sans)" }} />
-        </div>
+        {sessions.length === 0 ? (
+          <EmptyState Icon={Monitor} title="No active sessions" description="Signed-in devices for your school will appear here." />
+        ) : (
+          sessions.map((s) => (
+            <div key={s.id} style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+                <span aria-hidden="true" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, borderRadius: "var(--radius-full)", background: "var(--teal-50)", color: "var(--teal)", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                  {s.user_name ? initials(s.user_name) : <Monitor size={16} />}
+                </span>
+                <span style={{ minWidth: 0 }}>
+                  <span style={{ display: "block", fontSize: 14, fontWeight: 600, color: "var(--gray-900)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.user_name ?? "Unknown user"}</span>
+                  <span style={{ display: "block", fontSize: 12.5, color: "var(--text-subtle)" }}>Last active {relative(s.last_used_at)} · since {new Date(s.created_at).toLocaleDateString()}</span>
+                </span>
+              </span>
+              <button onClick={() => handleRevoke(s)} disabled={revoking === s.id}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 36, padding: "0 14px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 600, border: "1px solid #FECDCA", background: "#FEF3F2", color: "#B42318", cursor: revoking === s.id ? "default" : "pointer", fontFamily: "var(--font-sans)", opacity: revoking === s.id ? 0.6 : 1, flexShrink: 0 }}>
+                {revoking === s.id ? <LoadingSpinner size={14} /> : <LogOut size={14} strokeWidth={2} aria-hidden="true" />}
+                Sign out
+              </button>
+            </div>
+          ))
+        )}
       </Card>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+        <Link href="/admin/login-history" style={{ textDecoration: "none" }}>
+          <Card>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span aria-hidden="true" style={{ width: 40, height: 40, borderRadius: "var(--radius-sm)", background: "var(--teal-50)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><History size={18} style={{ color: "var(--teal)" }} /></span>
+              <div>
+                <div style={{ fontSize: 14.5, fontWeight: 700, color: "var(--gray-900)" }}>Login history</div>
+                <div style={{ fontSize: 13, color: "var(--text-subtle)" }}>Recent sign-ins across your school</div>
+              </div>
+            </div>
+          </Card>
+        </Link>
+        <Link href="/admin/audit-logs" style={{ textDecoration: "none" }}>
+          <Card>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span aria-hidden="true" style={{ width: 40, height: 40, borderRadius: "var(--radius-sm)", background: "var(--teal-50)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ScrollText size={18} style={{ color: "var(--teal)" }} /></span>
+              <div>
+                <div style={{ fontSize: 14.5, fontWeight: 700, color: "var(--gray-900)" }}>Audit logs</div>
+                <div style={{ fontSize: 13, color: "var(--text-subtle)" }}>Who changed what, and when</div>
+              </div>
+            </div>
+          </Card>
+        </Link>
+      </div>
     </div>
   );
 }

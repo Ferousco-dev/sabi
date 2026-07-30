@@ -642,6 +642,16 @@ export async function getLoginHistory(): Promise<FetchResult<{ success: true; hi
   if (res.ok) return { ok: true, status: res.status, data: { success: true, history: toArray(res.data) } };
   return fail(res.status, errMsg(res));
 }
-export async function updateSecuritySettings(_data: { two_factor_enabled?: boolean; password_policy?: string; session_timeout?: number }): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no Laravel route
+export type DeviceSession = { id: number; name: string; user_name: string | null; last_used_at: string | null; created_at: string };
+export async function getSecuritySessions(): Promise<FetchResult<{ success: true; sessions: DeviceSession[] }>> {
+  // GET /security/sessions → active Sanctum tokens for this school's users.
+  const res = await fetchJson<DeviceSession[]>("/security/sessions", { method: "GET" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true, sessions: toArray(res.data) } };
+  return fail(res.status, errMsg(res));
+}
+export async function revokeSecuritySession(id: number): Promise<FetchResult<{ success: boolean }>> {
+  // POST /security/sessions/{id}/revoke → deletes the token (signs that device out).
+  const res = await fetchJson<{ message?: string }>(`/security/sessions/${id}/revoke`, { method: "POST", body: "{}" });
+  if (res.ok) return { ok: true, status: res.status, data: { success: true } };
+  return fail(res.status, errMsg(res));
 }
