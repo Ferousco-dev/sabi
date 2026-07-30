@@ -105,6 +105,11 @@ main { overflow-x: clip; }
 }
 .skip-link:focus { top: 12px; }
 
+/* Confirmation dialog entrance. */
+.confirm-pop { animation: confirm-pop 0.16s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes confirm-pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .confirm-pop { animation: none; } }
+
 ::selection { background: var(--teal-50); color: var(--teal); }
 
 /* Layout container, one consistent max width. */

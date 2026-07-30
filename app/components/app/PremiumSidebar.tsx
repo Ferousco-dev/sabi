@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, PanelLeftClose, PanelLeftOpen, ChevronDown } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
+import { useConfirm } from "@/app/components/ui/confirm";
 import { NAV_BY_ROLE, ROLE_LABEL, isGroup, type NavLink, type NavSection } from "./dashboardNav";
 import { initials } from "@/app/lib/dashboard";
 
@@ -34,6 +35,7 @@ export function PremiumSidebar({
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const confirm = useConfirm();
   const role = user?.role ?? "student";
   const sections = NAV_BY_ROLE[role] ?? NAV_BY_ROLE.student;
   const basePath = (sections[0]?.items[0] as NavLink | undefined)?.href ?? "/";
@@ -51,6 +53,8 @@ export function PremiumSidebar({
   }
 
   async function signOut() {
+    const ok = await confirm({ title: "Sign out?", message: "You'll need to sign in again to get back into your dashboard.", confirmLabel: "Sign out", tone: "danger" });
+    if (!ok) return;
     await logout();
     router.replace("/login");
   }

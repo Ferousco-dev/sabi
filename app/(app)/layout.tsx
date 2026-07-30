@@ -2,6 +2,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "@/app/lib/AuthContext";
+import { ConfirmProvider } from "@/app/components/ui/confirm";
 import { PremiumSidebar } from "@/app/components/app/PremiumSidebar";
 import { PremiumTopbar } from "@/app/components/app/PremiumTopbar";
 
@@ -88,7 +89,9 @@ function AppShell({ children }: { children: ReactNode }) {
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
-      <AppShell>{children}</AppShell>
+      <ConfirmProvider>
+        <AppShell>{children}</AppShell>
+      </ConfirmProvider>
     </AuthProvider>
   );
 }

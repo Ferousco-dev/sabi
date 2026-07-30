@@ -4,11 +4,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Menu, Bell, ChevronDown, UserRound, Settings, LogOut } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
+import { useConfirm } from "@/app/components/ui/confirm";
 import { ROLE_LABEL } from "./dashboardNav";
 import { initials } from "@/app/lib/dashboard";
 
 export function PremiumTopbar({ onMenuClick }: { onMenuClick: () => void }) {
   const { user, logout } = useAuth();
+  const confirm = useConfirm();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -25,7 +27,13 @@ export function PremiumTopbar({ onMenuClick }: { onMenuClick: () => void }) {
     return () => { document.removeEventListener("mousedown", onClick); document.removeEventListener("keydown", onKey); };
   }, [menuOpen]);
 
-  async function signOut() { setMenuOpen(false); await logout(); router.replace("/login"); }
+  async function signOut() {
+    setMenuOpen(false);
+    const ok = await confirm({ title: "Sign out?", message: "You'll need to sign in again to get back into your dashboard.", confirmLabel: "Sign out", tone: "danger" });
+    if (!ok) return;
+    await logout();
+    router.replace("/login");
+  }
 
   return (
     <header style={{ height: 64, flexShrink: 0, background: "var(--bg)", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 12, padding: "0 16px", position: "sticky", top: 0, zIndex: 20 }}>
