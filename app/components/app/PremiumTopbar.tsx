@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Menu, Search, Bell, ChevronDown, UserRound, Settings, LogOut } from "lucide-react";
+import { Menu, Bell, ChevronDown, UserRound, Settings, LogOut } from "lucide-react";
 import { useAuth } from "@/app/lib/AuthContext";
 import { ROLE_LABEL } from "./dashboardNav";
 import { initials } from "@/app/lib/dashboard";
@@ -12,22 +12,6 @@ export function PremiumTopbar({ onMenuClick }: { onMenuClick: () => void }) {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
-  const [shortcutKey, setShortcutKey] = useState("⌘");
-
-  // Focus the search with Cmd/Ctrl+K; show the right modifier per platform.
-  useEffect(() => {
-    const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
-    setShortcutKey(isMac ? "⌘" : "Ctrl ");
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        searchRef.current?.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, []);
   const name = user?.name ?? "";
   const roleLabel = user ? ROLE_LABEL[user.role] : "";
   const base = user ? `/${user.role === "school_admin" ? "admin" : user.role}` : "/";
@@ -48,13 +32,6 @@ export function PremiumTopbar({ onMenuClick }: { onMenuClick: () => void }) {
       <button type="button" onClick={onMenuClick} aria-label="Open navigation" className="flex lg:hidden" style={{ alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--bg)", cursor: "pointer", flexShrink: 0 }}>
         <Menu size={20} strokeWidth={1.9} style={{ color: "var(--text-muted)" }} aria-hidden="true" />
       </button>
-
-      <label className="topbar-search" style={{ display: "flex", alignItems: "center", gap: 9, flex: 1, maxWidth: 460, height: 40, padding: "0 8px 0 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", background: "var(--bg-subtle)" }}>
-        <Search size={17} strokeWidth={2} style={{ color: "var(--text-subtle)", flexShrink: 0 }} aria-hidden="true" />
-        <span className="sr-only">Search</span>
-        <input ref={searchRef} type="search" placeholder="Search students, classes, results…" style={{ border: "none", outline: "none", background: "transparent", width: "100%", fontSize: 14, color: "var(--text)", fontFamily: "var(--font-sans)" }} />
-        <kbd className="kbd-hint" aria-hidden="true">{shortcutKey}K</kbd>
-      </label>
 
       <div style={{ flex: 1 }} />
 
