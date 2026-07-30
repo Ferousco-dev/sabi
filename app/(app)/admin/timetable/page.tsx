@@ -1,9 +1,11 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
-import { CalendarClock, Plus } from "lucide-react";
-import { getTimetable, createTimetableEntry, getClasses, getSubjects, type TimetableEntry, type ClassItem, type Subject } from "@/app/lib/api/schools";
+import { useState } from "react";
+import { CalendarClock, Plus, Trash2 } from "lucide-react";
+import { getTimetable, createTimetableEntry, deleteTimetableEntry, getClasses, getSubjects, type TimetableEntry, type ClassItem, type Subject } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
+import { useConfirm } from "@/app/components/ui/confirm";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -13,24 +15,25 @@ const labelStyle = { fontSize: 12.5, fontWeight: 600, color: "var(--gray-900)", 
 const fieldStyle = { height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", background: "var(--bg)", color: "var(--text)", width: "100%" } as const;
 
 export default function TimetablePage() {
-  const [entries, setEntries] = useState<TimetableEntry[]>([]);
-  const [classes, setClasses] = useState<ClassItem[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [loading, setLoading] = useState(true);
+  const confirm = useConfirm();
+  const { data, loading, refresh } = useResource("admin:timetable", async () => {
+    const [t, c, s] = await Promise.all([getTimetable(), getClasses(), getSubjects()]);
+    return {
+      entries: t.ok && t.data ? t.data.timetable : ([] as TimetableEntry[]),
+      classes: c.ok && c.data ? c.data.classes : ([] as ClassItem[]),
+      subjects: s.ok && s.data ? s.data.subjects : ([] as Subject[]),
+    };
+  });
+  const entries = data?.entries ?? [];
+  const classes = data?.classes ?? [];
+  const subjects = data?.subjects ?? [];
+
   const [classId, setClassId] = useState("");
   const [subjectId, setSubjectId] = useState("");
   const [day, setDay] = useState("Monday");
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("09:00");
   const [adding, setAdding] = useState(false);
-
-  useEffect(() => {
-    Promise.all([getTimetable(), getClasses(), getSubjects()]).then(([t, c, s]) => {
-      if (t.ok && t.data) setEntries(t.data.timetable);
-      if (c.ok && c.data) setClasses(c.data.classes);
-      if (s.ok && s.data) setSubjects(s.data.subjects);
-    }).finally(() => setLoading(false));
-  }, []);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -43,10 +46,16 @@ export default function TimetablePage() {
     });
     if (res.ok) {
       setSubjectId("");
-      const r = await getTimetable();
-      if (r.ok && r.data) setEntries(r.data.timetable);
+      await refresh();
     }
     setAdding(false);
+  }
+
+  async function handleDelete(id: number) {
+    const ok = await confirm({ title: "Remove this timetable slot?", message: "This will delete the slot from the schedule.", confirmLabel: "Remove", tone: "danger" });
+    if (!ok) return;
+    const res = await deleteTimetableEntry(id);
+    if (res.ok) refresh();
   }
 
   if (loading) return <LoadingPage />;
@@ -105,9 +114,16 @@ export default function TimetablePage() {
             <div style={{ padding: 10, minHeight: 120 }}>
               {items.length === 0 && <p style={{ fontSize: 12.5, color: "var(--text-subtle)", textAlign: "center", padding: "20px 0" }}>No classes</p>}
               {items.map((e) => (
-                <div key={e.id} style={{ padding: "8px 10px", marginBottom: 6, borderRadius: "var(--radius-sm)", background: "var(--teal-50)" }}>
-                  <div style={{ fontWeight: 600, fontSize: 13, color: "var(--teal)" }}>{e.subject}</div>
-                  <div style={{ fontSize: 11.5, color: "var(--text-subtle)", marginTop: 2 }}>{e.start_time.slice(0, 5)}–{e.end_time.slice(0, 5)}</div>
+                <div key={e.id} style={{ padding: "8px 10px", marginBottom: 6, borderRadius: "var(--radius-sm)", background: "var(--teal-50)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontWeight: 600, fontSize: 13, color: "var(--teal)" }}>{e.subject}</div>
+                    {e.class_name && <div style={{ fontSize: 11.5, color: "var(--text-muted)", marginTop: 1 }}>{e.class_name}</div>}
+                    <div style={{ fontSize: 11.5, color: "var(--text-subtle)", marginTop: 2 }}>{e.start_time.slice(0, 5)}–{e.end_time.slice(0, 5)}</div>
+                  </div>
+                  <button type="button" onClick={() => handleDelete(e.id)} aria-label={`Remove ${e.subject} slot`} title="Remove slot"
+                    style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", width: 26, height: 26, borderRadius: "var(--radius-sm)", border: "none", background: "transparent", color: "var(--text-subtle)", cursor: "pointer" }}>
+                    <Trash2 size={14} aria-hidden="true" />
+                  </button>
                 </div>
               ))}
             </div>

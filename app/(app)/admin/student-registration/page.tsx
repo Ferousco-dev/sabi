@@ -1,11 +1,11 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, UserPlus, Upload, FileSpreadsheet, CheckCircle2, XCircle } from "lucide-react";
-import { registerStudent, bulkImportStudents } from "@/app/lib/api/schools";
+import { registerStudent, bulkImportStudents, getClasses, type ClassItem } from "@/app/lib/api/schools";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
 import { LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
@@ -19,8 +19,12 @@ export default function StudentRegistrationPage() {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("manual");
 
+  const [classes, setClasses] = useState<ClassItem[]>([]);
+  useEffect(() => { getClasses().then((res) => { if (res.ok && res.data) setClasses(res.data.classes); }); }, []);
+
   // Manual entry
   const [form, setForm] = useState({ name: "", email: "", phone: "", date_of_birth: "", gender: "", address: "" });
+  const [manualClassId, setManualClassId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,7 +43,7 @@ export default function StudentRegistrationPage() {
     if (!form.name.trim() || !form.email.trim()) return setError("Name and email are required.");
     setLoading(true);
     setError(null);
-    const res = await registerStudent({ name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() || undefined, date_of_birth: form.date_of_birth || undefined, gender: form.gender || undefined, address: form.address.trim() || undefined });
+    const res = await registerStudent({ name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() || undefined, date_of_birth: form.date_of_birth || undefined, gender: form.gender || undefined, address: form.address.trim() || undefined, class_id: manualClassId ? Number(manualClassId) : undefined });
     setLoading(false);
     if (res.ok) router.push("/admin/students");
     else setError(res.data && "error" in res.data ? (res.data as any).error : "Failed to register student.");
@@ -105,6 +109,14 @@ export default function StudentRegistrationPage() {
                 ))}
               </div>
 
+              <div style={{ marginTop: 18, maxWidth: 340 }}>
+                <label htmlFor="manual-class" style={labelStyle}>Class</label>
+                <select id="manual-class" value={manualClassId} onChange={(e) => setManualClassId(e.target.value)} style={fieldStyle}>
+                  <option value="">No class yet</option>
+                  {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+
               <div style={{ marginTop: 18 }}>
                 <label htmlFor="address" style={labelStyle}>Address</label>
                 <textarea id="address" value={form.address} onChange={(e) => update("address", e.target.value)} rows={3}
@@ -127,6 +139,13 @@ export default function StudentRegistrationPage() {
               <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
                 Columns: <strong style={{ color: "var(--gray-900)" }}>name, email</strong>, phone, class
               </span>
+            </div>
+            <div style={{ maxWidth: 340, marginBottom: 16 }}>
+              <label htmlFor="csv-class" style={labelStyle}>Assign all to class (optional)</label>
+              <select id="csv-class" value={classId} onChange={(e) => setClassId(e.target.value)} style={fieldStyle}>
+                <option value="">No class</option>
+                {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
             </div>
             <label htmlFor="student-csv" style={{ ...labelStyle, marginTop: 4 }}>CSV rows</label>
             <textarea id="student-csv" value={csv} onChange={(e) => setCsv(e.target.value)} rows={8} placeholder={`John Doe,john@school.edu.ng\nJane Smith,jane@school.edu.ng`}

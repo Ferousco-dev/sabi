@@ -1,9 +1,10 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ClipboardCheck, Plus } from "lucide-react";
 import { getAssessmentConfigs, createAssessmentConfig, getAcademicSessions, getTerms, type AssessmentConfig, type AcademicSession, type Term } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -14,24 +15,24 @@ const labelStyle = { fontSize: 12.5, fontWeight: 600, color: "var(--gray-900)", 
 const fieldStyle = { height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", background: "var(--bg)", color: "var(--text)", width: "100%" } as const;
 
 export default function AssessmentsPage() {
-  const [assessments, setAssessments] = useState<AssessmentConfig[]>([]);
-  const [sessions, setSessions] = useState<AcademicSession[]>([]);
-  const [terms, setTerms] = useState<Term[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, refresh } = useResource("admin:assessments", async () => {
+    const [a, s, t] = await Promise.all([getAssessmentConfigs(), getAcademicSessions(), getTerms()]);
+    return {
+      assessments: a.ok && a.data ? a.data.assessments : ([] as AssessmentConfig[]),
+      sessions: s.ok && s.data ? s.data.sessions : ([] as AcademicSession[]),
+      terms: t.ok && t.data ? t.data.terms : ([] as Term[]),
+    };
+  });
+  const assessments = data?.assessments ?? [];
+  const sessions = data?.sessions ?? [];
+  const terms = data?.terms ?? [];
+
   const [name, setName] = useState("");
   const [maxScore, setMaxScore] = useState("100");
   const [weight, setWeight] = useState("10");
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [termId, setTermId] = useState<number | null>(null);
   const [adding, setAdding] = useState(false);
-
-  useEffect(() => {
-    Promise.all([getAssessmentConfigs(), getAcademicSessions(), getTerms()]).then(([a, s, t]) => {
-      if (a.ok && a.data) setAssessments(a.data.assessments);
-      if (s.ok && s.data) setSessions(s.data.sessions);
-      if (t.ok && t.data) setTerms(t.data.terms);
-    }).finally(() => setLoading(false));
-  }, []);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -42,8 +43,7 @@ export default function AssessmentsPage() {
       session_id: sessionId, term_id: termId,
     });
     setName(""); setMaxScore("100"); setWeight("10");
-    const r = await getAssessmentConfigs();
-    if (r.ok && r.data) setAssessments(r.data.assessments);
+    await refresh();
     setAdding(false);
   }
 

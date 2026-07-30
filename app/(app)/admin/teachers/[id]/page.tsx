@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Mail, BookOpen, GraduationCap, Phone, Building2 } from "lucide-react";
-import { getTeacherDetail, assignTeacherSubject, assignTeacherClass, type Teacher } from "@/app/lib/api/schools";
+import { getTeacherDetail, type Teacher } from "@/app/lib/api/schools";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 import { StatCard } from "@/app/components/dashboard/StatCard";
 import { Card } from "@/app/components/dashboard/Card";
@@ -15,7 +15,8 @@ import { initials } from "@/app/lib/dashboard";
 export default function TeacherDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [teacher, setTeacher] = useState<Teacher | null>(null);
+  type Named = { id: number; name: string };
+  const [teacher, setTeacher] = useState<(Teacher & { subjects: Named[]; classes: Named[] }) | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -55,8 +56,37 @@ export default function TeacherDetailPage() {
       </Card>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>
-        <div className="dash-rise"><StatCard label="Subjects" value={teacher.subject_count} Icon={BookOpen} /></div>
-        <div className="dash-rise" style={{ animationDelay: "70ms" }}><StatCard label="Classes" value={teacher.class_count} Icon={GraduationCap} /></div>
+        <div className="dash-rise"><StatCard label="Subjects" value={teacher.subjects.length} Icon={BookOpen} /></div>
+        <div className="dash-rise" style={{ animationDelay: "70ms" }}><StatCard label="Classes" value={teacher.classes.length} Icon={GraduationCap} /></div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16, marginBottom: 20 }}>
+        <Card title="Subjects taught">
+          {teacher.subjects.length === 0 ? (
+            <p style={{ fontSize: 13.5, color: "var(--text-subtle)" }}>No subjects on the timetable yet. Assign this teacher to timetable slots to build their subject list.</p>
+          ) : (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {teacher.subjects.map((s) => (
+                <span key={s.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: "var(--radius-full)", background: "var(--teal-50)", color: "var(--teal)", fontSize: 13, fontWeight: 600 }}>
+                  <BookOpen size={14} aria-hidden="true" /> {s.name}
+                </span>
+              ))}
+            </div>
+          )}
+        </Card>
+        <Card title="Classes taught">
+          {teacher.classes.length === 0 ? (
+            <p style={{ fontSize: 13.5, color: "var(--text-subtle)" }}>No classes on the timetable yet.</p>
+          ) : (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {teacher.classes.map((c) => (
+                <span key={c.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: "var(--radius-full)", background: "var(--gray-50)", color: "var(--gray-900)", fontSize: 13, fontWeight: 600, border: "1px solid var(--border)" }}>
+                  <GraduationCap size={14} aria-hidden="true" /> {c.name}
+                </span>
+              ))}
+            </div>
+          )}
+        </Card>
       </div>
 
       <Card title="Profile details">

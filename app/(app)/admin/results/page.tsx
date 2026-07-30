@@ -1,9 +1,10 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FileText, CheckCircle2, XCircle, Send, ClipboardList, Clock } from "lucide-react";
-import { getResults, reviewResult, publishResults, type Result } from "@/app/lib/api/schools";
+import { getResults, reviewResult, publishResults } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { StatCard } from "@/app/components/dashboard/StatCard";
@@ -14,18 +15,16 @@ import { initials } from "@/app/lib/dashboard";
 import { useConfirm } from "@/app/components/ui/confirm";
 
 export default function ResultsPage() {
-  const [results, setResults] = useState<Result[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("");
   const [publishing, setPublishing] = useState(false);
   const [publishMsg, setPublishMsg] = useState<string | null>(null);
   const confirm = useConfirm();
 
-  const load = (status?: string) => getResults(status || undefined).then((res) => {
-    if (res.ok && res.data) setResults(res.data.results);
-  }).finally(() => setLoading(false));
-
-  useEffect(() => { load(); }, []);
+  const { data, loading, refresh } = useResource("admin:results", async () => {
+    const res = await getResults();
+    return { results: res.ok && res.data ? res.data.results : [] };
+  });
+  const results = data?.results ?? [];
 
   async function handleReview(id: number, action: "approve" | "reject") {
     if (action === "reject") {
@@ -38,7 +37,7 @@ export default function ResultsPage() {
       if (!ok) return;
     }
     await reviewResult(id, action);
-    load(filter || undefined);
+    refresh();
   }
 
   async function handlePublish() {
@@ -55,7 +54,7 @@ export default function ResultsPage() {
     else setPublishMsg("Publish failed");
     setPublishing(false);
     setTimeout(() => setPublishMsg(null), 3000);
-    load();
+    refresh();
   }
 
   if (loading) return <LoadingPage />;
@@ -63,6 +62,7 @@ export default function ResultsPage() {
   const pending = results.filter((r) => r.status === "pending").length;
   const approved = results.filter((r) => r.status === "approved").length;
   const rejected = results.filter((r) => r.status === "rejected").length;
+  const visible = filter ? results.filter((r) => r.status === filter) : results;
 
   const FILTERS = [
     { key: "", label: "All" },
@@ -94,7 +94,7 @@ export default function ResultsPage() {
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         {FILTERS.map((f) => (
-          <button key={f.key} onClick={() => { setFilter(f.key); load(f.key || undefined); }}
+          <button key={f.key} onClick={() => setFilter(f.key)}
             style={{ height: 34, padding: "0 14px", borderRadius: "var(--radius-sm)", fontSize: 13, fontWeight: 600, border: `1px solid ${filter === f.key ? "var(--teal)" : "var(--border-strong)"}`, background: filter === f.key ? "var(--teal-50)" : "var(--bg)", color: filter === f.key ? "var(--teal)" : "var(--text-muted)", cursor: "pointer", fontFamily: "var(--font-sans)" }}>
             {f.label}
           </button>
@@ -102,7 +102,7 @@ export default function ResultsPage() {
       </div>
 
       <Card padded={false}>
-        {results.length === 0 ? (
+        {visible.length === 0 ? (
           <EmptyState Icon={FileText} title="No results found" description="Student results will appear here once submitted by teachers." />
         ) : (
           <div style={{ overflowX: "auto" }}>
@@ -113,7 +113,7 @@ export default function ResultsPage() {
                 ))}</tr>
               </thead>
               <tbody>
-                {results.map((r) => (
+                {visible.map((r) => (
                   <tr key={r.id}>
                     <td style={tdStyle}>
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>

@@ -97,6 +97,11 @@ export default function AdminDashboard() {
         </div>
         <div style={{ flex: "1 1 260px", minWidth: 0 }}>
           <Card title="Attendance today">
+            {total > 0 && (
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
+                <AttendanceRing rate={rate} />
+              </div>
+            )}
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {ATT.map((a) => {
                 const count = attCounts(a.key);
@@ -152,6 +157,22 @@ export default function AdminDashboard() {
         )}
       </Card>
     </>
+  );
+}
+
+/** A compact SVG donut showing today's attendance rate (present + late). */
+function AttendanceRing({ rate }: { rate: number }) {
+  const size = 128, stroke = 12, r = (size - stroke) / 2, circ = 2 * Math.PI * r;
+  const dash = (Math.min(100, Math.max(0, rate)) / 100) * circ;
+  const tone = rate >= 90 ? "#12B76A" : rate >= 75 ? "#F79009" : "#F04438";
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`Attendance rate ${rate} percent`}>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--gray-100)" strokeWidth={stroke} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={tone} strokeWidth={stroke} strokeLinecap="round"
+        strokeDasharray={`${dash} ${circ - dash}`} transform={`rotate(-90 ${size / 2} ${size / 2})`} />
+      <text x="50%" y="48%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: 26, fontWeight: 700, fill: "var(--gray-900)", fontVariantNumeric: "tabular-nums" }}>{rate}%</text>
+      <text x="50%" y="64%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: 11, fontWeight: 600, fill: "var(--text-subtle)", letterSpacing: "0.04em", textTransform: "uppercase" }}>present</text>
+    </svg>
   );
 }
 

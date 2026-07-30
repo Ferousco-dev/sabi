@@ -1,9 +1,10 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Send, Users, Check } from "lucide-react";
 import { getUsers, inviteUser, setUserStatus, type AppUser, type UserStatus } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -58,8 +59,11 @@ const STATUS_CONFIRM: Partial<Record<UserStatus, { title: string; message: strin
 };
 
 export default function InvitationsPage() {
-  const [users, setUsers] = useState<AppUser[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, refresh } = useResource("admin:invitations", async () => {
+    const res = await getUsers();
+    return { users: res.ok && res.data ? res.data.users : [] };
+  });
+  const users = data?.users ?? [];
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("student");
@@ -83,15 +87,9 @@ export default function InvitationsPage() {
     }
     setSavingId(u.id);
     const res = await setUserStatus(u.id, next);
-    if (res.ok) setUsers((list) => list.map((x) => (x.id === u.id ? { ...x, status: next } : x)));
+    if (res.ok) refresh();
     setSavingId(null);
   }
-
-  const load = () => getUsers().then((res) => {
-    if (res.ok && res.data) setUsers(res.data.users);
-  }).finally(() => setLoading(false));
-
-  useEffect(() => { load(); }, []);
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault();
@@ -100,7 +98,7 @@ export default function InvitationsPage() {
     setStatus(null);
     const res = await inviteUser({ name: name.trim(), email: email.trim(), role });
     setSending(false);
-    if (res.ok) { setStatus("sent"); setName(""); setEmail(""); load(); setTimeout(() => setStatus(null), 2000); }
+    if (res.ok) { setStatus("sent"); setName(""); setEmail(""); refresh(); setTimeout(() => setStatus(null), 2000); }
     else setStatus("error");
   }
 
@@ -122,12 +120,12 @@ export default function InvitationsPage() {
           <div style={{ flex: "1 1 160px" }}>
             <label htmlFor="inv-name" style={{ fontSize: 12.5, fontWeight: 600, color: "var(--gray-900)", display: "block", marginBottom: 6 }}>Name</label>
             <input id="inv-name" value={name} onChange={(e) => setName(e.target.value)}
-              style={{ width: "100%", height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)" }} />
+              style={{ width: "100%", height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", background: "var(--bg)", color: "var(--text)" }} />
           </div>
           <div style={{ flex: "1 1 200px" }}>
             <label htmlFor="inv-email" style={{ fontSize: 12.5, fontWeight: 600, color: "var(--gray-900)", display: "block", marginBottom: 6 }}>Email</label>
             <input id="inv-email" value={email} onChange={(e) => setEmail(e.target.value)} type="email"
-              style={{ width: "100%", height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)" }} />
+              style={{ width: "100%", height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", background: "var(--bg)", color: "var(--text)" }} />
           </div>
           <div style={{ flex: "0 1 180px" }}>
             <label htmlFor="inv-role" style={{ fontSize: 12.5, fontWeight: 600, color: "var(--gray-900)", display: "block", marginBottom: 6 }}>Role</label>

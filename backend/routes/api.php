@@ -61,6 +61,7 @@ Route::middleware(['auth:sanctum', ResolveTenant::class])->group(function () {
     Route::get('/enrollments', [EnrollmentController::class, 'index']);
     Route::get('/students', [StudentController::class, 'index']);
     Route::get('/teachers', [TeacherController::class, 'index']);
+    Route::get('/teachers/{id}', [TeacherController::class, 'show']);
     Route::get('/attendance', [AttendanceController::class, 'index']);
     Route::get('/assessment-configs', [AssessmentConfigController::class, 'index']);
     Route::get('/results', [ResultController::class, 'index']);

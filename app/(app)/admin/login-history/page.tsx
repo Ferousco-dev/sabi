@@ -1,9 +1,10 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { History } from "lucide-react";
 import { getLoginHistory } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -11,15 +12,12 @@ import { EmptyState } from "@/app/components/dashboard/EmptyState";
 import { SearchInput, TableToolbar, ResultCount } from "@/app/components/dashboard/table-controls";
 
 export default function LoginHistoryPage() {
-  const [history, setHistory] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading } = useResource("admin:login-history", async () => {
+    const res = await getLoginHistory();
+    return { history: res.ok && res.data ? res.data.history : ([] as any[]) };
+  });
+  const history = data?.history ?? [];
   const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    getLoginHistory().then((res) => {
-      if (res.ok && res.data) setHistory(res.data.history);
-    }).finally(() => setLoading(false));
-  }, []);
 
   const filtered = history.filter((h) => h.user_name.toLowerCase().includes(query.toLowerCase()));
 

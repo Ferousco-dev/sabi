@@ -1,9 +1,11 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useMemo, useState } from "react";
-import { Users } from "lucide-react";
-import { getStudents, type Student } from "@/app/lib/api/schools";
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { Users, UserPlus } from "lucide-react";
+import { getStudents } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -13,15 +15,12 @@ import { SearchInput, TableToolbar, ResultCount } from "@/app/components/dashboa
 import { initials } from "@/app/lib/dashboard";
 
 export default function AdminStudentsPage() {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading } = useResource("admin:students", async () => {
+    const res = await getStudents();
+    return { students: res.ok && res.data ? res.data.students : [] };
+  });
+  const students = data?.students ?? [];
   const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    getStudents().then((res) => {
-      if (res.ok && res.data) setStudents(res.data.students);
-    }).finally(() => setLoading(false));
-  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -36,7 +35,15 @@ export default function AdminStudentsPage() {
       <PageHeader
         title="Students"
         subtitle="Everyone enrolled at your school."
-        actions={<Badge tone="teal">{students.length} enrolled</Badge>}
+        actions={
+          <>
+            <Badge tone="teal">{students.length} enrolled</Badge>
+            <Link href="/admin/student-registration"
+              style={{ height: 40, padding: "0 16px", borderRadius: "var(--radius-sm)", background: "var(--teal)", color: "#fff", fontSize: 13.5, fontWeight: 600, border: "none", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 7, fontFamily: "var(--font-sans)", textDecoration: "none" }}>
+              <UserPlus size={16} strokeWidth={2} aria-hidden="true" /> Add students
+            </Link>
+          </>
+        }
       />
 
       <Card padded={false}>

@@ -1,7 +1,7 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BarChart3, Users, BookOpen, CalendarCheck } from "lucide-react";
 import {
   getStudents,
@@ -11,6 +11,7 @@ import {
   getTeacherWorkloadReport,
   getUserActivityReport,
 } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -27,48 +28,35 @@ const REPORT_TABS: { key: ReportTab; label: string }[] = [
 
 export default function AnalyticsPage() {
   const [topTab, setTopTab] = useState<TopTab>("overview");
-
-  // Overview (analytics tiles)
-  const [studentCount, setStudentCount] = useState(0);
-  const [todayPresent, setTodayPresent] = useState(0);
-  const [todayTotal, setTodayTotal] = useState(0);
-  const [classCount, setClassCount] = useState(0);
-  const [overviewLoading, setOverviewLoading] = useState(true);
-
-  // Reports
-  const [enrollment, setEnrollment] = useState<any[]>([]);
-  const [workload, setWorkload] = useState<any[]>([]);
-  const [activity, setActivity] = useState<any[]>([]);
-  const [reportsLoading, setReportsLoading] = useState(true);
   const [reportTab, setReportTab] = useState<ReportTab>("enrollment");
 
-  useEffect(() => {
-    Promise.all([getStudents(), getAttendance(), getTimetable()])
-      .then(([students, attendance, timetable]) => {
-        setStudentCount(students.ok && students.data ? students.data.students.length : 0);
-        setTodayPresent(
-          attendance.ok && attendance.data
-            ? attendance.data.attendance.filter((r: any) => r.status === "present").length
-            : 0,
-        );
-        setTodayTotal(attendance.ok && attendance.data ? attendance.data.attendance.length : 0);
-        setClassCount(timetable.ok && timetable.data ? timetable.data.timetable.length : 0);
-      })
-      .finally(() => setOverviewLoading(false));
-  }, []);
+  const { data, loading } = useResource("admin:analytics", async () => {
+    const [students, attendance, timetable, e, w, a] = await Promise.all([
+      getStudents(), getAttendance(), getTimetable(),
+      getEnrollmentReport(), getTeacherWorkloadReport(), getUserActivityReport(),
+    ]);
+    return {
+      studentCount: students.ok && students.data ? students.data.students.length : 0,
+      todayPresent: attendance.ok && attendance.data
+        ? attendance.data.attendance.filter((r: any) => r.status === "present").length : 0,
+      todayTotal: attendance.ok && attendance.data ? attendance.data.attendance.length : 0,
+      classCount: timetable.ok && timetable.data ? timetable.data.timetable.length : 0,
+      enrollment: e.ok && e.data ? e.data.report : ([] as any[]),
+      workload: w.ok && w.data ? w.data.report : ([] as any[]),
+      activity: a.ok && a.data ? a.data.report : ([] as any[]),
+    };
+  });
 
-  useEffect(() => {
-    Promise.all([getEnrollmentReport(), getTeacherWorkloadReport(), getUserActivityReport()])
-      .then(([e, w, a]) => {
-        if (e.ok && e.data) setEnrollment(e.data.report);
-        if (w.ok && w.data) setWorkload(w.data.report);
-        if (a.ok && a.data) setActivity(a.data.report);
-      })
-      .finally(() => setReportsLoading(false));
-  }, []);
+  const studentCount = data?.studentCount ?? 0;
+  const todayPresent = data?.todayPresent ?? 0;
+  const todayTotal = data?.todayTotal ?? 0;
+  const classCount = data?.classCount ?? 0;
+  const enrollment = data?.enrollment ?? [];
+  const workload = data?.workload ?? [];
+  const activity = data?.activity ?? [];
 
   const metrics = [
-    { icon: Users, label: "Total Students", value: String(studentCount), change: "+12 this term" },
+    { icon: Users, label: "Total Students", value: String(studentCount), change: "" },
     { icon: CalendarCheck, label: "Today's Attendance", value: todayTotal > 0 ? `${Math.round((todayPresent / todayTotal) * 100)}%` : "—", change: `${todayPresent}/${todayTotal} present` },
     { icon: BookOpen, label: "Classes Today", value: String(classCount), change: "Across all levels" },
     { icon: BarChart3, label: "Avg. Class Size", value: classCount > 0 && studentCount > 0 ? String(Math.round(studentCount / classCount)) : "—", change: "Students per class" },
@@ -96,7 +84,7 @@ export default function AnalyticsPage() {
       </div>
 
       {topTab === "overview" ? (
-        overviewLoading ? (
+        loading ? (
           <LoadingPage />
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
@@ -127,12 +115,12 @@ export default function AnalyticsPage() {
                   </span>
                 </div>
                 <div style={{ fontSize: 30, fontWeight: 700, color: "var(--gray-900)", letterSpacing: "-0.02em", lineHeight: 1.1 }}>{value}</div>
-                <div style={{ fontSize: 12.5, color: "var(--teal)", fontWeight: 600 }}>{change}</div>
+                {change && <div style={{ fontSize: 12.5, color: "var(--teal)", fontWeight: 600 }}>{change}</div>}
               </div>
             ))}
           </div>
         )
-      ) : reportsLoading ? (
+      ) : loading ? (
         <LoadingPage />
       ) : (
         <>

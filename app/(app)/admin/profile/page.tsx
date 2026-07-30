@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Building2, Save, Check } from "lucide-react";
 import { getSchoolProfile, updateSchoolProfile, type SchoolProfile } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -13,23 +14,30 @@ const labelStyle = { fontSize: 12.5, fontWeight: 600, color: "var(--gray-900)", 
 const fieldStyle = { width: "100%", height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", background: "var(--bg)", color: "var(--text)" } as const;
 
 export default function SchoolProfilePage() {
+  const { data, loading, refresh } = useResource("admin:profile", async () => {
+    const res = await getSchoolProfile();
+    return { school: res.ok && res.data ? res.data.school : null };
+  });
+
+  // Editable form, seeded from the fetched profile.
   const [profile, setProfile] = useState<SchoolProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    getSchoolProfile().then((res) => {
-      if (res.ok && res.data) setProfile(res.data.school);
-    }).finally(() => setLoading(false));
-  }, []);
+    if (data?.school) setProfile(data.school);
+  }, [data]);
 
   async function handleSave() {
     if (!profile) return;
     setSaving(true);
+    setError("");
     const res = await updateSchoolProfile(profile);
-    if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 2000); }
     setSaving(false);
+    if (!res.ok) { setError("Could not save changes. Please try again."); return; }
+    setSaved(true); setTimeout(() => setSaved(false), 2000);
+    refresh();
   }
 
   function update(field: keyof SchoolProfile, value: string) {
@@ -38,9 +46,11 @@ export default function SchoolProfilePage() {
 
   if (loading) return <LoadingPage />;
 
-  if (!profile) return (
+  if (!data?.school) return (
     <Card><EmptyState Icon={Building2} title="Profile not found" description="Could not load your school profile data." /></Card>
   );
+
+  if (!profile) return <LoadingPage />;
 
   return (
     <div style={{ maxWidth: 760 }}>
@@ -55,6 +65,8 @@ export default function SchoolProfilePage() {
           </button>
         }
       />
+
+      {error && <p role="alert" style={{ fontSize: 13, color: "#D92D20", marginBottom: 14 }}>{error}</p>}
 
       <Card title="School details">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 18 }}>

@@ -1,10 +1,11 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Users, GraduationCap, UserPlus, Upload, FileSpreadsheet, CheckCircle2, XCircle } from "lucide-react";
-import { getTeachers, createTeacher, bulkImportTeachers, type Teacher } from "@/app/lib/api/schools";
+import { getTeachers, createTeacher, bulkImportTeachers } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { StatCard } from "@/app/components/dashboard/StatCard";
@@ -19,8 +20,11 @@ const labelStyle = { fontSize: 12.5, fontWeight: 600, color: "var(--gray-900)", 
 const fieldStyle = { width: "100%", height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", background: "var(--bg)", color: "var(--text)" } as const;
 
 export default function TeachersPage() {
-  const [teachers, setTeachers] = useState<Teacher[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, refresh } = useResource("admin:teachers", async () => {
+    const res = await getTeachers();
+    return { teachers: res.ok && res.data ? res.data.teachers : [] };
+  });
+  const teachers = data?.teachers ?? [];
   const [query, setQuery] = useState("");
 
   // Add (modal)
@@ -36,12 +40,6 @@ export default function TeachersPage() {
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<{ imported: number; duplicates: number; errors: string[] } | null>(null);
 
-  const load = () => getTeachers().then((res) => {
-    if (res.ok && res.data) setTeachers(res.data.teachers);
-  });
-
-  useEffect(() => { load().finally(() => setLoading(false)); }, []);
-
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim() || !form.email.trim()) return setAddError("Name and email are required.");
@@ -51,7 +49,7 @@ export default function TeachersPage() {
     if (res.ok && res.data?.success) {
       setAddOk(`${form.name.trim()} added. Temporary password: sabihub123`);
       setForm({ name: "", email: "", phone: "" });
-      load();
+      refresh();
     } else {
       setAddError(res.data?.error ?? "Could not add teacher.");
     }
@@ -62,7 +60,7 @@ export default function TeachersPage() {
     setImporting(true); setResult(null);
     const res = await bulkImportTeachers({ csv_data: csv });
     setImporting(false);
-    if (res.ok && res.data) { setResult(res.data); load(); }
+    if (res.ok && res.data) { setResult(res.data); refresh(); }
   }
 
   if (loading) return <LoadingPage />;

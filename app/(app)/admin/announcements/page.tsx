@@ -1,9 +1,10 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Megaphone, Send } from "lucide-react";
 import { getAnnouncements, createAnnouncement, type Announcement } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -17,30 +18,31 @@ const TARGET_LABELS: Record<string, string> = {
 };
 
 export default function AnnouncementsPage() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, refresh } = useResource("admin:announcements", async () => {
+    const res = await getAnnouncements();
+    return { announcements: res.ok && res.data ? res.data.announcements : ([] as Announcement[]) };
+  });
+  const announcements = data?.announcements ?? [];
+
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [target, setTarget] = useState("");
   const [sending, setSending] = useState(false);
-
-  const load = () => getAnnouncements().then((res) => {
-    if (res.ok && res.data) setAnnouncements(res.data.announcements);
-  }).finally(() => setLoading(false));
-
-  useEffect(() => { load(); }, []);
+  const [error, setError] = useState("");
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
     setSending(true);
-    await createAnnouncement({
+    setError("");
+    const res = await createAnnouncement({
       title: title.trim(), content: content.trim(),
       target_role: target || undefined,
     });
-    setTitle(""); setContent(""); setTarget("");
     setSending(false);
-    load();
+    if (!res.ok) { setError("Could not send announcement. Please try again."); return; }
+    setTitle(""); setContent(""); setTarget("");
+    refresh();
   }
 
   if (loading) return <LoadingPage />;
@@ -84,6 +86,7 @@ export default function AnnouncementsPage() {
                 {sending ? <LoadingSpinner size={15} color="#fff" /> : <Send size={16} aria-hidden="true" />} {sending ? "Sending…" : "Send announcement"}
               </button>
             </div>
+            {error && <p role="alert" style={{ fontSize: 13, color: "#D92D20", margin: 0 }}>{error}</p>}
           </form>
         </Card>
 

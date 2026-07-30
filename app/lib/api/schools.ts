@@ -392,14 +392,12 @@ export async function getTeachers(): Promise<FetchResult<{ success: true; teache
 export async function createTeacher(_data: { name: string; email: string; phone?: string }): Promise<FetchResult<{ success: boolean; teacher_id?: number; error?: string }>> {
   return unavailable(); // no Laravel route (teachers join via /invitations, not a teacher store)
 }
-export async function getTeacherDetail(_id: number): Promise<FetchResult<{ success: true; teacher: Teacher & { subjects: { id: number; name: string }[]; classes: { id: number; name: string }[] } }>> {
-  return unavailable(); // no Laravel route
-}
-export async function assignTeacherSubject(_data: { teacher_id: number; subject_id: number }): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no Laravel route
-}
-export async function assignTeacherClass(_data: { teacher_id: number; class_id: number }): Promise<FetchResult<{ success: boolean }>> {
-  return unavailable(); // no Laravel route
+type TeacherDetail = Teacher & { subjects: { id: number; name: string }[]; classes: { id: number; name: string }[] };
+export async function getTeacherDetail(id: number): Promise<FetchResult<{ success: true; teacher: TeacherDetail }>> {
+  // GET /teachers/{id} → teacher with subjects/classes derived from the timetable.
+  const res = await fetchJson<TeacherDetail>(`/teachers/${id}`, { method: "GET" });
+  if (res.ok && res.data) return { ok: true, status: res.status, data: { success: true, teacher: res.data } };
+  return fail(res.status, errMsg(res));
 }
 
 // ── User Management ─────────────────────────────────────────────────────

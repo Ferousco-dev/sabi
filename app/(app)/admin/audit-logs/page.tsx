@@ -1,9 +1,10 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ScrollText } from "lucide-react";
 import { getAuditLogs, type AuditLog } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -11,15 +12,12 @@ import { EmptyState } from "@/app/components/dashboard/EmptyState";
 import { SearchInput, TableToolbar, ResultCount } from "@/app/components/dashboard/table-controls";
 
 export default function AuditLogsPage() {
-  const [logs, setLogs] = useState<AuditLog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading } = useResource("admin:audit-logs", async () => {
+    const res = await getAuditLogs();
+    return { logs: res.ok && res.data ? res.data.logs : ([] as AuditLog[]) };
+  });
+  const logs = data?.logs ?? [];
   const [query, setQuery] = useState("");
-
-  useEffect(() => {
-    getAuditLogs().then((res) => {
-      if (res.ok && res.data) setLogs(res.data.logs);
-    }).finally(() => setLoading(false));
-  }, []);
 
   const filtered = logs.filter((l) =>
     l.user_name.toLowerCase().includes(query.toLowerCase()) ||

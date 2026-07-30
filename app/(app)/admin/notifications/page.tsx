@@ -1,9 +1,9 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { getNotificationLogs, type NotificationLog } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -11,14 +11,11 @@ import { Badge } from "@/app/components/dashboard/Badge";
 import { EmptyState } from "@/app/components/dashboard/EmptyState";
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<NotificationLog[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getNotificationLogs().then((res) => {
-      if (res.ok && res.data) setNotifications(res.data.notifications);
-    }).finally(() => setLoading(false));
-  }, []);
+  const { data, loading } = useResource("admin:notifications", async () => {
+    const res = await getNotificationLogs();
+    return { notifications: res.ok && res.data ? res.data.notifications : ([] as NotificationLog[]) };
+  });
+  const notifications = data?.notifications ?? [];
 
   if (loading) return <LoadingPage />;
 

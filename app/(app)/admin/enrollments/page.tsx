@@ -1,9 +1,10 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Users } from "lucide-react";
-import { getEnrollments, getClasses, type Enrollment, type ClassItem } from "@/app/lib/api/schools";
+import { getEnrollments, getClasses } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -13,24 +14,20 @@ import { SearchInput, TableToolbar, ResultCount, FilterSelect } from "@/app/comp
 import { initials } from "@/app/lib/dashboard";
 
 export default function EnrollmentsPage() {
-  const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [classes, setClasses] = useState<ClassItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [classId, setClassId] = useState<number | undefined>(undefined);
   const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    Promise.all([getClasses(), getEnrollments()]).then(([c, e]) => {
-      if (c.ok && c.data) setClasses(c.data.classes);
-      if (e.ok && e.data) setEnrollments(e.data.enrollments);
-    }).finally(() => setLoading(false));
-  }, []);
+  const { data: classesData } = useResource("admin:classes:list", async () => {
+    const res = await getClasses();
+    return { classes: res.ok && res.data ? res.data.classes : [] };
+  });
+  const classes = classesData?.classes ?? [];
 
-  useEffect(() => {
-    getEnrollments(classId).then((res) => {
-      if (res.ok && res.data) setEnrollments(res.data.enrollments);
-    });
-  }, [classId]);
+  const { data, loading } = useResource("admin:enrollments:" + (classId ?? "all"), async () => {
+    const res = await getEnrollments(classId);
+    return { enrollments: res.ok && res.data ? res.data.enrollments : [] };
+  });
+  const enrollments = data?.enrollments ?? [];
 
   const filtered = enrollments.filter((e) =>
     e.student_name.toLowerCase().includes(query.toLowerCase()) ||

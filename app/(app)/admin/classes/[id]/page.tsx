@@ -5,12 +5,11 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, GraduationCap, Users, Columns3 } from "lucide-react";
-import { getSections, getEnrollments, type Section, type Enrollment } from "@/app/lib/api/schools";
+import { getClasses, getSections, getEnrollments, type Section, type Enrollment } from "@/app/lib/api/schools";
 import { LoadingPage } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { StatCard } from "@/app/components/dashboard/StatCard";
 import { Card } from "@/app/components/dashboard/Card";
-import { Badge } from "@/app/components/dashboard/Badge";
 import { EmptyState } from "@/app/components/dashboard/EmptyState";
 import { initials } from "@/app/lib/dashboard";
 
@@ -18,11 +17,13 @@ export default function ClassDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [sections, setSections] = useState<Section[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
+  const [className, setClassName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const classId = Number(id);
 
   useEffect(() => {
-    Promise.all([getSections(classId), getEnrollments(classId)]).then(([s, e]) => {
+    Promise.all([getClasses(), getSections(classId), getEnrollments(classId)]).then(([c, s, e]) => {
+      if (c.ok && c.data) setClassName(c.data.classes.find((k) => k.id === classId)?.name ?? null);
       if (s.ok && s.data) setSections(s.data.sections);
       if (e.ok && e.data) setEnrollments(e.data.enrollments);
     }).finally(() => setLoading(false));
@@ -37,9 +38,8 @@ export default function ClassDetailPage() {
       </Link>
 
       <PageHeader
-        title={`Class ${id}`}
+        title={className ?? `Class ${id}`}
         subtitle={`${enrollments.length} students · ${sections.length} sections`}
-        actions={<Badge tone="teal">Class</Badge>}
       />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 20 }}>

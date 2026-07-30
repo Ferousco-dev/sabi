@@ -1,9 +1,10 @@
 "use client";
 
 export const dynamic = "force-dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ArrowRight, Users, Check } from "lucide-react";
-import { getStudents, getClasses, transferStudent, type Student, type ClassItem } from "@/app/lib/api/schools";
+import { getStudents, getClasses, transferStudent } from "@/app/lib/api/schools";
+import { useResource } from "@/app/lib/useResource";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
@@ -13,21 +14,21 @@ import { initials } from "@/app/lib/dashboard";
 import { useConfirm } from "@/app/components/ui/confirm";
 
 export default function TransfersPage() {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [classes, setClasses] = useState<ClassItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
   const [newClassId, setNewClassId] = useState<number | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const confirm = useConfirm();
 
-  useEffect(() => {
-    Promise.all([getStudents(), getClasses()]).then(([s, c]) => {
-      if (s.ok && s.data) setStudents(s.data.students);
-      if (c.ok && c.data) setClasses(c.data.classes);
-    }).finally(() => setLoading(false));
-  }, []);
+  const { data, loading, refresh } = useResource("admin:transfers", async () => {
+    const [s, c] = await Promise.all([getStudents(), getClasses()]);
+    return {
+      students: s.ok && s.data ? s.data.students : [],
+      classes: c.ok && c.data ? c.data.classes : [],
+    };
+  });
+  const students = data?.students ?? [];
+  const classes = data?.classes ?? [];
 
   const filtered = students.filter((s) => s.name.toLowerCase().includes(query.toLowerCase()) || s.email.toLowerCase().includes(query.toLowerCase()));
 
@@ -45,6 +46,7 @@ export default function TransfersPage() {
     setStatus("transferring");
     const res = await transferStudent(selected, newClassId);
     setStatus(res.ok ? "done" : "error");
+    if (res.ok) refresh();
     setTimeout(() => { setStatus(null); setSelected(null); setNewClassId(null); }, 2000);
   }
 
