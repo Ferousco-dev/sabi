@@ -8,7 +8,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard, Users, BookOpen, ClipboardList, BarChart3,
   MessageSquare, Store, Settings, GraduationCap, UserPlus, ArrowRight,
-  Columns3, BookText, Building, Clock, ClipboardCheck, FileText, Megaphone,
+  BookText, ClipboardCheck, FileText, Megaphone,
   Bell, Building2, CalendarDays, ListOrdered, Sun, ScrollText,
   History, Shield, Calendar, CalendarCheck, UserCheck,
 } from "lucide-react";
@@ -43,26 +43,17 @@ export const NAV_BY_ROLE: Record<Role, NavSection[]> = {
       title: "Academics",
       items: [
         { label: "Classes", href: "/admin/classes", icon: GraduationCap },
-        { label: "Sections", href: "/admin/sections", icon: Columns3 },
         { label: "Subjects", href: "/admin/subjects", icon: BookText },
-        { label: "Departments", href: "/admin/departments", icon: Building },
         { label: "Timetable", href: "/admin/timetable", icon: BookOpen },
         { label: "Assessments", href: "/admin/assessments", icon: ClipboardCheck },
         { label: "Results", href: "/admin/results", icon: FileText },
-      ],
-    },
-    {
-      title: "Attendance",
-      items: [
         { label: "Attendance", href: "/admin/attendance", icon: ClipboardList },
-        { label: "Corrections", href: "/admin/attendance-corrections", icon: Clock },
       ],
     },
     {
       title: "Insights",
       items: [
         { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-        { label: "Reports", href: "/admin/reports", icon: BarChart3 },
         { label: "Announcements", href: "/admin/announcements", icon: Megaphone },
         { label: "Notifications", href: "/admin/notifications", icon: Bell },
       ],
