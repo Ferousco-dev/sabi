@@ -68,7 +68,8 @@ School B's rows (copy `ClassTenancyTest`).
 
 ## Deploy (pilot)
 
-Runs on the existing cPanel: point a subdomain docroot (e.g. `api-v2.sabihub.ng`)
-at `backend/public`, set the `.env` (DB + `APP_KEY`), run `php artisan migrate
---force`, and add a cron entry for `php artisan schedule:run`. CI-gated via the
-same pipeline. Move to a VPS when scale demands (see ADR-0002).
+Target: Laravel serves **`api.sabihub.ng`**. Cutover (once at parity, staging-verified
+first): point the `api.sabihub.ng` docroot at `backend/public`, set the `.env`
+(DB + `APP_KEY`), run `php artisan migrate --force`, add a cron entry for
+`php artisan schedule:run`. Until then the old PHP keeps that domain live. CI-gated
+via the same pipeline. Move to a VPS when scale demands (see ADR-0002).

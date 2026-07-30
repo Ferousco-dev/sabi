@@ -19,8 +19,12 @@ alongside the old, move traffic endpoint-by-endpoint, delete the old.
 - [x] Central tenancy: `ResolveTenant` middleware + global `BelongsToSchool` scope (auto-filter + auto-stamp).
 - [x] Auth + tokenised set-own-password invites (kills `sabihub123`); `role:` middleware + `SchoolClassPolicy`; validation on every write.
 - [x] Cross-tenant isolation feature tests — **12 tests / 29 assertions green**.
-- [ ] Deploy to `api-v2.sabihub.ng` (cPanel docroot → `backend/public`), CI-gated — *first Phase 2 step*.
 - [ ] Remaining domain: rate limiting; per-model policies for results/attendance; students/teachers are `users` by role (done) — add dedicated endpoints as ported.
+
+**Target end state: Laravel serves `api.sabihub.ng`.** To get there without breaking
+the live app: the old PHP keeps answering `api.sabihub.ng` until the Laravel API
+reaches parity; then we flip that domain's docroot to `backend/public` in a single
+cutover (staging-verified first). Porting below builds that parity.
 
 ## Phase 2 — Port endpoints (strangler fig)
 Port in dependency order, each with API tests, repointing the frontend base URL per group:
