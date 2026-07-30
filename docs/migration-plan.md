@@ -13,12 +13,14 @@ alongside the old, move traffic endpoint-by-endpoint, delete the old.
 - [ ] Add a **staging** environment (Vercel preview + staging API + staging DB).
 - [ ] Add error tracking (Sentry or similar) to the current app.
 
-## Phase 1 — Laravel API skeleton + tenancy (no user-facing change)
-- [ ] New Laravel app; deploy to a `api-v2.sabihub.ng` subdomain (cPanel docroot → `/public`), CI-gated.
-- [ ] Recreate the schema as **migrations**, every tenant table gets `school_id` + composite indexes.
-- [ ] Central tenancy: `resolve-tenant` middleware + global `BelongsToSchool` scope.
-- [ ] Auth (Sanctum), policies per role, form-request validation, rate limiting.
-- [ ] Cross-tenant isolation feature test (School A cannot read School B) — the gate for "tenancy done".
+## Phase 1 — Laravel API skeleton + tenancy ✅ (backend built; not yet deployed)
+- [x] Laravel 13 app in `backend/` (Sanctum auth).
+- [x] Migrations with `school_id` + composite indexes on every tenant table (schools, school_classes, subjects, timetable_entries, invitations, users.role/status).
+- [x] Central tenancy: `ResolveTenant` middleware + global `BelongsToSchool` scope (auto-filter + auto-stamp).
+- [x] Auth + tokenised set-own-password invites (kills `sabihub123`); `role:` middleware + `SchoolClassPolicy`; validation on every write.
+- [x] Cross-tenant isolation feature tests — **12 tests / 29 assertions green**.
+- [ ] Deploy to `api-v2.sabihub.ng` (cPanel docroot → `backend/public`), CI-gated — *first Phase 2 step*.
+- [ ] Remaining domain: rate limiting; per-model policies for results/attendance; students/teachers are `users` by role (done) — add dedicated endpoints as ported.
 
 ## Phase 2 — Port endpoints (strangler fig)
 Port in dependency order, each with API tests, repointing the frontend base URL per group:
