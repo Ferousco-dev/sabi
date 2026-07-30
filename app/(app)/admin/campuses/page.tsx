@@ -9,6 +9,7 @@ import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
 import { EmptyState } from "@/app/components/dashboard/EmptyState";
 import { Badge } from "@/app/components/dashboard/Badge";
+import { useConfirm } from "@/app/components/ui/confirm";
 
 const labelStyle = { fontSize: 12, fontWeight: 600, color: "var(--text-subtle)", display: "block" as const, marginBottom: 6 };
 const inputStyle = { height: 42, padding: "0 12px", fontSize: 14, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", fontFamily: "var(--font-sans)", color: "var(--text)", background: "var(--bg)" };
@@ -19,6 +20,7 @@ export default function CampusesPage() {
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const confirm = useConfirm();
 
   const load = () => getCampuses().then((res) => {
     if (res.ok && res.data) setCampuses(res.data.campuses);
@@ -37,6 +39,14 @@ export default function CampusesPage() {
   }
 
   async function handleDelete(id: number) {
+    const campus = campuses.find((c) => c.id === id);
+    const ok = await confirm({
+      title: campus ? `Delete ${campus.name}?` : "Delete this campus?",
+      message: "The campus and its association with your school will be permanently removed. This cannot be undone.",
+      confirmLabel: "Delete",
+      tone: "danger",
+    });
+    if (!ok) return;
     await deleteCampus(id);
     load();
   }

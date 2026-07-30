@@ -11,6 +11,7 @@ import { Card } from "@/app/components/dashboard/Card";
 import { Badge } from "@/app/components/dashboard/Badge";
 import { EmptyState } from "@/app/components/dashboard/EmptyState";
 import { initials } from "@/app/lib/dashboard";
+import { useConfirm } from "@/app/components/ui/confirm";
 
 type Tab = "daily" | "corrections";
 
@@ -27,6 +28,7 @@ export default function AttendancePage() {
   const [corrections, setCorrections] = useState<any[]>([]);
   const [correctionsLoaded, setCorrectionsLoaded] = useState(false);
   const [processing, setProcessing] = useState<number | null>(null);
+  const confirm = useConfirm();
 
   const load = () => getAttendance(date).then((res) => {
     if (res.ok && res.data) setRecords(res.data.attendance);
@@ -51,6 +53,15 @@ export default function AttendancePage() {
   }
 
   async function handleAction(id: number, approve: boolean) {
+    if (!approve) {
+      const ok = await confirm({
+        title: "Reject this correction request?",
+        message: "The student's attendance record will stay unchanged and their request will be marked rejected.",
+        confirmLabel: "Reject",
+        tone: "danger",
+      });
+      if (!ok) return;
+    }
     setProcessing(id);
     await approveAttendanceCorrection(id, approve);
     loadCorrections();

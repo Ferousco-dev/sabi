@@ -11,6 +11,7 @@ import { Badge, type BadgeTone } from "@/app/components/dashboard/Badge";
 import { EmptyState } from "@/app/components/dashboard/EmptyState";
 import { SearchInput, TableToolbar, ResultCount } from "@/app/components/dashboard/table-controls";
 import { initials } from "@/app/lib/dashboard";
+import { useConfirm } from "@/app/components/ui/confirm";
 
 const ROLES = [
   { key: "school_admin", label: "School Admin" },
@@ -32,6 +33,30 @@ const STATUS_TONE: Record<string, BadgeTone> = {
 };
 const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
+// Status changes that remove a user's access and should be confirmed. "active" restores access and needs no gate.
+const STATUS_CONFIRM: Partial<Record<UserStatus, { title: string; message: string; confirmLabel: string }>> = {
+  expelled: {
+    title: "Expel this user?",
+    message: "They will lose access to the platform immediately. This can be reversed later by setting them back to active.",
+    confirmLabel: "Expel",
+  },
+  graduated: {
+    title: "Mark this user as graduated?",
+    message: "They will be moved out of active membership and lose day-to-day access. This can be reversed by setting them back to active.",
+    confirmLabel: "Graduate",
+  },
+  transferred: {
+    title: "Mark this user as transferred?",
+    message: "They will be removed from active membership and lose access. This can be reversed by setting them back to active.",
+    confirmLabel: "Transfer",
+  },
+  inactive: {
+    title: "Deactivate this user?",
+    message: "They will lose access to the platform immediately. This can be reversed by setting them back to active.",
+    confirmLabel: "Deactivate",
+  },
+};
+
 export default function InvitationsPage() {
   const [users, setUsers] = useState<AppUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,9 +67,20 @@ export default function InvitationsPage() {
   const [status, setStatus] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [savingId, setSavingId] = useState<number | null>(null);
+  const confirm = useConfirm();
 
   async function changeStatus(u: AppUser, next: UserStatus) {
     if (next === u.status) return;
+    const gate = STATUS_CONFIRM[next];
+    if (gate) {
+      const ok = await confirm({
+        title: gate.title.replace("this user", u.name),
+        message: gate.message,
+        confirmLabel: gate.confirmLabel,
+        tone: "danger",
+      });
+      if (!ok) return;
+    }
     setSavingId(u.id);
     const res = await setUserStatus(u.id, next);
     if (res.ok) setUsers((list) => list.map((x) => (x.id === u.id ? { ...x, status: next } : x)));

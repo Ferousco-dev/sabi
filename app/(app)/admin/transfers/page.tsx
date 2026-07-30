@@ -10,6 +10,7 @@ import { Card } from "@/app/components/dashboard/Card";
 import { EmptyState } from "@/app/components/dashboard/EmptyState";
 import { SearchInput } from "@/app/components/dashboard/table-controls";
 import { initials } from "@/app/lib/dashboard";
+import { useConfirm } from "@/app/components/ui/confirm";
 
 export default function TransfersPage() {
   const [students, setStudents] = useState<Student[]>([]);
@@ -19,6 +20,7 @@ export default function TransfersPage() {
   const [selected, setSelected] = useState<number | null>(null);
   const [newClassId, setNewClassId] = useState<number | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const confirm = useConfirm();
 
   useEffect(() => {
     Promise.all([getStudents(), getClasses()]).then(([s, c]) => {
@@ -31,6 +33,15 @@ export default function TransfersPage() {
 
   async function handleTransfer() {
     if (!selected || !newClassId) return;
+    const student = students.find((s) => s.id === selected);
+    const target = classes.find((c) => c.id === newClassId);
+    const ok = await confirm({
+      title: student ? `Transfer ${student.name}?` : "Transfer this student?",
+      message: `The student will be moved${target ? ` into ${target.name}` : " to the new class"} and removed from their current class. This affects their timetable and records.`,
+      confirmLabel: "Transfer",
+      tone: "danger",
+    });
+    if (!ok) return;
     setStatus("transferring");
     const res = await transferStudent(selected, newClassId);
     setStatus(res.ok ? "done" : "error");

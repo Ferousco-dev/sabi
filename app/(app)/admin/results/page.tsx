@@ -11,6 +11,7 @@ import { Card } from "@/app/components/dashboard/Card";
 import { Badge } from "@/app/components/dashboard/Badge";
 import { EmptyState } from "@/app/components/dashboard/EmptyState";
 import { initials } from "@/app/lib/dashboard";
+import { useConfirm } from "@/app/components/ui/confirm";
 
 export default function ResultsPage() {
   const [results, setResults] = useState<Result[]>([]);
@@ -18,6 +19,7 @@ export default function ResultsPage() {
   const [filter, setFilter] = useState<string>("");
   const [publishing, setPublishing] = useState(false);
   const [publishMsg, setPublishMsg] = useState<string | null>(null);
+  const confirm = useConfirm();
 
   const load = (status?: string) => getResults(status || undefined).then((res) => {
     if (res.ok && res.data) setResults(res.data.results);
@@ -26,11 +28,27 @@ export default function ResultsPage() {
   useEffect(() => { load(); }, []);
 
   async function handleReview(id: number, action: "approve" | "reject") {
+    if (action === "reject") {
+      const ok = await confirm({
+        title: "Reject this result?",
+        message: "The result will be sent back as rejected and the teacher will need to resubmit it. It will not be published.",
+        confirmLabel: "Reject",
+        tone: "danger",
+      });
+      if (!ok) return;
+    }
     await reviewResult(id, action);
     load(filter || undefined);
   }
 
   async function handlePublish() {
+    const ok = await confirm({
+      title: "Publish all approved results?",
+      message: "Every approved result becomes visible to students and parents. Publishing is a commit and cannot be easily undone.",
+      confirmLabel: "Publish all",
+      tone: "danger",
+    });
+    if (!ok) return;
     setPublishing(true);
     const res = await publishResults();
     if (res.ok && res.data) setPublishMsg(`Published ${res.data.published_count} results`);
