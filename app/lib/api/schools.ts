@@ -169,6 +169,9 @@ export type Teacher = { id: number; name: string; email: string; phone?: string;
 export function getTeachers(): Promise<FetchResult<{ success: true; teachers: Teacher[] }>> {
   return fetchJson("/schools/teachers.php", { method: "GET" });
 }
+export function createTeacher(data: { name: string; email: string; phone?: string }): Promise<FetchResult<{ success: boolean; teacher_id?: number; error?: string }>> {
+  return fetchJson("/schools/teachers.php", { method: "POST", body: JSON.stringify({ action: "register", ...data }) });
+}
 export function getTeacherDetail(id: number): Promise<FetchResult<{ success: true; teacher: Teacher & { subjects: { id: number; name: string }[]; classes: { id: number; name: string }[] } }>> {
   return fetchJson(`/schools/teachers.php?id=${id}`, { method: "GET" });
 }
