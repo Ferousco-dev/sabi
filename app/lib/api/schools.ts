@@ -194,6 +194,10 @@ export function inviteUser(data: { name: string; email: string; role: string }):
 export function toggleUserStatus(userId: number, activate: boolean): Promise<FetchResult<{ success: boolean }>> {
   return fetchJson("/schools/users.php", { method: "POST", body: JSON.stringify({ action: activate ? "activate" : "deactivate", user_id: userId }) });
 }
+export type UserStatus = "active" | "inactive" | "graduated" | "expelled" | "transferred";
+export function setUserStatus(userId: number, status: UserStatus): Promise<FetchResult<{ success: boolean }>> {
+  return fetchJson("/schools/users.php", { method: "POST", body: JSON.stringify({ action: "set_status", user_id: userId, status }) });
+}
 export function updateUserRole(userId: number, role: string): Promise<FetchResult<{ success: boolean }>> {
   return fetchJson("/schools/users.php", { method: "POST", body: JSON.stringify({ action: "update_role", user_id: userId, role }) });
 }

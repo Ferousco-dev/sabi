@@ -3,11 +3,11 @@
 export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { Send, Users, Check } from "lucide-react";
-import { getUsers, inviteUser, type AppUser } from "@/app/lib/api/schools";
+import { getUsers, inviteUser, setUserStatus, type AppUser, type UserStatus } from "@/app/lib/api/schools";
 import { LoadingPage, LoadingSpinner } from "@/app/components/ui/LoadingSpinner";
 import { PageHeader } from "@/app/components/dashboard/PageHeader";
 import { Card } from "@/app/components/dashboard/Card";
-import { Badge } from "@/app/components/dashboard/Badge";
+import { Badge, type BadgeTone } from "@/app/components/dashboard/Badge";
 import { EmptyState } from "@/app/components/dashboard/EmptyState";
 import { SearchInput, TableToolbar, ResultCount } from "@/app/components/dashboard/table-controls";
 import { initials } from "@/app/lib/dashboard";
@@ -20,6 +20,18 @@ const ROLES = [
   { key: "creator", label: "Creator" },
 ];
 
+// School-appropriate lifecycle statuses (no ban/suspend in the UI).
+const STATUS_OPTIONS: UserStatus[] = ["active", "graduated", "transferred", "expelled", "inactive"];
+const STATUS_TONE: Record<string, BadgeTone> = {
+  active: "success",
+  graduated: "teal",
+  transferred: "warning",
+  expelled: "danger",
+  inactive: "neutral",
+  suspended: "danger",
+};
+const cap = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
+
 export default function InvitationsPage() {
   const [users, setUsers] = useState<AppUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +41,15 @@ export default function InvitationsPage() {
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [savingId, setSavingId] = useState<number | null>(null);
+
+  async function changeStatus(u: AppUser, next: UserStatus) {
+    if (next === u.status) return;
+    setSavingId(u.id);
+    const res = await setUserStatus(u.id, next);
+    if (res.ok) setUsers((list) => list.map((x) => (x.id === u.id ? { ...x, status: next } : x)));
+    setSavingId(null);
+  }
 
   const load = () => getUsers().then((res) => {
     if (res.ok && res.data) setUsers(res.data.users);
@@ -104,7 +125,7 @@ export default function InvitationsPage() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 680 }}>
               <thead>
-                <tr>{["Name", "Email", "Role", "Status", "Created"].map((h, i) => (
+                <tr>{["Name", "Email", "Role", "Status", "Change status", "Created"].map((h, i) => (
                   <th key={i} style={thStyle}>{h}</th>
                 ))}</tr>
               </thead>
@@ -120,9 +141,24 @@ export default function InvitationsPage() {
                     <td style={tdStyle}>{u.email}</td>
                     <td style={{ ...tdStyle, textTransform: "capitalize" }}>{u.role.replace("_", " ")}</td>
                     <td style={tdStyle}>
-                      <Badge tone={u.status === "active" ? "success" : "danger"} dot>
-                        {u.status[0].toUpperCase() + u.status.slice(1)}
+                      <Badge tone={STATUS_TONE[u.status] ?? "neutral"} dot>
+                        {cap(u.status)}
                       </Badge>
+                    </td>
+                    <td style={tdStyle}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                        <select
+                          value={STATUS_OPTIONS.includes(u.status as UserStatus) ? u.status : ""}
+                          onChange={(e) => changeStatus(u, e.target.value as UserStatus)}
+                          disabled={savingId === u.id}
+                          aria-label={`Change status for ${u.name}`}
+                          style={{ height: 34, padding: "0 10px", fontSize: 13, border: "1px solid var(--border-strong)", borderRadius: "var(--radius-sm)", outline: "none", background: "var(--bg)", fontFamily: "var(--font-sans)", color: "var(--text)", cursor: savingId === u.id ? "default" : "pointer" }}
+                        >
+                          {!STATUS_OPTIONS.includes(u.status as UserStatus) && <option value="">{cap(u.status)}</option>}
+                          {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{cap(s)}</option>)}
+                        </select>
+                        {savingId === u.id && <LoadingSpinner size={14} />}
+                      </span>
                     </td>
                     <td style={tdStyle}>{new Date(u.created_at).toLocaleDateString()}</td>
                   </tr>
